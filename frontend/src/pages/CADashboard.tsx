@@ -1,23 +1,51 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Briefcase, LogOut, User, Radio, WifiOff, 
-  MessageCircle, CheckCircle, XCircle, Clock, Send, Shield
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useMockBackend, SERVICES, ServiceRequest } from '@/context/MockBackendContext';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Briefcase,
+  LogOut,
+  User,
+  Radio,
+  WifiOff,
+  MessageCircle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Send,
+  Shield,
+  Loader2, // Import Loader
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  useMockBackend,
+  SERVICES,
+  ServiceRequest,
+} from "@/context/MockBackendContext";
+import { toast } from "sonner";
 
 const CADashboard = () => {
   const navigate = useNavigate();
-  const { 
-    currentUser, 
-    logout, 
+  const {
+    currentUser,
+    isLoading, // 1. Get Loading State
+    logout,
     requests,
     getSearchingRequests,
     caAcceptRequest,
@@ -27,11 +55,20 @@ const CADashboard = () => {
 
   const [isListening, setIsListening] = useState(true);
   const [incomingJob, setIncomingJob] = useState<ServiceRequest | null>(null);
-  
+
   // Chat state
   const [chatOpen, setChatOpen] = useState(false);
   const [chatRequestId, setChatRequestId] = useState<string | null>(null);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
+
+  useEffect(() => {
+    // 2. Wait for loading to finish before checking user
+    if (!isLoading) {
+      if (!currentUser || currentUser.role !== "ca") {
+        navigate("/");
+      }
+    }
+  }, [currentUser, isLoading, navigate]);
 
   useEffect(() => {
     if (!isListening) return;
@@ -40,7 +77,7 @@ const CADashboard = () => {
       const searching = getSearchingRequests();
       if (searching.length > 0 && !incomingJob) {
         setIncomingJob(searching[0]);
-        toast.info('New job opportunity!', {
+        toast.info("New job opportunity!", {
           description: `${searching[0].serviceName} - ₹${searching[0].budget}`,
         });
       }
@@ -49,25 +86,34 @@ const CADashboard = () => {
     return () => clearInterval(interval);
   }, [isListening, getSearchingRequests, incomingJob]);
 
-  if (!currentUser) {
-    navigate('/');
-    return null;
+  // 3. Show Spinner while loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
+
+  // 4. Safety Check
+  if (!currentUser || currentUser.role !== "ca") return null;
 
   // Jobs this CA has accepted (pending approval or active)
   const myJobs = requests.filter(
-    r => r.caId === currentUser.id && (r.status === 'pending_approval' || r.status === 'active')
+    (r) =>
+      r.caId === currentUser.id &&
+      (r.status === "pending_approval" || r.status === "active"),
   );
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const handleAcceptJob = () => {
     if (!incomingJob || !currentUser) return;
     caAcceptRequest(incomingJob.id, currentUser.id, currentUser.name);
-    toast.success('Job accepted! Pending admin approval.');
+    toast.success("Job accepted! Pending admin approval.");
     setIncomingJob(null);
   };
 
@@ -82,8 +128,14 @@ const CADashboard = () => {
 
   const sendMessage = () => {
     if (!newMessage.trim() || !chatRequestId || !currentUser) return;
-    addCAMessage(chatRequestId, currentUser.id, currentUser.name, 'ca', newMessage);
-    setNewMessage('');
+    addCAMessage(
+      chatRequestId,
+      currentUser.id,
+      currentUser.name,
+      "ca",
+      newMessage,
+    );
+    setNewMessage("");
   };
 
   const messages = chatRequestId ? caMessages[chatRequestId] || [] : [];
@@ -98,7 +150,9 @@ const CADashboard = () => {
               <Briefcase className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-heading font-bold text-lg text-foreground">TaxConsultGuru</h1>
+              <h1 className="font-heading font-bold text-lg text-foreground">
+                TaxConsultGuru
+              </h1>
               <p className="text-xs text-muted-foreground">CA Portal</p>
             </div>
           </div>
@@ -117,12 +171,20 @@ const CADashboard = () => {
 
       <main className="container mx-auto px-6 py-8">
         {/* Listening Toggle */}
-        <Card className={`mb-8 ${isListening ? 'border-success/50 bg-success/5' : 'border-muted'}`}>
+        <Card
+          className={`mb-8 ${
+            isListening ? "border-success/50 bg-success/5" : "border-muted"
+          }`}
+        >
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${isListening ? 'bg-success' : 'bg-muted'}`}>
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                      isListening ? "bg-success" : "bg-muted"
+                    }`}
+                  >
                     {isListening ? (
                       <Radio className="w-7 h-7 text-success-foreground" />
                     ) : (
@@ -135,21 +197,21 @@ const CADashboard = () => {
                 </div>
                 <div>
                   <h3 className="font-heading text-xl font-semibold">
-                    {isListening ? 'Listening for Jobs' : 'Not Available'}
+                    {isListening ? "Listening for Jobs" : "Not Available"}
                   </h3>
                   <p className="text-muted-foreground">
-                    {isListening 
-                      ? 'You will receive job opportunities in real-time' 
-                      : 'Toggle to start receiving job requests'}
+                    {isListening
+                      ? "You will receive job opportunities in real-time"
+                      : "Toggle to start receiving job requests"}
                   </p>
                 </div>
               </div>
               <Button
-                variant={isListening ? 'outline' : 'default'}
+                variant={isListening ? "outline" : "default"}
                 size="lg"
                 onClick={() => setIsListening(!isListening)}
               >
-                {isListening ? 'Go Offline' : 'Go Online'}
+                {isListening ? "Go Offline" : "Go Online"}
               </Button>
             </div>
           </CardContent>
@@ -157,7 +219,9 @@ const CADashboard = () => {
 
         {/* Active Jobs */}
         <section className="mb-10">
-          <h2 className="font-heading text-xl font-semibold mb-4">My Jobs ({myJobs.length})</h2>
+          <h2 className="font-heading text-xl font-semibold mb-4">
+            My Jobs ({myJobs.length})
+          </h2>
           {myJobs.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -170,28 +234,41 @@ const CADashboard = () => {
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {myJobs.map(job => (
+              {myJobs.map((job) => (
                 <Card key={job.id} className="border-primary/20">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{job.serviceName}</CardTitle>
-                      <Badge 
-                        variant="secondary" 
-                        className={job.status === 'pending_approval' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'}
+                      <CardTitle className="text-lg">
+                        {job.serviceName}
+                      </CardTitle>
+                      <Badge
+                        variant="secondary"
+                        className={
+                          job.status === "pending_approval"
+                            ? "bg-warning/10 text-warning"
+                            : "bg-success/10 text-success"
+                        }
                       >
-                        {job.status === 'pending_approval' ? 'Pending Approval' : 'Active'}
+                        {job.status === "pending_approval"
+                          ? "Pending Approval"
+                          : "Active"}
                       </Badge>
                     </div>
                     <CardDescription>
-                      Budget: <span className="font-semibold text-foreground">₹{job.budget.toLocaleString()}</span>
+                      Budget:{" "}
+                      <span className="font-semibold text-foreground">
+                        ₹{job.budget.toLocaleString()}
+                      </span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{job.description}</p>
-                    <Button 
-                      size="sm" 
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {job.description}
+                    </p>
+                    <Button
+                      size="sm"
                       onClick={() => openChat(job.id)}
-                      disabled={job.status === 'pending_approval'}
+                      disabled={job.status === "pending_approval"}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Admin Desk
@@ -205,9 +282,11 @@ const CADashboard = () => {
 
         {/* Services info */}
         <section>
-          <h2 className="font-heading text-xl font-semibold mb-4">Services You Can Accept</h2>
+          <h2 className="font-heading text-xl font-semibold mb-4">
+            Services You Can Accept
+          </h2>
           <div className="flex flex-wrap gap-2">
-            {SERVICES.map(service => (
+            {SERVICES.map((service) => (
               <Badge key={service.id} variant="secondary" className="px-4 py-2">
                 {service.name}
               </Badge>
@@ -230,7 +309,7 @@ const CADashboard = () => {
               A new job is available. Be the first to accept!
             </DialogDescription>
           </DialogHeader>
-          
+
           {incomingJob && (
             <div className="space-y-4 py-4">
               <div className="p-4 bg-secondary rounded-lg">
@@ -240,22 +319,32 @@ const CADashboard = () => {
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Budget</span>
-                  <span className="font-semibold text-primary">₹{incomingJob.budget.toLocaleString()}</span>
+                  <span className="font-semibold text-primary">
+                    ₹{incomingJob.budget.toLocaleString()}
+                  </span>
                 </div>
                 <div className="pt-2 border-t border-border mt-2">
-                  <span className="text-sm text-muted-foreground">Description:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Description:
+                  </span>
                   <p className="text-sm mt-1">{incomingJob.description}</p>
                 </div>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield className="w-4 h-4" />
-                <span>Client details are private. You'll communicate via Admin Desk.</span>
+                <span>
+                  Client details are private. You'll communicate via Admin Desk.
+                </span>
               </div>
             </div>
           )}
 
           <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={handleDeclineJob} className="flex-1">
+            <Button
+              variant="outline"
+              onClick={handleDeclineJob}
+              className="flex-1"
+            >
               <XCircle className="w-4 h-4 mr-2" />
               Pass
             </Button>
@@ -276,8 +365,12 @@ const CADashboard = () => {
                 <Shield className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <DialogTitle className="font-heading">TCG Admin Desk</DialogTitle>
-                <DialogDescription className="text-xs">Report progress & get instructions</DialogDescription>
+                <DialogTitle className="font-heading">
+                  TCG Admin Desk
+                </DialogTitle>
+                <DialogDescription className="text-xs">
+                  Report progress & get instructions
+                </DialogDescription>
               </div>
             </div>
           </DialogHeader>
@@ -288,24 +381,31 @@ const CADashboard = () => {
                 <div className="text-center text-muted-foreground py-8">
                   <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Report your progress here.</p>
-                  <p className="text-sm mt-1">Admin will relay updates to the client.</p>
+                  <p className="text-sm mt-1">
+                    Admin will relay updates to the client.
+                  </p>
                 </div>
               ) : (
-                messages.map(msg => (
+                messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.senderRole === 'ca' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${
+                      msg.senderRole === "ca" ? "justify-end" : "justify-start"
+                    }`}
                   >
                     <div
                       className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        msg.senderRole === 'ca'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-foreground'
+                        msg.senderRole === "ca"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-foreground"
                       }`}
                     >
                       <p className="text-sm">{msg.content}</p>
                       <p className="text-xs opacity-70 mt-1">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {msg.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
@@ -318,8 +418,8 @@ const CADashboard = () => {
             <Input
               placeholder="Type a message..."
               value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <Button onClick={sendMessage} size="icon">
               <Send className="w-4 h-4" />

@@ -1,19 +1,40 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  FileText, Calculator, ClipboardCheck, Building2, Receipt, 
-  BookOpen, LogOut, User, Loader2, MessageCircle, Send,
-  Headphones
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useMockBackend, SERVICES } from '@/context/MockBackendContext';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FileText,
+  Calculator,
+  ClipboardCheck,
+  Building2,
+  Receipt,
+  BookOpen,
+  LogOut,
+  User,
+  Loader2,
+  MessageCircle,
+  Send,
+  Headphones,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMockBackend, SERVICES } from "@/context/MockBackendContext";
+import { toast } from "sonner";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   FileText,
@@ -26,56 +47,76 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
-  const { 
-    currentUser, 
-    logout, 
-    requests, 
+  const {
+    currentUser,
+    isLoading, // 1. Get Loading State
+    logout,
+    requests,
     createRequest,
     clientMessages,
     addClientMessage,
   } = useMockBackend();
 
-  const [selectedService, setSelectedService] = useState<typeof SERVICES[0] | null>(null);
-  const [description, setDescription] = useState('');
+  const [selectedService, setSelectedService] = useState<
+    (typeof SERVICES)[0] | null
+  >(null);
+  const [description, setDescription] = useState("");
   const [isRequesting, setIsRequesting] = useState(false);
-  
+
   // Chat state
   const [chatOpen, setChatOpen] = useState(false);
   const [chatRequestId, setChatRequestId] = useState<string | null>(null);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
 
-  if (!currentUser) {
-    navigate('/');
-    return null;
+  useEffect(() => {
+    // 2. Wait for loading to finish before checking user
+    if (!isLoading && !currentUser) {
+      navigate("/");
+    }
+  }, [currentUser, isLoading, navigate]);
+
+  // 3. Show Spinner while loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  const myRequests = requests.filter(r => r.clientId === currentUser.id);
-  const activeRequests = myRequests.filter(r => r.status === 'active' || r.status === 'pending_approval');
-  const searchingRequests = myRequests.filter(r => r.status === 'searching');
+  // 4. Safety Check
+  if (!currentUser) return null;
+
+  const myRequests = requests.filter((r) => r.clientId === currentUser.id);
+  const activeRequests = myRequests.filter(
+    (r) => r.status === "active" || r.status === "pending_approval",
+  );
+  const searchingRequests = myRequests.filter((r) => r.status === "searching");
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const handleRequestService = async () => {
     if (!selectedService || !currentUser) return;
-    
+
     setIsRequesting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    createRequest(
+    // Simulate slight delay for UX
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await createRequest(
       currentUser.id,
       currentUser.name,
       selectedService.id,
       selectedService.name,
       description,
-      selectedService.defaultBudget
+      selectedService.defaultBudget,
     );
-    
-    toast.success('Request submitted! Matching with expert...');
+
+    toast.success("Request submitted! Matching with expert...");
     setSelectedService(null);
-    setDescription('');
+    setDescription("");
     setIsRequesting(false);
   };
 
@@ -86,8 +127,14 @@ const ClientDashboard = () => {
 
   const sendMessage = () => {
     if (!newMessage.trim() || !chatRequestId || !currentUser) return;
-    addClientMessage(chatRequestId, currentUser.id, currentUser.name, 'client', newMessage);
-    setNewMessage('');
+    addClientMessage(
+      chatRequestId,
+      currentUser.id,
+      currentUser.name,
+      "client",
+      newMessage,
+    );
+    setNewMessage("");
   };
 
   const messages = chatRequestId ? clientMessages[chatRequestId] || [] : [];
@@ -102,7 +149,9 @@ const ClientDashboard = () => {
               <FileText className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-heading font-bold text-lg text-foreground">TaxConsultGuru</h1>
+              <h1 className="font-heading font-bold text-lg text-foreground">
+                TaxConsultGuru
+              </h1>
               <p className="text-xs text-muted-foreground">Client Portal</p>
             </div>
           </div>
@@ -125,9 +174,12 @@ const ClientDashboard = () => {
           <Card className="mb-8 border-primary/30 bg-primary/5">
             <CardContent className="py-8 text-center">
               <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-              <h3 className="font-heading text-xl font-semibold mb-2">Matching with Expert...</h3>
+              <h3 className="font-heading text-xl font-semibold mb-2">
+                Matching with Expert...
+              </h3>
               <p className="text-muted-foreground">
-                Please wait while we connect you with the best expert for your {searchingRequests[0].serviceName} request.
+                Please wait while we connect you with the best expert for your{" "}
+                {searchingRequests[0].serviceName} request.
               </p>
             </CardContent>
           </Card>
@@ -136,23 +188,32 @@ const ClientDashboard = () => {
         {/* Active Requests */}
         {activeRequests.length > 0 && (
           <section className="mb-10">
-            <h2 className="font-heading text-xl font-semibold mb-4">Your Active Requests</h2>
+            <h2 className="font-heading text-xl font-semibold mb-4">
+              Your Active Requests
+            </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {activeRequests.map(req => (
+              {activeRequests.map((req) => (
                 <Card key={req.id} className="border-success/30 bg-success/5">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{req.serviceName}</CardTitle>
-                      <Badge variant="secondary" className="bg-success text-success-foreground">
-                        {req.status === 'pending_approval' ? 'Processing' : 'Active'}
+                      <CardTitle className="text-lg">
+                        {req.serviceName}
+                      </CardTitle>
+                      <Badge
+                        variant="secondary"
+                        className="bg-success text-success-foreground"
+                      >
+                        {req.status === "pending_approval"
+                          ? "Processing"
+                          : "Active"}
                       </Badge>
                     </div>
-                    <CardDescription>
-                      Expert team assigned
-                    </CardDescription>
+                    <CardDescription>Expert team assigned</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">{req.description}</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {req.description}
+                    </p>
                     <Button size="sm" onClick={() => openChat(req.id)}>
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Chat with Expert
@@ -166,14 +227,18 @@ const ClientDashboard = () => {
 
         {/* Service Catalog */}
         <section>
-          <h2 className="font-heading text-2xl font-semibold mb-2">Available Services</h2>
-          <p className="text-muted-foreground mb-6">Select a service to request expert assistance</p>
-          
+          <h2 className="font-heading text-2xl font-semibold mb-2">
+            Available Services
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            Select a service to request expert assistance
+          </p>
+
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.map(service => {
+            {SERVICES.map((service) => {
               const IconComponent = iconMap[service.icon] || FileText;
               return (
-                <Card 
+                <Card
                   key={service.id}
                   className="cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
                   onClick={() => setSelectedService(service)}
@@ -187,8 +252,12 @@ const ClientDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Starting from</span>
-                      <span className="font-semibold text-primary">₹{service.defaultBudget.toLocaleString()}</span>
+                      <span className="text-muted-foreground">
+                        Starting from
+                      </span>
+                      <span className="font-semibold text-primary">
+                        ₹{service.defaultBudget.toLocaleString()}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -199,12 +268,18 @@ const ClientDashboard = () => {
       </main>
 
       {/* Service Request Dialog */}
-      <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
+      <Dialog
+        open={!!selectedService}
+        onOpenChange={() => setSelectedService(null)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-heading">Request {selectedService?.name}</DialogTitle>
+            <DialogTitle className="font-heading">
+              Request {selectedService?.name}
+            </DialogTitle>
             <DialogDescription>
-              Tell us about your requirement and our expert team will take it from here.
+              Tell us about your requirement and our expert team will take it
+              from here.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
@@ -214,28 +289,40 @@ const ClientDashboard = () => {
                 <span className="font-medium">{selectedService?.name}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Est. Budget</span>
-                <span className="font-semibold text-primary">₹{selectedService?.defaultBudget.toLocaleString()}</span>
+                <span className="text-sm text-muted-foreground">
+                  Est. Budget
+                </span>
+                <span className="font-semibold text-primary">
+                  ₹{selectedService?.defaultBudget.toLocaleString()}
+                </span>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Describe your requirement</label>
+              <label className="text-sm font-medium">
+                Describe your requirement
+              </label>
               <Textarea
                 placeholder="Briefly describe what you need help with..."
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={4}
               />
             </div>
-            <Button onClick={handleRequestService} className="w-full" disabled={!description.trim() || isRequesting}>
-              {isRequesting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Button
+              onClick={handleRequestService}
+              className="w-full"
+              disabled={!description.trim() || isRequesting}
+            >
+              {isRequesting && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Find Expert
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Masked Chat Dialog - Client sees "TCG Expert Team" */}
+      {/* Masked Chat Dialog */}
       <Dialog open={chatOpen} onOpenChange={setChatOpen}>
         <DialogContent className="sm:max-w-lg h-[600px] flex flex-col">
           <DialogHeader className="border-b pb-4">
@@ -244,8 +331,12 @@ const ClientDashboard = () => {
                 <Headphones className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <DialogTitle className="font-heading">TCG Expert Team</DialogTitle>
-                <DialogDescription className="text-xs">Your dedicated support team</DialogDescription>
+                <DialogTitle className="font-heading">
+                  TCG Expert Team
+                </DialogTitle>
+                <DialogDescription className="text-xs">
+                  Your dedicated support team
+                </DialogDescription>
               </div>
             </div>
           </DialogHeader>
@@ -259,21 +350,29 @@ const ClientDashboard = () => {
                   <p className="text-sm mt-1">We're here to help!</p>
                 </div>
               ) : (
-                messages.map(msg => (
+                messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.senderRole === 'client' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${
+                      msg.senderRole === "client"
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
                   >
                     <div
                       className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        msg.senderRole === 'client'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-foreground'
+                        msg.senderRole === "client"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-foreground"
                       }`}
                     >
                       <p className="text-sm">{msg.content}</p>
                       <p className="text-xs opacity-70 mt-1">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {/* Safe date formatting now */}
+                        {msg.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
@@ -286,8 +385,8 @@ const ClientDashboard = () => {
             <Input
               placeholder="Type a message..."
               value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <Button onClick={sendMessage} size="icon">
               <Send className="w-4 h-4" />

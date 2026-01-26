@@ -1,4 +1,6 @@
 import { useState } from "react";
+// 1. Import the REAL API functions
+import { registerUser, loginUser } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 import { FileText, Shield, Users, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,13 +13,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMockBackend } from "@/context/MockBackendContext";
 import { toast } from "sonner";
 
 const Landing = () => {
   const navigate = useNavigate();
-  // Note: We will replace useMockBackend with real API calls in the next step
-  const { login, registerUser } = useMockBackend();
+
+  // No more MockBackend! We use local state + API now.
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,29 +35,46 @@ const Landing = () => {
     setIsLoading(true);
 
     try {
+      let data;
+
       if (isRegister) {
-        const user = await registerUser(name, email, password, activeTab);
-        if (user) {
-          toast.success("Account created successfully!");
-          navigate(
-            activeTab === "client" ? "/client/dashboard" : "/ca/dashboard",
-          );
-        } else {
-          toast.error("Email already exists");
-        }
+        data = await registerUser({
+          name,
+          email,
+          password,
+          role: activeTab,
+        });
+        toast.success("Account created successfully!");
       } else {
-        const user = await login(email, password);
-        if (user) {
-          toast.success(`Welcome back, ${user.name}!`);
-          if (user.role === "client") navigate("/client/dashboard");
-          else if (user.role === "ca") navigate("/ca/dashboard");
-          else if (user.role === "admin") navigate("/admin/dashboard");
-        } else {
-          toast.error("Invalid credentials");
-        }
+        data = await loginUser({
+          email,
+          password,
+        });
+        toast.success(`Welcome back, ${data.name}!`);
       }
-    } catch {
-      toast.error("Something went wrong");
+
+      // Save to storage
+      localStorage.setItem("userInfo", JSON.stringify(data));
+
+      // ---------------------------------------------------------
+      // 👇 CHANGE THIS SECTION
+      // We use window.location.href instead of navigate()
+      // This forces a page reload, ensuring the MockBackendContext
+      // re-initializes and reads the new user from localStorage.
+      // ---------------------------------------------------------
+
+      if (data.role === "client") {
+        window.location.href = "/client/dashboard";
+      } else if (data.role === "ca") {
+        window.location.href = "/ca/dashboard";
+      } else if (data.role === "admin") {
+        window.location.href = "/admin/dashboard";
+      }
+
+      // setLoginOpen(false); // No longer needed since page reloads
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Authentication failed");
     } finally {
       setIsLoading(false);
     }
@@ -75,10 +93,6 @@ const Landing = () => {
       <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* FIXED SIZES:
-               h-14 (56px) for Mobile
-               h-16 (64px) for Desktop (Standard navbar logo size)
-            */}
             <img
               src="/logo-full.png"
               alt="TaxConsultGuru"
@@ -88,6 +102,7 @@ const Landing = () => {
           <Button onClick={() => setLoginOpen(true)}>Login</Button>
         </div>
       </header>
+
       {/* Hero */}
       <section className="py-24 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-6 text-center">
