@@ -1,3 +1,4 @@
+// frontend/src/context/MockBackendContext.tsx
 import React, {
   createContext,
   useContext,
@@ -8,6 +9,10 @@ import React, {
 import { toast } from "sonner";
 import { io, Socket } from "socket.io-client";
 import * as api from "../lib/api";
+
+// --- DYNAMIC CONFIGURATION ---
+// Ye line automatic detect karegi ki Local chalana hai ya Live
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // --- TYPES ---
 export type UserRole = "client" | "ca" | "admin";
@@ -105,16 +110,15 @@ export const SERVICES: Service[] = [
     defaultBudget: 5000,
   },
 ];
+// (Services Constant same rahega, no change needed here)
 
 // --- CONTEXT INTERFACE ---
 interface BackendContextType {
   currentUser: User | null;
   isLoading: boolean;
   requests: ServiceRequest[];
-  users: User[]; // This was missing in the value!
-  logs: ActivityLog[]; // This was missing in the value!
-
-  // Auth
+  users: User[];
+  logs: ActivityLog[];
   login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
   registerUser: (
@@ -123,8 +127,6 @@ interface BackendContextType {
     password: string,
     role: UserRole,
   ) => Promise<User | null>;
-
-  // Requests
   createRequest: (
     clientId: string,
     clientName: string,
@@ -139,13 +141,9 @@ interface BackendContextType {
     caName: string,
   ) => Promise<void>;
   adminApproveRequest: (requestId: string) => Promise<void>;
-
-  // Data Getters
   getSearchingRequests: () => ServiceRequest[];
   getPendingApprovalRequests: () => ServiceRequest[];
   getActiveRequests: () => ServiceRequest[];
-
-  // Chat
   clientMessages: Record<string, ChatMessage[]>;
   caMessages: Record<string, ChatMessage[]>;
   addClientMessage: (
@@ -163,7 +161,6 @@ interface BackendContextType {
     content: string,
   ) => Promise<void>;
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
-
   addAdmin: (name: string, email: string, password: string) => void;
 }
 
@@ -171,8 +168,8 @@ const MockBackendContext = createContext<BackendContextType | undefined>(
   undefined,
 );
 
-// Connect to Backend
-const socket: Socket = io("http://localhost:5000");
+// Initialize Socket with Dynamic URL
+const socket: Socket = io(BACKEND_URL);
 
 export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -186,7 +183,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
 
-  // Helper to format API data (Fixes ID and Dates)
+  // Format Helpers
   const formatRequest = (r: any): ServiceRequest => ({
     ...r,
     id: r.id || r._id,
@@ -218,7 +215,10 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
     init();
 
-    socket.on("connect", () => console.log("🟢 Socket Connected"));
+    // Socket Listeners
+    socket.on("connect", () =>
+      console.log("🟢 Socket Connected to:", BACKEND_URL),
+    );
 
     socket.on("request_alert", (newRequest: any) => {
       setRequests((prev) => [formatRequest(newRequest), ...prev]);
@@ -244,8 +244,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // --- ACTIONS ---
-
+  // --- ACTIONS (Same logic as before, just calling API now) ---
   const login = async (email: string, password: string) => {
     try {
       const user = await api.loginUser({ email, password });
@@ -301,7 +300,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         description,
         budget,
       });
-      socket.emit("new_request", newReq);
+      socket.emit("new_request", newReq); // Emit for real-time
     } catch (e) {
       toast.error("Failed to create request");
     }
@@ -387,10 +386,10 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const addAdmin = () => {
-    toast.info("Use Admin API");
+    toast.info("Use Admin API via Postman/Seeder");
   };
 
-  // Organize messages
+  // Message Filtering
   const clientMessages: Record<string, ChatMessage[]> = {};
   const caMessages: Record<string, ChatMessage[]> = {};
 
@@ -404,13 +403,12 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       caMessages[msg.requestId].push(msg);
   });
 
-  // --- VALUE OBJECT ---
   const value = {
     currentUser,
     isLoading,
     requests,
-    users, // <--- CRITICAL FIX: Include users array
-    logs, // <--- CRITICAL FIX: Include logs array
+    users,
+    logs,
     login,
     logout,
     registerUser,

@@ -1,4 +1,8 @@
-const API_URL = "http://localhost:5000/api";
+// frontend/src/lib/api.ts
+
+// Hamesha Environment variable check karega. Agar nahi mila to Localhost lega.
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = `${BASE_URL}/api`;
 
 // Helper to normalize ID
 const normalize = (data: any) => {
@@ -17,7 +21,7 @@ export const registerUser = async (userData: any) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Registration failed");
-  return normalize(data); // <--- Map _id to id
+  return normalize(data);
 };
 
 export const loginUser = async (userData: any) => {
@@ -28,10 +32,10 @@ export const loginUser = async (userData: any) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Login failed");
-  return normalize(data); // <--- Map _id to id
+  return normalize(data);
 };
 
-// ... (Keep the rest of your api.ts same, just ensuring fetch requests work) ...
+// --- REQUESTS ---
 export const createRequest = async (requestData: any) => {
     const response = await fetch(`${API_URL}/requests/create`, {
         method: "POST",
@@ -56,6 +60,7 @@ export const updateRequestStatus = async (id: string, action: 'accept' | 'approv
     return normalize(await response.json());
 };
 
+// --- CHAT ---
 export const sendMessageAPI = async (messageData: any) => {
     const response = await fetch(`${API_URL}/chat/send`, {
         method: "POST",
