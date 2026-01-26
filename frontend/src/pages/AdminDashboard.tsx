@@ -11,7 +11,9 @@ import {
   Send,
   UserPlus,
   CheckCircle,
-  Loader2, // <--- Import Loader
+  Loader2,
+  ArrowRight, // Added for "Forward to CA" icon
+  ArrowLeft, // Added for "Forward to Client" icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +41,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const {
     currentUser,
-    isLoading, // <--- 1. Get Loading State
+    isLoading,
     logout,
     users,
     requests,
@@ -49,6 +51,7 @@ const AdminDashboard = () => {
     addClientMessage,
     addCAMessage,
     forwardToClient,
+    forwardToCA, // <--- 1. ADDED THIS (Make sure it's in your Context)
     adminApproveRequest,
     getPendingApprovalRequests,
     getActiveRequests,
@@ -64,14 +67,13 @@ const AdminDashboard = () => {
   const [clientMessageInput, setClientMessageInput] = useState("");
   const [caMessageInput, setCAMessageInput] = useState("");
 
-  // Add admin form
+  // Add admin form state
   const [addAdminOpen, setAddAdminOpen] = useState(false);
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
 
   useEffect(() => {
-    // 2. Wait for loading to finish before checking user/role
     if (!isLoading) {
       if (!currentUser || currentUser.role !== "admin") {
         navigate("/");
@@ -79,7 +81,6 @@ const AdminDashboard = () => {
     }
   }, [currentUser, isLoading, navigate]);
 
-  // 3. Show Dark Theme Spinner while loading
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
@@ -88,7 +89,6 @@ const AdminDashboard = () => {
     );
   }
 
-  // 4. Safety Check
   if (!currentUser || currentUser.role !== "admin") return null;
 
   const handleLogout = () => {
@@ -128,6 +128,8 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- SENDING LOGIC ---
+
   const sendToClient = () => {
     if (!clientMessageInput.trim() || !selectedRequest) return;
     addClientMessage(
@@ -152,9 +154,17 @@ const AdminDashboard = () => {
     setCAMessageInput("");
   };
 
-  const handleForward = (messageId: string) => {
+  // --- FORWARDING LOGIC ---
+
+  const handleForwardToClient = (messageId: string) => {
     if (!selectedRequest) return;
     forwardToClient(selectedRequest.id, messageId);
+  };
+
+  // 2. ADDED HANDLER FOR CA FORWARDING
+  const handleForwardToCA = (messageId: string) => {
+    if (!selectedRequest) return;
+    forwardToCA(selectedRequest.id, messageId);
   };
 
   const handleApprove = (requestId: string) => {
@@ -206,7 +216,7 @@ const AdminDashboard = () => {
       </header>
 
       <div className="container mx-auto p-6">
-        {/* Stats */}
+        {/* Stats Row */}
         <div className="grid gap-4 md:grid-cols-4 mb-6">
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="pb-2">
@@ -268,29 +278,26 @@ const AdminDashboard = () => {
               value="bridge"
               className="data-[state=active]:bg-primary"
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Bridge Chat
+              <MessageCircle className="w-4 h-4 mr-2" /> Bridge Chat
             </TabsTrigger>
             <TabsTrigger
               value="team"
               className="data-[state=active]:bg-primary"
             >
-              <Users className="w-4 h-4 mr-2" />
-              Team/Staff
+              <Users className="w-4 h-4 mr-2" /> Team/Staff
             </TabsTrigger>
             <TabsTrigger
               value="feed"
               className="data-[state=active]:bg-primary"
             >
-              <Terminal className="w-4 h-4 mr-2" />
-              Live Feed
+              <Terminal className="w-4 h-4 mr-2" /> Live Feed
             </TabsTrigger>
           </TabsList>
 
           {/* Bridge Chat Tab */}
           <TabsContent value="bridge" className="mt-6">
             <div className="grid lg:grid-cols-4 gap-6">
-              {/* Job List */}
+              {/* Job List Sidebar */}
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardHeader>
                   <CardTitle className="text-sm">Active Jobs</CardTitle>
@@ -303,11 +310,7 @@ const AdminDashboard = () => {
                       <div
                         key={req.id}
                         onClick={() => setSelectedRequest(req)}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedRequest?.id === req.id
-                            ? "bg-primary/20 border border-primary"
-                            : "bg-slate-700/50 hover:bg-slate-700"
-                        }`}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedRequest?.id === req.id ? "bg-primary/20 border border-primary" : "bg-slate-700/50 hover:bg-slate-700"}`}
                       >
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-medium text-sm">
@@ -343,8 +346,7 @@ const AdminDashboard = () => {
                               handleApprove(req.id);
                             }}
                           >
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Approve
+                            <CheckCircle className="w-3 h-3 mr-1" /> Approve
                           </Button>
                         )}
                       </div>
@@ -357,41 +359,57 @@ const AdminDashboard = () => {
               <div className="lg:col-span-3">
                 {selectedRequest ? (
                   <div className="grid md:grid-cols-2 gap-4">
-                    {/* Client Chat (Left) */}
+                    {/* --- LEFT: Client Chat --- */}
                     <Card className="bg-slate-800/50 border-slate-700 h-[500px] flex flex-col">
-                      <CardHeader className="border-b border-slate-700 py-3">
+                      <CardHeader className="border-b border-slate-700 py-3 bg-blue-900/10">
                         <CardTitle className="text-sm flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                            <Users className="w-3 h-3" />
+                            <Users className="w-3 h-3 text-white" />
                           </div>
                           Client: {selectedRequest.clientName}
                         </CardTitle>
                       </CardHeader>
                       <ScrollArea className="flex-1 p-3">
                         <div className="space-y-3">
-                          {clientMsgs.map((msg) => (
-                            <div
-                              key={msg.id}
-                              className={`flex ${msg.senderRole === "client" ? "justify-start" : "justify-end"}`}
-                            >
+                          {clientMsgs.map((msg) => {
+                            const isAdmin = msg.senderRole === "admin";
+                            return (
                               <div
-                                className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                                  msg.senderRole === "client"
-                                    ? "bg-slate-700"
-                                    : "bg-primary"
-                                }`}
+                                key={msg.id}
+                                className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
                               >
-                                <p>{msg.content}</p>
-                                <p className="text-xs opacity-60 mt-1">
-                                  {msg.timestamp.toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                  {msg.forwardedFrom && " • Forwarded"}
-                                </p>
+                                <div
+                                  className={`flex flex-col ${isAdmin ? "items-end" : "items-start"} max-w-[85%]`}
+                                >
+                                  <div
+                                    className={`rounded-lg px-3 py-2 text-sm ${isAdmin ? "bg-blue-600 text-white" : "bg-slate-700 text-slate-200"}`}
+                                  >
+                                    <p>{msg.content}</p>
+                                    <p className="text-xs opacity-60 mt-1 text-right">
+                                      {msg.timestamp.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                      {msg.isForwarded && " • Fwd"}
+                                    </p>
+                                  </div>
+
+                                  {/* 3. FORWARD BUTTON (Visible only on Client Messages) */}
+                                  {!isAdmin && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-[10px] h-6 px-2 text-blue-400 hover:text-blue-300 mt-1"
+                                      onClick={() => handleForwardToCA(msg.id)}
+                                    >
+                                      Forward to CA{" "}
+                                      <ArrowRight className="w-3 h-3 ml-1" />
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </ScrollArea>
                       <div className="border-t border-slate-700 p-3 flex gap-2">
@@ -404,71 +422,84 @@ const AdminDashboard = () => {
                           onKeyDown={(e) => e.key === "Enter" && sendToClient()}
                           className="bg-slate-700 border-slate-600"
                         />
-                        <Button size="icon" onClick={sendToClient}>
+                        <Button
+                          size="icon"
+                          onClick={sendToClient}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
                           <Send className="w-4 h-4" />
                         </Button>
                       </div>
                     </Card>
 
-                    {/* CA Chat (Right) */}
+                    {/* --- RIGHT: CA Chat --- */}
                     <Card className="bg-slate-800/50 border-slate-700 h-[500px] flex flex-col">
-                      <CardHeader className="border-b border-slate-700 py-3">
+                      <CardHeader className="border-b border-slate-700 py-3 bg-green-900/10">
                         <CardTitle className="text-sm flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                            <Briefcase className="w-3 h-3" />
+                            <Briefcase className="w-3 h-3 text-white" />
                           </div>
                           CA: {selectedRequest.caName || "Not assigned"}
                         </CardTitle>
                       </CardHeader>
                       <ScrollArea className="flex-1 p-3">
                         <div className="space-y-3">
-                          {caMsgs.map((msg) => (
-                            <div
-                              key={msg.id}
-                              className={`flex ${msg.senderRole === "ca" ? "justify-start" : "justify-end"}`}
-                            >
-                              <div className="max-w-[85%]">
+                          {caMsgs.map((msg) => {
+                            const isAdmin = msg.senderRole === "admin";
+                            return (
+                              <div
+                                key={msg.id}
+                                className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
+                              >
                                 <div
-                                  className={`rounded-lg px-3 py-2 text-sm ${
-                                    msg.senderRole === "ca"
-                                      ? "bg-slate-700"
-                                      : "bg-green-600"
-                                  }`}
+                                  className={`flex flex-col ${isAdmin ? "items-end" : "items-start"} max-w-[85%]`}
                                 >
-                                  <p>{msg.content}</p>
-                                  <p className="text-xs opacity-60 mt-1">
-                                    {msg.timestamp.toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </p>
-                                </div>
-                                {/* Forward button for CA messages */}
-                                {msg.senderRole === "ca" && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-xs text-purple-400 mt-1"
-                                    onClick={() => handleForward(msg.id)}
+                                  <div
+                                    className={`rounded-lg px-3 py-2 text-sm ${isAdmin ? "bg-green-600 text-white" : "bg-slate-700 text-slate-200"}`}
                                   >
-                                    <Forward className="w-3 h-3 mr-1" />
-                                    Forward to Client
-                                  </Button>
-                                )}
+                                    <p>{msg.content}</p>
+                                    <p className="text-xs opacity-60 mt-1 text-right">
+                                      {msg.timestamp.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                      {msg.isForwarded && " • Fwd"}
+                                    </p>
+                                  </div>
+
+                                  {/* 4. FORWARD BUTTON (Visible only on CA Messages) */}
+                                  {!isAdmin && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-[10px] h-6 px-2 text-green-400 hover:text-green-300 mt-1"
+                                      onClick={() =>
+                                        handleForwardToClient(msg.id)
+                                      }
+                                    >
+                                      <ArrowLeft className="w-3 h-3 mr-1" />{" "}
+                                      Forward to Client
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </ScrollArea>
                       <div className="border-t border-slate-700 p-3 flex gap-2">
                         <Input
-                          placeholder="Message CA..."
+                          placeholder="Message CA directly..."
                           value={caMessageInput}
                           onChange={(e) => setCAMessageInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendToCA()}
                           className="bg-slate-700 border-slate-600"
                         />
-                        <Button size="icon" onClick={sendToCA}>
+                        <Button
+                          size="icon"
+                          onClick={sendToCA}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
                           <Send className="w-4 h-4" />
                         </Button>
                       </div>
@@ -486,19 +517,17 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* Team/Staff Tab */}
+          {/* Team/Staff Tab (UNCHANGED) */}
           <TabsContent value="team" className="mt-6">
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Admin Team
+                  <Users className="w-5 h-5" /> Admin Team
                 </CardTitle>
                 <Dialog open={addAdminOpen} onOpenChange={setAddAdminOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm">
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Add New Admin
+                      <UserPlus className="w-4 h-4 mr-2" /> Add New Admin
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-slate-800 border-slate-700">
@@ -585,7 +614,7 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Live Feed Tab */}
+          {/* Live Feed Tab (UNCHANGED) */}
           <TabsContent value="feed" className="mt-6">
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="flex flex-row items-center gap-2">

@@ -14,7 +14,7 @@ const seedAdmin = async () => {
 
       await User.create({
         name: "Master Admin",
-        email: "master@tcg.com", // The Secret Login Email
+        email: "admin@tcg.com", // The Secret Login Email
         password: hashedPassword,
         role: "admin",
       });
