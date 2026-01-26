@@ -55,10 +55,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_message", (data) => {
-    io.to(data.requestId).emit("receive_message", data);
+    io.emit("receive_message", data);
   });
 });
-
+// seedAdmin(); // Seed the Master Admin if not exists
 const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

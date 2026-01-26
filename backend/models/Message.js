@@ -16,6 +16,7 @@ const messageSchema = mongoose.Schema(
     content: { type: String, required: true },
     isForwarded: { type: Boolean, default: false },
     originalSenderId: { type: mongoose.Schema.Types.ObjectId }, // If forwarded by admin
+    intendedFor: { type: String, enum: ["client", "ca"] }, // For admin messages: which thread to show in
   },
   { timestamps: true },
 );

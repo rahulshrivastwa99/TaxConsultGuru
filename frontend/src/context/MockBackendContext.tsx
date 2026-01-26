@@ -48,6 +48,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   isForwarded?: boolean;
+  intendedFor?: "client" | "ca";
 }
 
 export interface ActivityLog {
@@ -161,6 +162,7 @@ interface BackendContextType {
     content: string,
   ) => Promise<void>;
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
+  forwardToCA: (requestId: string, messageId: string) => Promise<void>; // <--- NEW
   addAdmin: (name: string, email: string, password: string) => void;
 }
 
@@ -226,7 +228,12 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     socket.on("receive_message", (msg: any) => {
-      setAllMessages((prev) => [...prev, formatMessage(msg)]);
+      const formatted = formatMessage(msg);
+      console.debug("[socket.receive_message] incoming:", msg);
+      setAllMessages((prev) => {
+        if (prev.find((m) => m.id === formatted.id)) return prev;
+        return [...prev, formatted];
+      });
     });
 
     return () => {
@@ -237,8 +244,26 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
   const refreshData = async () => {
     try {
+      // 1. Fetch Requests
       const reqs = await api.fetchRequests();
-      setRequests(reqs.map(formatRequest));
+      const formattedReqs = reqs.map(formatRequest);
+      setRequests(formattedReqs);
+
+      // 2. NEW: Fetch Chat History for all requests
+      // This ensures messages appear when you reload the page
+      if (formattedReqs.length > 0) {
+        const msgPromises = formattedReqs.map((r: any) =>
+          api.fetchMessagesAPI(r.id).catch(() => []),
+        );
+
+        const responses = await Promise.all(msgPromises);
+        const allMsgs = responses.flat().map(formatMessage);
+
+        // Sort by time so they appear in order
+        allMsgs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+        setAllMessages(allMsgs);
+      }
     } catch (e) {
       console.error("Failed to fetch data", e);
     }
@@ -341,17 +366,30 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     content: string,
     senderRole: UserRole,
     isForwarded = false,
+    intendedFor?: "client" | "ca",
   ) => {
     if (!currentUser) return;
-    const msgData = {
+    const msgData: any = {
       requestId,
       senderId: currentUser.id,
       senderRole,
       content,
       isForwarded,
     };
+    if (intendedFor) msgData.intendedFor = intendedFor;
     try {
+      console.debug("[sendMessageWrapper] sending:", msgData);
       const savedMsg = await api.sendMessageAPI(msgData);
+      const formatted = formatMessage(savedMsg);
+      // Preserve intendedFor locally if backend doesn't persist it
+      if (intendedFor && !(formatted as any).intendedFor) {
+        (formatted as any).intendedFor = intendedFor;
+      }
+      setAllMessages((prev) => {
+        console.debug("[sendMessageWrapper] saved formatted:", formatted);
+        if (prev.find((m) => m.id === formatted.id)) return prev;
+        return [...prev, formatted];
+      });
       socket.emit("send_message", savedMsg);
     } catch (e) {
       toast.error("Message failed");
@@ -365,7 +403,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     role: UserRole,
     content: string,
   ) => {
-    await sendMessageWrapper(requestId, content, "client");
+    // Use the provided role (e.g. 'admin' when Admin sends from Client box)
+    // Mark intendedFor as 'client' so admin messages from Client box route correctly
+    await sendMessageWrapper(requestId, content, role, false, "client");
   };
 
   const addCAMessage = async (
@@ -375,21 +415,50 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     role: UserRole,
     content: string,
   ) => {
-    await sendMessageWrapper(requestId, content, "ca");
+    // Use the provided role (e.g. 'admin' when Admin sends from CA box)
+    // Mark intendedFor as 'ca' so admin messages from CA box route correctly
+    await sendMessageWrapper(requestId, content, role, false, "ca");
   };
 
+  // 1. FORWARD TO CLIENT (Existing - Refined)
   const forwardToClient = async (requestId: string, messageId: string) => {
     const original = allMessages.find((m) => m.id === messageId);
     if (!original) return;
-    await sendMessageWrapper(requestId, original.content, "admin", true);
+
+    // Admin sends this content to the Client thread
+    // isForwarded flag helps us style it if needed
+    await sendMessageWrapper(
+      requestId,
+      `From Expert: ${original.content}`,
+      "admin",
+      true,
+      "client",
+    );
     toast.success("Forwarded to Client");
+  };
+
+  // 2. FORWARD TO CA (New Feature)
+  const forwardToCA = async (requestId: string, messageId: string) => {
+    const original = allMessages.find((m) => m.id === messageId);
+    if (!original) return;
+
+    // Admin sends this content to the CA thread
+    // NOTE: We strip the client's name to maintain "Double Blind"
+    await sendMessageWrapper(
+      requestId,
+      `Client Request: ${original.content}`,
+      "admin",
+      true,
+      "ca",
+    );
+    toast.success("Forwarded to CA");
   };
 
   const addAdmin = () => {
     toast.info("Use Admin API via Postman/Seeder");
   };
 
-  // Message Filtering
+  // 3. MESSAGE FILTERING (Crucial Logic Fix)
   const clientMessages: Record<string, ChatMessage[]> = {};
   const caMessages: Record<string, ChatMessage[]> = {};
 
@@ -397,10 +466,41 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     if (!clientMessages[msg.requestId]) clientMessages[msg.requestId] = [];
     if (!caMessages[msg.requestId]) caMessages[msg.requestId] = [];
 
-    if (msg.senderRole === "client" || msg.senderRole === "admin")
+    // Rule 1: Messages between Client and Admin go to Client Box
+    // (Client ne bheja) OR (Admin ne Client ko bheja - Logic: Admin msg but NOT forwarded from Client)
+    if (msg.senderRole === "client") {
       clientMessages[msg.requestId].push(msg);
-    if (msg.senderRole === "ca" || msg.senderRole === "admin")
+    }
+    // If Admin sent the message, route it to the intended thread only.
+    // We decide based on `intendedFor` field which is set when admin sends messages.
+    // This prevents admin msgs from appearing in both boxes.
+    else if (msg.senderRole === "admin") {
+      // Prefer explicit routing via `intendedFor` when present
+      const intendedFor = (msg as any).intendedFor;
+      if (intendedFor === "client") {
+        clientMessages[msg.requestId].push(msg);
+      } else if (intendedFor === "ca") {
+        caMessages[msg.requestId].push(msg);
+      } else {
+        // Fallback to legacy content-prefix detection when intendedFor isn't available
+        // (for old messages that might not have intendedFor)
+        const text = (msg.content || "").toString();
+        if (text.startsWith("From Expert:")) {
+          clientMessages[msg.requestId].push(msg);
+        } else if (text.startsWith("Client Request:")) {
+          caMessages[msg.requestId].push(msg);
+        } else if (msg.isForwarded) {
+          // Forwarded messages without intendedFor default to client (legacy behavior)
+          clientMessages[msg.requestId].push(msg);
+        }
+        // Note: If intendedFor is missing and no prefix matches, the message won't appear
+        // in either box. This is intentional to prevent misrouting.
+      }
+    }
+    // Rule 2: Messages between CA and Admin go to CA Box
+    else if (msg.senderRole === "ca") {
       caMessages[msg.requestId].push(msg);
+    }
   });
 
   const value = {
@@ -425,6 +525,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     addClientMessage,
     addCAMessage,
     forwardToClient,
+    forwardToCA, // <--- Add this
     addAdmin,
   };
 
