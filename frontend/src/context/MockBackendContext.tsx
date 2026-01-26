@@ -162,7 +162,7 @@ interface BackendContextType {
     content: string,
   ) => Promise<void>;
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
-  forwardToCA: (requestId: string, messageId: string) => Promise<void>; // <--- NEW
+  forwardToCA: (requestId: string, messageId: string) => Promise<void>; 
   addAdmin: (name: string, email: string, password: string) => void;
 }
 
@@ -454,8 +454,15 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     toast.success("Forwarded to CA");
   };
 
-  const addAdmin = () => {
-    toast.info("Use Admin API via Postman/Seeder");
+  // --- FIX: ADD ADMIN FUNCTIONALITY ---
+  const addAdmin = async (name: string, email: string, password: string) => {
+    try {
+      // Directly call API to register a new admin without logging out the current user
+      await api.registerUser({ name, email, password, role: "admin" });
+      toast.success("New Admin added successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add admin");
+    }
   };
 
   // 3. MESSAGE FILTERING (Crucial Logic Fix)
@@ -525,7 +532,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     addClientMessage,
     addCAMessage,
     forwardToClient,
-    forwardToCA, // <--- Add this
+    forwardToCA,
     addAdmin,
   };
 
