@@ -5,18 +5,14 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// @desc    Register a new user (Client or CA only)
+// @desc    Register a new user (Client, CA, or Admin)
 // @route   POST /api/auth/register
 router.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
-    // 1. SECURITY: Block Admin Registration
-    if (role === "admin") {
-      return res
-        .status(403)
-        .json({ message: "Admin registration is restricted." });
-    }
+    // 1. SECURITY CHECK REMOVED: Allowed Admin registration for Dashboard functionality
+    // if (role === "admin") { ... }  <-- Ye hata diya hai
 
     // 2. Check if user exists
     const userExists = await User.findOne({ email });
@@ -33,7 +29,7 @@ router.post("/register", async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
+      role, // Ab ye 'admin' role bhi accept karega
     });
 
     // 5. Send Response (with Token)
@@ -61,6 +57,7 @@ router.post("/login", async (req, res) => {
 
     // Check password
     if (user && (await bcrypt.compare(password, user.password))) {
+      // Optional: Update online status here if needed in future
       res.json({
         _id: user.id,
         name: user.name,
