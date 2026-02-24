@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 // @desc    Register a new user (Client, CA, or Admin)
 // @route   POST /api/auth/register
 router.post("/register", async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, experience, certificationDetails } = req.body;
 
   try {
     // 1. SECURITY CHECK REMOVED: Allowed Admin registration for Dashboard functionality
@@ -30,6 +30,9 @@ router.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       role, // Ab ye 'admin' role bhi accept karega
+      experience: role === "ca" ? experience : undefined,
+      certificationDetails: role === "ca" ? certificationDetails : undefined,
+      isVerified: false, // Ensure all new users (especially CAs) start as unverified
     });
 
     // 5. Send Response (with Token)
@@ -75,7 +78,9 @@ router.post("/login", async (req, res) => {
 
 // Helper to generate JWT
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+  const secret = process.env.JWT_SECRET.trim();
+  console.log(`🎲 Generating token with secret length: ${secret.length}`);
+  return jwt.sign({ id }, secret, { expiresIn: "30d" });
 };
 
 module.exports = router;

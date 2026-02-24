@@ -38,6 +38,8 @@ const Landing = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [experience, setExperience] = useState<number | "">("");
+  const [certifications, setCertifications] = useState("");
 
   // --- ACTIONS & HANDLERS ---
 
@@ -88,6 +90,8 @@ const Landing = () => {
           email,
           password,
           role: activeTab,
+          experience: activeTab === "ca" ? Number(experience) : undefined,
+          certificationDetails: activeTab === "ca" ? certifications : undefined,
         });
         toast.success("Account created successfully!");
       } else {
@@ -121,6 +125,8 @@ const Landing = () => {
     setEmail("");
     setPassword("");
     setName("");
+    setExperience("");
+    setCertifications("");
     // Keep isRegister state to maintain context (Signup vs Login)
   };
 
@@ -529,17 +535,42 @@ const Landing = () => {
                       className="h-11"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Password</label>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-11"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Password</label>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="h-11"
+                      />
+                    </div>
+                    {isRegister && activeTab === "ca" && (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Experience (Years)</label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 5"
+                            value={experience}
+                            onChange={(e) => setExperience(e.target.value === "" ? "" : Number(e.target.value))}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Certification Details</label>
+                          <Input
+                            placeholder="e.g. CA Final (ICAI), GST Practitioner"
+                            value={certifications}
+                            onChange={(e) => setCertifications(e.target.value)}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                      </>
+                    )}
 
                   <Button
                     type="submit"

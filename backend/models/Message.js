@@ -13,7 +13,9 @@ const messageSchema = mongoose.Schema(
       required: true,
     },
     senderRole: { type: String, required: true }, // 'client', 'ca', 'admin'
-    content: { type: String, required: true },
+    text: { type: String }, // Renamed from content
+    fileUrl: { type: String, default: null },
+    fileName: { type: String, default: null },
     isForwarded: { type: Boolean, default: false },
     originalSenderId: { type: mongoose.Schema.Types.ObjectId }, // If forwarded by admin
     intendedFor: { type: String, enum: ["client", "ca"] }, // For admin messages: which thread to show in

@@ -10,6 +10,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import CADashboard from "./pages/CADashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import Workspace from "./pages/Workspace";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/client/dashboard" element={<ClientDashboard />} />
             <Route path="/ca/dashboard" element={<CADashboard />} />
+            <Route path="/workspace/:id" element={<Workspace />} />
             {/* Secret Admin Route - NO link anywhere */}
             <Route path="/tcg-master-control" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
