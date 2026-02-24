@@ -12,7 +12,8 @@ import {
   Clock,
   Send,
   Shield,
-  Loader2, // Import Loader
+  Loader2,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useMockBackend,
   SERVICES,
@@ -47,19 +49,26 @@ const CADashboard = () => {
     isLoading, // 1. Get Loading State
     logout,
     requests,
-    getSearchingRequests,
-    caAcceptRequest,
+    getLiveJobs,
+    placeBid,
     caMessages,
     addCAMessage,
   } = useMockBackend();
 
   const [isListening, setIsListening] = useState(true);
-  const [incomingJob, setIncomingJob] = useState<ServiceRequest | null>(null);
+  const [seenJobIds, setSeenJobIds] = useState<Set<string>>(new Set());
 
   // Chat state
   const [chatOpen, setChatOpen] = useState(false);
   const [chatRequestId, setChatRequestId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
+
+  // Bidding State
+  const [selectedJobToBid, setSelectedJobToBid] = useState<ServiceRequest | null>(null);
+  const [bidDialogOpen, setBidDialogOpen] = useState(false);
+  const [bidAmount, setBidAmount] = useState("");
+  const [proposalText, setProposalText] = useState("");
+  const [isSubmittingBid, setIsSubmittingBid] = useState(false);
 
   useEffect(() => {
     // 2. Wait for loading to finish before checking user
@@ -74,17 +83,26 @@ const CADashboard = () => {
     if (!isListening) return;
 
     const interval = setInterval(() => {
-      const searching = getSearchingRequests();
-      if (searching.length > 0 && !incomingJob) {
-        setIncomingJob(searching[0]);
-        toast.info("New job opportunity!", {
-          description: `${searching[0].serviceName} - ₹${searching[0].budget}`,
+      const live = getLiveJobs();
+      const newJobs = live.filter(job => !seenJobIds.has(job.id));
+      
+      if (newJobs.length > 0) {
+        const nextJob = newJobs[0];
+        setSeenJobIds(prev => new Set(prev).add(nextJob.id));
+        
+        toast.info("New Job Opportunity!", {
+          description: `${nextJob.serviceName} - ₹${nextJob.budget.toLocaleString()}`,
+          action: {
+            label: "Bid Now",
+            onClick: () => handleOpenBidDialog(nextJob),
+          },
+          duration: 10000,
         });
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isListening, getSearchingRequests, incomingJob]);
+  }, [isListening, getLiveJobs, seenJobIds]);
 
   // 3. Show Spinner while loading
   if (isLoading) {
@@ -102,7 +120,19 @@ const CADashboard = () => {
   const myJobs = requests.filter(
     (r) =>
       r.caId === currentUser.id &&
-      (r.status === "pending_approval" || r.status === "active"),
+      (r.status === "pending_approval" || r.status === "active" || r.status === "awaiting_payment"),
+  );
+
+  const workspaceJobs = requests.filter((r) => r.caId === currentUser.id && r.status === "active" && r.isWorkspaceUnlocked === true);
+  const pastJobs = requests.filter((r) => r.caId === currentUser.id && r.isArchived === true);
+
+  // Jobs available for bidding (not accepted by any CA, not completed, not cancelled)
+  const availableJobs = requests.filter(
+    (r) =>
+      !r.caId &&
+      r.status !== "completed" &&
+      r.status !== "cancelled" &&
+      r.status !== "pending_approval", // Exclude jobs already bid on and pending approval
   );
 
   const handleLogout = () => {
@@ -110,16 +140,38 @@ const CADashboard = () => {
     navigate("/");
   };
 
-  const handleAcceptJob = () => {
-    if (!incomingJob || !currentUser) return;
-    caAcceptRequest(incomingJob.id, currentUser.id, currentUser.name);
-    toast.success("Job accepted! Pending admin approval.");
-    setIncomingJob(null);
+  const handleOpenBidDialog = (job: ServiceRequest) => {
+    setBidAmount(job.budget.toString());
+    setSelectedJobToBid(job);
+    setBidDialogOpen(true);
   };
 
-  const handleDeclineJob = () => {
-    setIncomingJob(null);
+  const handleSubmitBid = async () => {
+    if (!selectedJobToBid || !currentUser || !bidAmount || !proposalText) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    setIsSubmittingBid(true);
+    try {
+      await placeBid({
+        requestId: selectedJobToBid?.id || "",
+        price: Number(bidAmount),
+        proposalText: proposalText,
+      });
+      // Mark as seen so it doesn't pop up again
+      setSeenJobIds((prev) => new Set(prev).add(selectedJobToBid.id));
+      setBidDialogOpen(false);
+      setSelectedJobToBid(null);
+      setBidAmount("");
+      setProposalText("");
+    } catch (e) {
+      // Error handled by context toast
+    } finally {
+      setIsSubmittingBid(false);
+    }
   };
+
 
   const openChat = (requestId: string) => {
     setChatRequestId(requestId);
@@ -170,6 +222,35 @@ const CADashboard = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        <Tabs defaultValue="jobs" className="w-full">
+          <TabsList className="mb-8">
+            <TabsTrigger value="jobs" className="px-8 flex items-center gap-2">
+              <Briefcase className="w-4 h-4" />
+              My Work
+            </TabsTrigger>
+            <TabsTrigger value="history" className="px-8 flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Job History
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="jobs" className="space-y-10">
+            {!currentUser.isVerified && (
+          <Card className="mb-8 border-warning/50 bg-warning/5">
+            <CardContent className="py-4 flex items-center gap-3">
+              <Shield className="w-5 h-5 text-warning" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-warning-foreground">
+                  Your account is pending verification
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Your account is pending verification. You will see jobs once approved by Admin.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Listening Toggle */}
         <Card
           className={`mb-8 ${
@@ -217,6 +298,44 @@ const CADashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Step 4: Active Workspaces */}
+        {workspaceJobs.length > 0 && (
+          <section className="mb-10">
+            <h2 className="font-heading text-xl font-semibold mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              Secure Client Workspaces
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {workspaceJobs.map((job) => (
+                <Card key={job.id} className="border-primary bg-primary/5 shadow-md">
+                  <CardHeader className="pb-3 text-primary">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      {job.serviceName}
+                      <Badge className="bg-primary text-white text-[10px]">LOCKED CHAT</Badge>
+                    </CardTitle>
+                    <CardDescription className="text-primary/70 font-medium">Client: {job.clientName}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4 font-bold italic">
+                      "Workspace unlocked by admin after payment"
+                    </p>
+                    <Button 
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-bold"
+                      onClick={() => {
+                        toast.success("Entering Secure Client Workspace...");
+                        navigate(`/workspace/${job.id}`);
+                      }}
+                    >
+                      <Shield className="w-4 h-4 mr-2" />
+                      Enter Secure Workspace
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Active Jobs */}
         <section className="mb-10">
           <h2 className="font-heading text-xl font-semibold mb-4">
@@ -246,11 +365,15 @@ const CADashboard = () => {
                         className={
                           job.status === "pending_approval"
                             ? "bg-warning/10 text-warning"
+                            : job.status === "awaiting_payment"
+                            ? "bg-blue-500/10 text-blue-500"
                             : "bg-success/10 text-success"
                         }
                       >
                         {job.status === "pending_approval"
                           ? "Pending Approval"
+                          : job.status === "awaiting_payment"
+                          ? "Awaiting Payment"
                           : "Active"}
                       </Badge>
                     </div>
@@ -268,10 +391,54 @@ const CADashboard = () => {
                     <Button
                       size="sm"
                       onClick={() => openChat(job.id)}
-                      disabled={job.status === "pending_approval"}
+                      disabled={job.status === "pending_approval" || !currentUser.isVerified}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Admin Desk
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Find New Jobs Section */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-xl font-semibold">
+              Find New Jobs
+            </h2>
+            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+              Live Opportunities
+            </Badge>
+          </div>
+          
+          {availableJobs.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-10 text-center">
+                <p className="text-muted-foreground">No new jobs available at the moment.</p>
+                <p className="text-xs text-muted-foreground mt-1">We'll notify you as soon as a client posts a request.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {availableJobs.map((job) => (
+                <Card key={job.id} className="border-primary/20 hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-base text-primary">{job.serviceName}</CardTitle>
+                      <span className="text-xs font-bold text-success">₹{(job.budget || 0).toLocaleString()}</span>
+                    </div>
+                    <CardDescription className="text-xs line-clamp-1">{job.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <Button 
+                      className="w-full text-xs h-8" 
+                      variant="outline"
+                      onClick={() => handleOpenBidDialog(job)}
+                    >
+                      Apply / Bid
                     </Button>
                   </CardContent>
                 </Card>
@@ -293,64 +460,121 @@ const CADashboard = () => {
             ))}
           </div>
         </section>
+      </TabsContent>
+
+          <TabsContent value="history">
+            <section>
+              <h2 className="font-heading text-2xl font-semibold mb-2 text-primary">
+                Earnings & Project History
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Review your past successes and total earnings.
+              </p>
+
+              {pastJobs.length === 0 ? (
+                <Card className="border-dashed py-12">
+                  <CardContent className="text-center">
+                    <Briefcase className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                    <p className="text-muted-foreground italic text-sm">You haven't completed or archived any jobs yet.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {pastJobs.map((job) => {
+                    const commission = (job.budget || 0) * 0.1;
+                    const netEarnings = (job.budget || 0) - commission;
+                    
+                    return (
+                      <Card key={job.id} className="border-slate-200 bg-slate-50/50 hover:bg-white transition-all shadow-sm">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded">PAYOUT RELEASED</span>
+                            <span className="text-[10px] text-muted-foreground">{new Date(job.updatedAt).toLocaleDateString()}</span>
+                          </div>
+                          <CardTitle className="text-lg text-slate-800">{job.serviceName}</CardTitle>
+                          <CardDescription className="text-xs">Client: {job.clientName}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2 bg-white/80 p-3 rounded-lg border border-slate-100 text-xs shadow-inner">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Gross Amount:</span>
+                              <span className="font-semibold">₹{job.budget?.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-pink-600">
+                              <span>Admin Fee (10%):</span>
+                              <span>-₹{commission.toLocaleString()}</span>
+                            </div>
+                            <div className="h-px bg-slate-100 my-1" />
+                            <div className="flex justify-between font-bold text-success text-sm">
+                              <span>Your Earnings:</span>
+                              <span>₹{netEarnings.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </TabsContent>
+        </Tabs>
       </main>
 
-      {/* Incoming Job Popup */}
-      <Dialog open={!!incomingJob} onOpenChange={() => setIncomingJob(null)}>
-        <DialogContent className="sm:max-w-md">
+      {/* Actual Bidding Modal */}
+      <Dialog open={bidDialogOpen} onOpenChange={setBidDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-warning animate-pulse flex items-center justify-center">
-                <Radio className="w-4 h-4 text-warning-foreground" />
-              </div>
-              New Opportunity!
-            </DialogTitle>
+            <DialogTitle>Place Your Bid</DialogTitle>
             <DialogDescription>
-              A new job is available. Be the first to accept!
+              Submit your best price and a short proposal to the client.
             </DialogDescription>
           </DialogHeader>
-
-          {incomingJob && (
-            <div className="space-y-4 py-4">
-              <div className="p-4 bg-secondary rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Service</span>
-                  <Badge>{incomingJob.serviceName}</Badge>
-                </div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Budget</span>
-                  <span className="font-semibold text-primary">
-                    ₹{incomingJob.budget.toLocaleString()}
-                  </span>
-                </div>
-                <div className="pt-2 border-t border-border mt-2">
-                  <span className="text-sm text-muted-foreground">
-                    Description:
-                  </span>
-                  <p className="text-sm mt-1">{incomingJob.description}</p>
-                </div>
-              </div>
-              <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="w-4 h-4" />
-                <span>
-                  Client details are private. You'll communicate via Admin Desk.
-                </span>
-              </div>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="price" className="text-sm font-medium">
+                Your Quote (₹)
+              </label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="Enter amount"
+                value={bidAmount}
+                onChange={(e) => setBidAmount(e.target.value)}
+              />
             </div>
-          )}
-
-          <DialogFooter className="flex gap-2">
+            <div className="grid gap-2">
+              <label htmlFor="proposal" className="text-sm font-medium">
+                Short Proposal
+              </label>
+              <ScrollArea className="h-32 w-full rounded-md border">
+                <textarea
+                  id="proposal"
+                  className="flex min-h-[80px] w-full rounded-md bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Tell the client why you are the best fit..."
+                  value={proposalText}
+                  onChange={(e) => setProposalText(e.target.value)}
+                />
+              </ScrollArea>
+            </div>
+          </div>
+          <DialogFooter>
             <Button
               variant="outline"
-              onClick={handleDeclineJob}
-              className="flex-1"
+              onClick={() => setBidDialogOpen(false)}
+              disabled={isSubmittingBid}
             >
-              <XCircle className="w-4 h-4 mr-2" />
-              Pass
+              Cancel
             </Button>
-            <Button onClick={handleAcceptJob} className="flex-1">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Accept
+            <Button onClick={handleSubmitBid} disabled={isSubmittingBid}>
+              {isSubmittingBid ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting
+                </>
+              ) : (
+                "Submit Bid"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -400,7 +624,7 @@ const CADashboard = () => {
                           : "bg-secondary text-foreground"
                       }`}
                     >
-                      <p className="text-sm">{msg.content}</p>
+                      <p className="text-sm">{msg.text}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {msg.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",

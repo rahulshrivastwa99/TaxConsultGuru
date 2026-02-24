@@ -3,7 +3,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-// const seedAdmin = require("./seeder"); // Seeder agar run ho chuka hai to comment hi rehne do
+const seedAdmin = require("./seeder");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
@@ -32,6 +32,8 @@ app.get("/", (req, res) => {
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/requests", require("./routes/requestRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/bids", require("./routes/bidRoutes"));
 
 // --- SOCKET.IO SETUP ---
 const httpServer = createServer(app);
@@ -59,6 +61,7 @@ io.on("connection", (socket) => {
   });
 });
 // seedAdmin(); // Seed the Master Admin if not exists
+seedAdmin();
 const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

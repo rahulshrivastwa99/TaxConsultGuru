@@ -20,8 +20,10 @@ const seedAdmin = async () => {
       });
 
       console.log(
-        "✅ Master Admin Created (Email: master@tcg.com, Pass: admin123)",
+        "✅ Master Admin Created (Email: admin@tcg.com, Pass: admin123)",
       );
+    } else {
+      console.log("ℹ️ Admin already exists.");
     }
   } catch (error) {
     console.error("Seeding Error:", error);
@@ -29,3 +31,25 @@ const seedAdmin = async () => {
 };
 
 module.exports = seedAdmin;
+
+// Allow running directly
+if (require.main === module) {
+  const mongoose = require("mongoose");
+  const dotenv = require("dotenv");
+  dotenv.config();
+
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => {
+      console.log("Connected to MongoDB for seeding...");
+      return seedAdmin();
+    })
+    .then(() => {
+      console.log("Seeding complete.");
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("Seeding failed:", err);
+      process.exit(1);
+    });
+}

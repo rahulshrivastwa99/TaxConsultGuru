@@ -23,6 +23,10 @@ export interface User {
   email: string;
   role: UserRole;
   token?: string;
+  isOnline?: boolean;
+  isVerified?: boolean;
+  experience?: number;
+  certificationDetails?: string;
 }
 
 export interface ServiceRequest {
@@ -35,7 +39,22 @@ export interface ServiceRequest {
   serviceName: string;
   description: string;
   budget: number;
-  status: "searching" | "pending_approval" | "active" | "completed";
+  expectedBudget?: number;
+  status: "searching" | "pending_approval" | "live" | "active" | "completed" | "cancelled" | "awaiting_payment" | "ready_for_payout" | "payout_completed";
+  createdAt: Date;
+  updatedAt: Date;
+  hiredCA?: string;
+  isWorkspaceUnlocked?: boolean;
+  isArchived?: boolean;
+}
+
+export interface Bid {
+  id: string;
+  requestId: string;
+  caId: any; // User object if populated, string otherwise
+  price: number;
+  proposalText: string;
+  status: "pending" | "accepted" | "rejected";
   createdAt: Date;
 }
 
@@ -45,10 +64,12 @@ export interface ChatMessage {
   senderId: string;
   senderName: string;
   senderRole: UserRole;
-  content: string;
+  text: string;
   timestamp: Date;
   isForwarded?: boolean;
   intendedFor?: "client" | "ca";
+  fileUrl?: string | null;
+  fileName?: string | null;
 }
 
 export interface ActivityLog {
@@ -127,6 +148,8 @@ interface BackendContextType {
     email: string,
     password: string,
     role: UserRole,
+    experience?: number,
+    certificationDetails?: string,
   ) => Promise<User | null>;
   createRequest: (
     clientId: string,
@@ -135,31 +158,58 @@ interface BackendContextType {
     serviceName: string,
     description: string,
     budget: number,
+    expectedBudget?: number,
   ) => Promise<void>;
   caAcceptRequest: (
     requestId: string,
     caId: string,
     caName: string,
   ) => Promise<void>;
-  adminApproveRequest: (requestId: string) => Promise<void>;
-  getSearchingRequests: () => ServiceRequest[];
-  getPendingApprovalRequests: () => ServiceRequest[];
-  getActiveRequests: () => ServiceRequest[];
+  pendingCAs: User[];
+  pendingJobs: ServiceRequest[];
+  fetchAdminData: () => Promise<void>;
+  verifyCA: (id: string) => Promise<void>;
+  approveJob: (id: string) => Promise<void>;
+  rejectJob: (id: string) => Promise<void>;
+  getLiveJobs: () => ServiceRequest[];
+  completeRequest: (id: string) => Promise<void>;
+  approveWork: (id: string) => Promise<void>;
+  rejectWork: (id: string) => Promise<void>;
+  forceApprove: (id: string) => Promise<void>;
+  archiveProject: (id: string) => Promise<void>;
+  placeBid: (bidData: {
+    requestId: string;
+    price: number;
+    proposalText: string;
+  }) => Promise<void>;
+  fetchBidsForRequest: (requestId: string) => Promise<Bid[]>;
+  hireCA: (requestId: string, bidId: string) => Promise<void>;
+  unlockWorkspace: (id: string) => Promise<void>;
   clientMessages: Record<string, ChatMessage[]>;
   caMessages: Record<string, ChatMessage[]>;
+  allMessages: ChatMessage[];
   addClientMessage: (
     requestId: string,
     senderId: string,
     senderName: string,
     senderRole: UserRole,
-    content: string,
+    text: string,
   ) => Promise<void>;
   addCAMessage: (
     requestId: string,
     senderId: string,
     senderName: string,
     senderRole: UserRole,
-    content: string,
+    text: string,
+  ) => Promise<void>;
+  sendMessageWrapper: (
+    requestId: string,
+    text: string,
+    senderRole: UserRole,
+    isForwarded?: boolean,
+    intendedFor?: "client" | "ca",
+    fileUrl?: string | null,
+    fileName?: string | null,
   ) => Promise<void>;
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
   forwardToCA: (requestId: string, messageId: string) => Promise<void>; 
@@ -184,17 +234,21 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   // We initialize this as empty to prevent the AdminDashboard crash.
   const [users, setUsers] = useState<User[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [pendingCAs, setPendingCAs] = useState<User[]>([]);
+  const [pendingJobs, setPendingJobs] = useState<ServiceRequest[]>([]);
 
   // Format Helpers
   const formatRequest = (r: any): ServiceRequest => ({
     ...r,
     id: r.id || r._id,
     createdAt: new Date(r.createdAt),
+    updatedAt: new Date(r.updatedAt || r.createdAt),
   });
 
   const formatMessage = (m: any): ChatMessage => ({
     ...m,
     id: m.id || m._id,
+    text: m.text || m.content || "",
     timestamp: new Date(m.createdAt || m.timestamp),
   });
 
@@ -222,9 +276,27 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       console.log("🟢 Socket Connected to:", BACKEND_URL),
     );
 
-    socket.on("request_alert", (newRequest: any) => {
-      setRequests((prev) => [formatRequest(newRequest), ...prev]);
-      toast.info(`New Job Available: ${newRequest.serviceName}`);
+    socket.on("request_alert", (updatedRequest: any) => {
+      const formatted = formatRequest(updatedRequest);
+      setRequests((prev) => {
+        const index = prev.findIndex((r) => r.id === formatted.id);
+        if (index !== -1) {
+          // Update existing
+          const newRequests = [...prev];
+          newRequests[index] = formatted;
+          return newRequests;
+        }
+        // Add new
+        return [formatted, ...prev];
+      });
+
+      // Notify if it's a new 'live' job for CAs or a assigned job for Client
+      if (
+        (formatted.status as string) === "live" &&
+        currentUser?.role === "ca"
+      ) {
+        toast.info(`New Job Available: ${formatted.serviceName}`);
+      }
     });
 
     socket.on("receive_message", (msg: any) => {
@@ -251,9 +323,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
       // 2. NEW: Fetch Chat History for all requests
       // This ensures messages appear when you reload the page
-      if (formattedReqs.length > 0) {
+      if (formattedReqs.length > 0 && currentUser?.token) {
         const msgPromises = formattedReqs.map((r: any) =>
-          api.fetchMessagesAPI(r.id).catch(() => []),
+          api.fetchMessagesAPI(r.id, currentUser.token!).catch(() => []),
         );
 
         const responses = await Promise.all(msgPromises);
@@ -269,7 +341,57 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const fetchAdminData = async () => {
+    if (!currentUser?.token) return;
+    try {
+      const [pCAs, pJobs] = await Promise.all([
+        api.fetchPendingCAs(currentUser.token),
+        api.fetchPendingJobs(currentUser.token),
+      ]);
+      setPendingCAs(pCAs);
+      setPendingJobs(pJobs);
+    } catch (e) {
+      console.error("Failed to fetch admin data", e);
+    }
+  };
+
+  const verifyCA = async (id: string) => {
+    if (!currentUser?.token) return;
+    try {
+      await api.verifyCA(id, currentUser.token);
+      toast.success("CA Verified!");
+      await fetchAdminData();
+    } catch (e) {
+      toast.error("Failed to verify CA");
+    }
+  };
+
+  const approveJob = async (id: string) => {
+    if (!currentUser?.token) return;
+    try {
+      const { request } = await api.approveJob(id, currentUser.token);
+      toast.success("Job Approved!");
+      socket.emit("new_request", request); // Alert others
+      await fetchAdminData();
+      await refreshData();
+    } catch (e) {
+      toast.error("Failed to approve job");
+    }
+  };
+
   // --- ACTIONS (Same logic as before, just calling API now) ---
+  const rejectJob = async (id: string) => {
+    if (!currentUser?.token) return;
+    try {
+      await api.rejectJob(id, currentUser.token);
+      toast.success("Job Rejected!");
+      await fetchAdminData();
+      await refreshData();
+    } catch (e) {
+      toast.error("Failed to reject job");
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const user = await api.loginUser({ email, password });
@@ -280,6 +402,41 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     } catch (error: any) {
       toast.error(error.message);
       return null;
+    }
+  };
+
+  const placeBid = async (bidData: {
+    requestId: string;
+    price: number;
+    proposalText: string;
+  }) => {
+    if (!currentUser?.token) return;
+    try {
+      await api.placeBid(bidData.requestId, bidData, currentUser.token);
+      toast.success("Bid placed successfully!");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to place bid");
+    }
+  };
+
+  const fetchBidsForRequest = async (requestId: string) => {
+    if (!currentUser?.token) return [];
+    try {
+      return await api.fetchBidsForRequest(requestId, currentUser.token);
+    } catch (e) {
+      console.error("Failed to fetch bids", e);
+      return [];
+    }
+  };
+
+  const hireCA = async (requestId: string, bidId: string) => {
+    if (!currentUser?.token) return;
+    try {
+      await api.hireCAAPI(bidId, currentUser.token);
+      toast.success("CA Hired! Status moved to Awaiting Payment.");
+      await refreshData();
+    } catch (e: any) {
+      toast.error(e.message || "Failed to hire CA");
     }
   };
 
@@ -296,9 +453,18 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     email: string,
     password: string,
     role: UserRole,
+    experience?: number,
+    certificationDetails?: string,
   ) => {
     try {
-      const user = await api.registerUser({ name, email, password, role });
+      const user = await api.registerUser({
+        name,
+        email,
+        password,
+        role,
+        experience,
+        certificationDetails,
+      });
       setCurrentUser(user);
       localStorage.setItem("userInfo", JSON.stringify(user));
       return user;
@@ -315,6 +481,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     serviceName: string,
     description: string,
     budget: number,
+    expectedBudget?: number,
   ) => {
     try {
       const newReq = await api.createRequest({
@@ -324,6 +491,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         serviceName,
         description,
         budget,
+        expectedBudget,
       });
       socket.emit("new_request", newReq); // Emit for real-time
     } catch (e) {
@@ -337,7 +505,11 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     caName: string,
   ) => {
     try {
-      await api.updateRequestStatus(requestId, "accept", { caId, caName });
+      const updated = await api.updateRequestStatus(requestId, "accept", {
+        caId,
+        caName,
+      });
+      socket.emit("new_request", updated); // Alert Admin
       setRequests((prev) =>
         prev.map((r) =>
           r.id === requestId
@@ -350,36 +522,28 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const adminApproveRequest = async (requestId: string) => {
-    try {
-      await api.updateRequestStatus(requestId, "approve");
-      setRequests((prev) =>
-        prev.map((r) => (r.id === requestId ? { ...r, status: "active" } : r)),
-      );
-    } catch (e) {
-      toast.error("Failed to approve");
-    }
-  };
 
   const sendMessageWrapper = async (
     requestId: string,
-    content: string,
+    text: string,
     senderRole: UserRole,
     isForwarded = false,
     intendedFor?: "client" | "ca",
+    fileUrl: string | null = null,
+    fileName: string | null = null,
   ) => {
-    if (!currentUser) return;
+    if (!currentUser || !currentUser.token) return;
     const msgData: any = {
-      requestId,
-      senderId: currentUser.id,
-      senderRole,
-      content,
+      text,
       isForwarded,
     };
+    if (fileUrl) msgData.fileUrl = fileUrl;
+    if (fileName) msgData.fileName = fileName;
     if (intendedFor) msgData.intendedFor = intendedFor;
+    
     try {
       console.debug("[sendMessageWrapper] sending:", msgData);
-      const savedMsg = await api.sendMessageAPI(msgData);
+      const savedMsg = await api.sendMessageAPI(requestId, msgData, currentUser.token);
       const formatted = formatMessage(savedMsg);
       // Preserve intendedFor locally if backend doesn't persist it
       if (intendedFor && !(formatted as any).intendedFor) {
@@ -401,11 +565,11 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     _sid: string,
     _sname: string,
     role: UserRole,
-    content: string,
+    text: string,
   ) => {
     // Use the provided role (e.g. 'admin' when Admin sends from Client box)
     // Mark intendedFor as 'client' so admin messages from Client box route correctly
-    await sendMessageWrapper(requestId, content, role, false, "client");
+    await sendMessageWrapper(requestId, text, role, false, "client");
   };
 
   const addCAMessage = async (
@@ -413,11 +577,11 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     _sid: string,
     _sname: string,
     role: UserRole,
-    content: string,
+    text: string,
   ) => {
     // Use the provided role (e.g. 'admin' when Admin sends from CA box)
     // Mark intendedFor as 'ca' so admin messages from CA box route correctly
-    await sendMessageWrapper(requestId, content, role, false, "ca");
+    await sendMessageWrapper(requestId, text, role, false, "ca");
   };
 
   // 1. FORWARD TO CLIENT (Existing - Refined)
@@ -429,7 +593,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     // isForwarded flag helps us style it if needed
     await sendMessageWrapper(
       requestId,
-      `From Expert: ${original.content}`,
+      `From Expert: ${original.text}`,
       "admin",
       true,
       "client",
@@ -446,7 +610,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     // NOTE: We strip the client's name to maintain "Double Blind"
     await sendMessageWrapper(
       requestId,
-      `Client Request: ${original.content}`,
+      `From Client: ${original.text}`,
       "admin",
       true,
       "ca",
@@ -491,10 +655,10 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       } else {
         // Fallback to legacy content-prefix detection when intendedFor isn't available
         // (for old messages that might not have intendedFor)
-        const text = (msg.content || "").toString();
-        if (text.startsWith("From Expert:")) {
+        const chatText = (msg.text || "").toString();
+        if (chatText.startsWith("From Expert:")) {
           clientMessages[msg.requestId].push(msg);
-        } else if (text.startsWith("Client Request:")) {
+        } else if (chatText.startsWith("Client Request:")) {
           caMessages[msg.requestId].push(msg);
         } else if (msg.isForwarded) {
           // Forwarded messages without intendedFor default to client (legacy behavior)
@@ -521,19 +685,93 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     registerUser,
     createRequest,
     caAcceptRequest,
-    adminApproveRequest,
-    getSearchingRequests: () =>
-      requests.filter((r) => r.status === "searching"),
-    getPendingApprovalRequests: () =>
-      requests.filter((r) => r.status === "pending_approval"),
-    getActiveRequests: () => requests.filter((r) => r.status === "active"),
     clientMessages,
     caMessages,
+    allMessages,
     addClientMessage,
     addCAMessage,
+    sendMessageWrapper,
     forwardToClient,
     forwardToCA,
+    verifyCA,
+    approveJob,
+    rejectJob,
+    placeBid,
+    fetchBidsForRequest,
+    hireCA,
+    unlockWorkspace: async (id: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.unlockWorkspaceAPI(id, token);
+        toast.success("Workspace unlocked successfully!");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to unlock workspace");
+      }
+    },
+    fetchAdminData,
+    pendingCAs,
+    pendingJobs,
     addAdmin,
+    getLiveJobs: () => requests.filter((r) => (r.status as string) === "live"),
+    getActiveRequests: () => requests.filter((r) => r.status === "active" || (r.status as string) === "live" || r.status === "completed"),
+    getPendingApprovalRequests: () => requests.filter((r) => r.status === "pending_approval"),
+    completeRequest: async (id: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.completeRequestAPI(id, token);
+        toast.success("Work marked as completed!");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to complete work");
+      }
+    },
+    approveWork: async (id: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.approveWorkAPI(id, token);
+        toast.success("Work approved successfully!");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to approve work");
+      }
+    },
+    rejectWork: async (id: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.rejectWorkAPI(id, token);
+        toast.success("Changes requested. Project is active again.");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to reject work");
+      }
+    },
+    forceApprove: async (id: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.forceApproveAPI(id, token);
+        toast.success("Admin Intervention: Work force-approved!");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to force approve");
+      }
+    },
+    archiveProject: async (id: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.archiveProjectAPI(id, token);
+        toast.success("Project archived successfully!");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to archive project");
+      }
+    },
   };
 
   return (

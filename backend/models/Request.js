@@ -14,18 +14,36 @@ const requestSchema = mongoose.Schema(
     serviceName: { type: String, required: true }, // e.g., 'GST Filing'
     description: { type: String, required: true },
     budget: { type: Number, required: true },
+    expectedBudget: { type: Number }, // Suggested budget
     status: {
       type: String,
       enum: [
         "searching",
         "pending_approval",
+        "live",
         "active",
         "completed",
         "cancelled",
+        "awaiting_payment",
+        "ready_for_payout",
+        "payout_completed",
       ],
-      default: "searching",
+      default: "pending_approval", // New default status
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
     },
     adminApprove: { type: Boolean, default: false },
+    hiredCA: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    isWorkspaceUnlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
