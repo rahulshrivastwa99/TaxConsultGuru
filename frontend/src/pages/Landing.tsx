@@ -11,7 +11,10 @@ import {
   CheckCircle2,
   Briefcase,
   Zap,
-  BarChart3,
+  Phone,
+  Mail,
+  Menu,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +36,7 @@ const Landing = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"client" | "ca">("client");
   const [isRegister, setIsRegister] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Form state
   const [email, setEmail] = useState("");
@@ -43,37 +47,36 @@ const Landing = () => {
 
   // --- ACTIONS & HANDLERS ---
 
-  // 1. Logo Click -> Refresh Website
   const handleLogoClick = () => {
     window.location.href = "/";
   };
 
-  // 2. Services Click -> Scroll to Section
   const handleServicesClick = () => {
+    setMobileMenuOpen(false);
     const section = document.getElementById("services-section");
     if (section) {
       section.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  // 3. Experts Click -> Open Signup as CA
   const handleExpertsClick = () => {
+    setMobileMenuOpen(false);
     setActiveTab("ca");
     setIsRegister(true);
     setLoginOpen(true);
   };
 
-  // 4. Get Started Click -> Open Signup as Client
   const handleGetStartedClick = () => {
+    setMobileMenuOpen(false);
     setActiveTab("client");
     setIsRegister(true);
     setLoginOpen(true);
   };
 
-  // 5. Login Click -> Open Standard Login
   const handleLoginClick = () => {
+    setMobileMenuOpen(false);
     setIsRegister(false);
-    setActiveTab("client"); // Default to client, user can switch
+    setActiveTab("client");
     setLoginOpen(true);
   };
 
@@ -102,10 +105,8 @@ const Landing = () => {
         toast.success(`Welcome back, ${data.name}!`);
       }
 
-      // Save to storage
       localStorage.setItem("userInfo", JSON.stringify(data));
 
-      // Force refresh/redirect to load Context
       if (data.role === "client") {
         window.location.href = "/client/dashboard";
       } else if (data.role === "ca") {
@@ -127,160 +128,401 @@ const Landing = () => {
     setName("");
     setExperience("");
     setCertifications("");
-    // Keep isRegister state to maintain context (Signup vs Login)
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-500/20 overflow-x-hidden">
+      {/* --- INJECTED CUSTOM CSS FOR SMOOTH FLOATING ANIMATIONS --- */}
+      <style>{`
+        @keyframes customFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+        }
+        @keyframes customFloatDelayed {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
+        }
+        .animate-float {
+          animation: customFloat 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+          animation: customFloatDelayed 7s ease-in-out infinite 1s;
+        }
+      `}</style>
+
+      {/* --- FLOATING WHATSAPP BUTTON --- */}
+      <a
+        href="https://wa.me/1234567890"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-[100] drop-shadow-2xl hover:scale-110 transition-transform cursor-pointer flex items-center justify-center animate-float"
+      >
+        <img
+          src="/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.png"
+          alt="WhatsApp Chat"
+          className="w-14 h-14 object-contain"
+          onError={(e) => {
+            e.currentTarget.src =
+              "/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.svg";
+          }}
+        />
+      </a>
+
       {/* --- HEADER --- */}
-      <header className="fixed top-0 w-full border-b border-border/40 bg-background/80 backdrop-blur-md z-50 transition-all duration-300">
-        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-          {/* Logo with Refresh Action */}
+      <header className="fixed top-0 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md z-50 transition-all duration-300">
+        <div className="container mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
+          {/* Logo */}
           <div
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={handleLogoClick}
           >
-            <img
-              src="/logo-full.png"
-              alt="TaxConsultGuru"
-              className="h-14 md:h-16 w-auto object-contain"
-            />
+            <span className="text-2xl font-extrabold tracking-tight text-slate-900">
+              Tax
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+                Consult
+              </span>
+              Guru
+            </span>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-2 md:gap-6">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-8">
             <button
               onClick={handleServicesClick}
-              className="hidden md:block text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
             >
               Services
             </button>
             <button
               onClick={handleExpertsClick}
-              className="hidden md:block text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
+            >
+              For Experts
+            </button>
+          </nav>
+
+          {/* Right Side Actions & Icons */}
+          <div className="flex items-center gap-3 md:gap-5">
+            {/* Contact Icons (Hidden on mobile) */}
+            <div className="hidden md:flex items-center gap-4 text-slate-400 mr-2">
+              <Phone className="w-5 h-5 hover:text-indigo-600 cursor-pointer transition-colors" />
+              <Mail className="w-5 h-5 hover:text-indigo-600 cursor-pointer transition-colors" />
+              <div className="cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center">
+                <img
+                  src="/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.png"
+                  alt="WhatsApp"
+                  className="w-6 h-6 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.svg";
+                  }}
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleLoginClick}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 hidden sm:flex shadow-md shadow-indigo-200"
+            >
+              Login
+            </Button>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              className="lg:hidden p-2 text-slate-600 hover:text-indigo-600"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl p-4 flex flex-col gap-4 animate-in slide-in-from-top-2">
+            <button
+              onClick={handleServicesClick}
+              className="text-left font-semibold text-slate-700 py-2 hover:text-indigo-600"
+            >
+              Services
+            </button>
+            <button
+              onClick={handleExpertsClick}
+              className="text-left font-semibold text-slate-700 py-2 hover:text-indigo-600"
             >
               For Experts
             </button>
             <Button
               onClick={handleLoginClick}
-              variant="outline"
-              className="px-6 border-primary/20 hover:bg-primary/5"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2"
             >
               Login
             </Button>
             <Button
               onClick={handleGetStartedClick}
-              className="hidden sm:flex shadow-lg shadow-primary/20"
+              variant="outline"
+              className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-50"
             >
               Get Started
             </Button>
           </div>
-        </div>
+        )}
       </header>
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10" />
+      {/* --- HERO SECTION WITH VISIBLE VIDEO BACKGROUND --- */}
+      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 min-h-[90vh] flex items-center">
+        {/* === BACKGROUND VIDEO LAYER === */}
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-slate-100">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/Make_AI_Video_Look_Real.mp4" type="video/mp4" />
+          </video>
 
-        <div className="container mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/50 border border-secondary mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]"></span>
-            <span className="text-xs font-semibold tracking-wide text-foreground/80 uppercase">
-              Secure & Certified Platform
-            </span>
-          </div>
+          {/* Overlay to ensure text visibility but keeps video highly visible on the right */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent"></div>
+        </div>
+        {/* ============================== */}
 
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-6 max-w-5xl mx-auto leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700">
-            Tax Compliance, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-purple-600">
-              Simplifed & Managed.
-            </span>
-          </h1>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column: Text & CTA */}
+            <div className="text-left animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <h1 className="text-5xl md:text-6xl lg:text-[4rem] font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.1]">
+                Expert Tax & <br /> Financial <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+                  Compliance Solutions
+                </span>{" "}
+                <br />
+                Made Simple.
+              </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-12 duration-700 delay-100">
-            Connect with dedicated Chartered Accountants instantly. We handle
-            the complexities of GST, ITR, and Audits so you can focus on your
-            growth.
-          </p>
+              <p className="text-lg text-slate-800 max-w-lg mb-8 font-medium">
+                Connect with top-tier Chartered Accountants for GST, ITR
+                filings, and company registrations. We handle the complex
+                paperwork so you can focus on scaling your business.
+              </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-16 duration-700 delay-200">
-            <Button
-              size="lg"
-              className="h-14 px-8 text-base shadow-xl shadow-primary/20 hover:scale-105 transition-transform"
-              onClick={handleGetStartedClick}
-            >
-              Get Quotation <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="h-14 px-8 text-base border border-border/50 hover:bg-secondary/80"
-              onClick={handleServicesClick}
-            >
-              Explore Services
-            </Button>
+              {/* Search Bar */}
+              <div className="flex w-full max-w-md items-center space-x-2 border border-slate-300 bg-white/95 backdrop-blur-md rounded-xl p-1.5 shadow-md hover:shadow-lg transition-shadow mb-8">
+                <Input
+                  type="text"
+                  placeholder="e.g. GST Registration"
+                  className="border-0 focus-visible:ring-0 shadow-none text-base bg-transparent font-medium placeholder:text-slate-400"
+                />
+                <Button
+                  onClick={handleGetStartedClick}
+                  className="bg-[#0b1b36] hover:bg-slate-800 text-white px-8 h-11 rounded-lg font-semibold"
+                >
+                  Search
+                </Button>
+              </div>
+
+              {/* Recommended Services Pills */}
+              <div className="mb-8">
+                <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
+                  Popular Services
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span
+                    onClick={handleServicesClick}
+                    className="px-4 py-2 bg-white/80 text-indigo-700 border border-indigo-200 shadow-sm text-sm font-semibold rounded-full cursor-pointer hover:bg-indigo-50 transition-colors backdrop-blur-md"
+                  >
+                    Company Registration
+                  </span>
+                  <span
+                    onClick={handleServicesClick}
+                    className="px-4 py-2 bg-white/80 text-cyan-700 border border-cyan-200 shadow-sm text-sm font-semibold rounded-full cursor-pointer hover:bg-cyan-50 transition-colors backdrop-blur-md"
+                  >
+                    GST Registration
+                  </span>
+                  <span
+                    onClick={handleServicesClick}
+                    className="px-4 py-2 bg-white/80 text-emerald-700 border border-emerald-200 shadow-sm text-sm font-semibold rounded-full cursor-pointer hover:bg-emerald-50 transition-colors backdrop-blur-md"
+                  >
+                    ISO Registration
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <Button
+                  size="lg"
+                  className="h-14 px-8 text-base font-semibold shadow-xl shadow-indigo-600/20 bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                  onClick={handleGetStartedClick}
+                >
+                  Get Quotation <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 px-8 text-base font-semibold border-2 border-slate-300 text-slate-800 bg-white/80 hover:bg-white hover:border-slate-400 rounded-xl backdrop-blur-md"
+                  onClick={handleServicesClick}
+                >
+                  Explore Services
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Column: Clean, Perfectly Aligned Dashboard Mockup */}
+            <div className="relative hidden lg:flex h-full min-h-[550px] w-full items-center justify-center animate-in fade-in slide-in-from-right-12 duration-700 delay-200">
+              {/* Structured Layered Composition Wrapper */}
+              <div className="relative w-full max-w-[420px] h-[400px]">
+                {/* Top Right Card: Form 16 Notification */}
+                <div className="absolute -top-8 -right-8 z-10 w-[260px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/50 rounded-2xl p-4 animate-float-delayed">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-cyan-50 rounded-xl">
+                      <FileText className="w-6 h-6 text-cyan-600" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-slate-800">
+                        Form 16 Uploaded
+                      </p>
+                      <p className="text-xs font-medium text-slate-500 mt-0.5">
+                        Awaiting CA Review
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Center Main Card: CA Profile */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[340px] bg-white/90 backdrop-blur-xl shadow-2xl shadow-indigo-900/10 border border-white/50 rounded-3xl p-6 animate-float">
+                  <div className="flex items-center gap-4 border-b border-slate-200/60 pb-5 mb-5">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-cyan-500 p-[2px]">
+                      <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                        <span className="text-lg font-bold text-indigo-600">
+                          CA
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 text-lg">
+                        CA Ramesh Kumar
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <span className="text-xs font-semibold text-slate-500">
+                          Verified Tax Expert
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-white/80 p-3.5 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="text-sm font-semibold text-slate-600">
+                        ITR Filing Status
+                      </span>
+                      <span className="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-lg">
+                        In Progress
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center bg-emerald-50/80 p-3.5 rounded-xl border border-emerald-100/50 shadow-sm">
+                      <span className="text-sm font-semibold text-emerald-800">
+                        Tax Savings Found
+                      </span>
+                      <span className="text-base font-black text-emerald-600">
+                        ₹ 42,500
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Left Card: Tax Alert */}
+                <div className="absolute -bottom-10 -left-10 z-30 w-[260px] bg-white/80 backdrop-blur-xl shadow-xl border border-white/50 rounded-2xl p-4 animate-float-delayed">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-rose-50 rounded-xl">
+                      <Clock className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-slate-800">
+                        Advance Tax Due
+                      </p>
+                      <p className="text-xs font-bold text-rose-500 mt-0.5">
+                        15th March 2026
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Middle Left: Security Badge */}
+                <div className="absolute top-24 -left-16 z-10 bg-white/80 backdrop-blur-xl shadow-lg border border-white/50 rounded-2xl p-3 flex items-center gap-3 animate-float">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <Shield className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-slate-800">
+                      100% Secure
+                    </p>
+                    <p className="text-[10px] font-medium text-slate-500">
+                      Encrypted
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* --- HOW IT WORKS --- */}
-      <section
-        id="services-section"
-        className="py-24 bg-gradient-to-b from-background to-secondary/20"
-      >
+      <section id="services-section" className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-slate-900">
               Streamlined Process
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-slate-600 max-w-xl mx-auto text-lg">
               We bridge the gap between businesses and tax experts through a
               secure, managed workflow.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connecting Line (Desktop) */}
-            <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-transparent via-border to-transparent border-t border-dashed border-muted-foreground/30 -z-10" />
+            <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-transparent via-slate-300 to-transparent border-t border-dashed border-slate-300 -z-10" />
 
-            <Card className="border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-background/50 backdrop-blur-sm group">
+            <Card className="border-0 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 bg-white group rounded-2xl">
               <CardContent className="p-8 text-center relative">
-                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                  <FileText className="w-8 h-8 text-blue-600" />
+                <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 group-hover:bg-indigo-100 transition-all duration-300">
+                  <FileText className="w-8 h-8 text-indigo-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">1. Post Request</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                  1. Post Request
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
                   Select a service like GST or ITR, describe your needs, and set
                   your budget. It takes less than 2 minutes.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-background/50 backdrop-blur-sm group">
+            <Card className="border-0 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 bg-white group rounded-2xl">
               <CardContent className="p-8 text-center relative">
-                <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                  <Users className="w-8 h-8 text-purple-600" />
+                <div className="w-16 h-16 rounded-2xl bg-cyan-50 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 group-hover:bg-cyan-100 transition-all duration-300">
+                  <Users className="w-8 h-8 text-cyan-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
                   2. Expert Assigned
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-slate-500 text-sm leading-relaxed">
                   Our smart system assigns a qualified CA. The admin oversees
                   the process to ensure quality and deadlines.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-background/50 backdrop-blur-sm group">
+            <Card className="border-0 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 bg-white group rounded-2xl">
               <CardContent className="p-8 text-center relative">
-                <div className="w-16 h-16 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                  <Shield className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 group-hover:bg-emerald-100 transition-all duration-300">
+                  <Shield className="w-8 h-8 text-emerald-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
                   3. Secure Completion
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-slate-500 text-sm leading-relaxed">
                   Chat privately via our bridge, share docs securely, and get
                   work done. We handle the mediation.
                 </p>
@@ -291,22 +533,22 @@ const Landing = () => {
       </section>
 
       {/* --- FEATURES / BENEFITS --- */}
-      <section className="py-24 overflow-hidden">
+      <section className="py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="order-2 md:order-1">
               <div className="inline-flex items-center gap-2 mb-6">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Zap className="w-5 h-5 text-primary" />
+                <div className="p-2 bg-indigo-50 rounded-lg">
+                  <Zap className="w-5 h-5 text-indigo-600" />
                 </div>
-                <span className="text-sm font-bold text-primary tracking-wide uppercase">
+                <span className="text-sm font-bold text-indigo-600 tracking-wide uppercase">
                   Why Choose Us
                 </span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+              <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
                 Tax compliance <br /> without the chaos.
               </h2>
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-lg text-slate-600 mb-8">
                 Designed for freelancers, startups, and enterprises. We take the
                 stress out of tax season with a managed, professional approach.
               </p>
@@ -318,76 +560,76 @@ const Landing = () => {
                   "Real-time Status Tracking",
                   "Admin-Managed Disputes & Quality",
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <li key={i} className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
                     </div>
-                    <span className="font-medium text-foreground/80">
-                      {item}
-                    </span>
+                    <span className="font-semibold text-slate-700">{item}</span>
                   </li>
                 ))}
               </ul>
 
               <Button
                 size="lg"
-                className="mt-10 h-12 px-8"
+                className="mt-10 h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white text-base shadow-lg rounded-xl"
                 onClick={handleGetStartedClick}
               >
                 Start Your First Request
               </Button>
             </div>
 
-            {/* Visual Abstract Graphic */}
             <div className="order-1 md:order-2 relative">
-              <div className="absolute -inset-4 bg-gradient-to-tr from-primary/30 to-purple-500/30 rounded-[2rem] opacity-40 blur-3xl" />
-              <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 shadow-2xl">
+              <div className="absolute -inset-4 bg-gradient-to-tr from-indigo-200/40 to-cyan-200/40 rounded-[2rem] opacity-50 blur-3xl" />
+              <div className="relative bg-slate-50/80 backdrop-blur-xl border border-slate-100 rounded-[2rem] p-8 shadow-2xl">
                 <div className="space-y-6">
-                  {/* Mock UI Elements */}
-                  <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border/50 shadow-sm">
+                  <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                        <BarChart3 className="w-6 h-6 text-blue-600" />
+                      <div className="p-3 bg-indigo-50 rounded-xl">
+                        <Briefcase className="w-6 h-6 text-indigo-600" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm">GST Return Filing</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="font-bold text-sm text-slate-800">
+                          GST Return Filing
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Pending Admin Approval
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-bold px-3 py-1 bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 rounded-full">
+                    <span className="text-xs font-bold px-3 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full">
                       Processing
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border/50 shadow-sm">
+                  <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                        <Briefcase className="w-6 h-6 text-green-600" />
+                      <div className="p-3 bg-emerald-50 rounded-xl">
+                        <Users className="w-6 h-6 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm">
+                        <p className="font-bold text-sm text-slate-800">
                           Company Registration
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Assigned to Expert
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-bold px-3 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-full">
+                    <span className="text-xs font-bold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full">
                       Active
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border/50 shadow-sm opacity-60">
+                  <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm opacity-60">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                        <Shield className="w-6 h-6 text-purple-600" />
+                      <div className="p-3 bg-slate-100 rounded-xl">
+                        <Shield className="w-6 h-6 text-slate-500" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm">Audit Report</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="font-bold text-sm text-slate-800">
+                          Audit Report
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Completed
                         </p>
                       </div>
@@ -404,19 +646,15 @@ const Landing = () => {
       </section>
 
       {/* --- FOOTER --- */}
-      <footer className="py-12 bg-slate-950 text-slate-200">
+      <footer className="py-16 bg-slate-900 text-slate-300">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
               <div
-                className="flex items-center gap-3 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                className="flex items-center gap-3 mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white"
                 onClick={handleLogoClick}
               >
-                <img
-                  src="/logo-full.png"
-                  alt="TaxConsultGuru"
-                  className="h-12 md:h-14 w-auto object-contain"
-                />
+                Tax<span className="text-indigo-400">Consult</span>Guru
               </div>
               <p className="text-slate-400 max-w-sm leading-relaxed">
                 India's most trusted managed marketplace connecting businesses
@@ -425,21 +663,21 @@ const Landing = () => {
             </div>
             <div>
               <h4 className="font-bold text-white mb-6">Platform</h4>
-              <ul className="space-y-3 text-sm text-slate-400">
+              <ul className="space-y-4 text-sm text-slate-400">
                 <li
-                  className="hover:text-primary cursor-pointer transition-colors"
+                  className="hover:text-indigo-400 cursor-pointer transition-colors"
                   onClick={handleExpertsClick}
                 >
                   For CA Experts
                 </li>
                 <li
-                  className="hover:text-primary cursor-pointer transition-colors"
+                  className="hover:text-indigo-400 cursor-pointer transition-colors"
                   onClick={handleServicesClick}
                 >
                   Browse Services
                 </li>
                 <li
-                  className="hover:text-primary cursor-pointer transition-colors"
+                  className="hover:text-indigo-400 cursor-pointer transition-colors"
                   onClick={handleGetStartedClick}
                 >
                   Register
@@ -448,14 +686,14 @@ const Landing = () => {
             </div>
             <div>
               <h4 className="font-bold text-white mb-6">Legal</h4>
-              <ul className="space-y-3 text-sm text-slate-400">
-                <li className="hover:text-white cursor-pointer">
+              <ul className="space-y-4 text-sm text-slate-400">
+                <li className="hover:text-white cursor-pointer transition-colors">
                   Privacy Policy
                 </li>
-                <li className="hover:text-white cursor-pointer">
+                <li className="hover:text-white cursor-pointer transition-colors">
                   Terms of Service
                 </li>
-                <li className="hover:text-white cursor-pointer">
+                <li className="hover:text-white cursor-pointer transition-colors">
                   Contact Support
                 </li>
               </ul>
@@ -463,7 +701,7 @@ const Landing = () => {
           </div>
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
             <p>© 2026 TaxConsultGuru. All rights reserved.</p>
-            <p>Designed for Professional Excellence</p>
+            <p className="mt-2 md:mt-0">Designed for Professional Excellence</p>
           </div>
         </div>
       </footer>
@@ -476,11 +714,10 @@ const Landing = () => {
           if (!open) resetForm();
         }}
       >
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0 border-0 shadow-2xl">
-          {/* Header Area */}
-          <div className="bg-slate-950 p-8 text-white text-center">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0 border-0 shadow-2xl rounded-2xl">
+          <div className="bg-slate-900 p-8 text-white text-center">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold tracking-tight mb-2">
+              <DialogTitle className="text-2xl font-bold tracking-tight mb-2 text-white">
                 {isRegister
                   ? activeTab === "ca"
                     ? "Join as Expert"
@@ -495,17 +732,23 @@ const Landing = () => {
             </DialogHeader>
           </div>
 
-          <div className="p-8 bg-background">
+          <div className="p-8 bg-white">
             <Tabs
               value={activeTab}
               onValueChange={(v) => setActiveTab(v as "client" | "ca")}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-2 mb-8 h-12">
-                <TabsTrigger value="client" className="text-base">
+              <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-slate-100 rounded-xl p-1">
+                <TabsTrigger
+                  value="client"
+                  className="text-base rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 font-medium"
+                >
                   Client
                 </TabsTrigger>
-                <TabsTrigger value="ca" className="text-base">
+                <TabsTrigger
+                  value="ca"
+                  className="text-base rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 font-medium"
+                >
                   Expert (CA)
                 </TabsTrigger>
               </TabsList>
@@ -514,67 +757,83 @@ const Landing = () => {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {isRegister && (
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Full Name</label>
+                      <label className="text-sm font-semibold text-slate-700">
+                        Full Name
+                      </label>
                       <Input
-                        placeholder="e.g. Rahul Shrivastwa"
+                        placeholder="e.g. John Doe"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required={isRegister}
-                        className="h-11"
+                        className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg"
                       />
                     </div>
                   )}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Email Address</label>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Email Address
+                    </label>
                     <Input
                       type="email"
                       placeholder="name@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="h-11"
+                      className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg"
                     />
                   </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Password</label>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                    {isRegister && activeTab === "ca" && (
-                      <>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Experience (Years)</label>
-                          <Input
-                            type="number"
-                            placeholder="e.g. 5"
-                            value={experience}
-                            onChange={(e) => setExperience(e.target.value === "" ? "" : Number(e.target.value))}
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Certification Details</label>
-                          <Input
-                            placeholder="e.g. CA Final (ICAI), GST Practitioner"
-                            value={certifications}
-                            onChange={(e) => setCertifications(e.target.value)}
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                      </>
-                    )}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">
+                      Password
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg"
+                    />
+                  </div>
+                  {isRegister && activeTab === "ca" && (
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-slate-700">
+                          Experience (Years)
+                        </label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 5"
+                          value={experience}
+                          onChange={(e) =>
+                            setExperience(
+                              e.target.value === ""
+                                ? ""
+                                : Number(e.target.value),
+                            )
+                          }
+                          required
+                          className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-slate-700">
+                          Certification Details
+                        </label>
+                        <Input
+                          placeholder="e.g. CA Final (ICAI), GST Practitioner"
+                          value={certifications}
+                          onChange={(e) => setCertifications(e.target.value)}
+                          required
+                          className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <Button
                     type="submit"
-                    className="w-full h-11 text-base font-semibold shadow-md"
+                    className="w-full h-12 text-base font-bold shadow-md shadow-indigo-200 bg-indigo-600 hover:bg-indigo-700 text-white mt-4 rounded-xl"
                     disabled={isLoading}
                   >
                     {isLoading && (
@@ -588,14 +847,12 @@ const Landing = () => {
                   </Button>
                 </form>
 
-                <div className="relative my-4">
+                <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-slate-200" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase font-medium">
-                    <span className="bg-background px-4 text-muted-foreground">
-                      Or
-                    </span>
+                  <div className="relative flex justify-center text-xs uppercase font-bold">
+                    <span className="bg-white px-4 text-slate-400">Or</span>
                   </div>
                 </div>
 
@@ -603,7 +860,7 @@ const Landing = () => {
                   <button
                     type="button"
                     onClick={() => setIsRegister(!isRegister)}
-                    className="text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline font-bold transition-colors"
                   >
                     {isRegister
                       ? "Already have an account? Sign in"
