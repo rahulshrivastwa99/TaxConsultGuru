@@ -14,7 +14,6 @@ import {
   Phone,
   Mail,
   Menu,
-  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
@@ -131,38 +130,17 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-500/20 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-500/20 overflow-x-hidden flex flex-col">
       {/* --- INJECTED CUSTOM CSS FOR SMOOTH FLOATING ANIMATIONS --- */}
       <style>{`
         @keyframes customFloat {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-15px); }
         }
-        @keyframes customFloatDelayed {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-12px); }
-        }
         .animate-float {
           animation: customFloat 6s ease-in-out infinite;
         }
-        .animate-float-delayed {
-          animation: customFloatDelayed 7s ease-in-out infinite 1s;
-        }
       `}</style>
-
-      {/* --- FLOATING WHATSAPP BUTTON --- */}
-      <a
-        href="https://wa.me/1234567890"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-[100] drop-shadow-2xl hover:scale-110 transition-transform cursor-pointer flex items-center justify-center animate-float"
-      >
-        <img
-          src="/Picsart_26-02-26_20-21-22-387.png"
-          alt="WhatsApp Chat"
-          className="w-14 h-14 object-contain"
-        />
-      </a>
 
       {/* --- HEADER --- */}
       <header className="fixed top-0 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md z-50 transition-all duration-300">
@@ -272,13 +250,11 @@ const Landing = () => {
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           >
-            {/* Replaced old video with the new one from the public folder */}
             <source
               src="/Video_Generation_Request_Fulfilled.mp4"
               type="video/mp4"
             />
           </video>
-
           {/* Overlay to ensure text visibility but keeps video highly visible on the right */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent"></div>
         </div>
@@ -363,12 +339,9 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Right Column: Clean, Perfectly Aligned Dashboard Mockup */}
+            {/* Right Column */}
             <div className="relative hidden lg:flex h-full min-h-[550px] w-full items-center justify-center animate-in fade-in slide-in-from-right-12 duration-700 delay-200">
-              {/* Structured Layered Composition Wrapper */}
-              <div className="relative w-full max-w-[420px] h-[400px]">
-                {/* The 4 boxes have been removed from here as requested */}
-              </div>
+              <div className="relative w-full max-w-[420px] h-[400px]"></div>
             </div>
           </div>
         </div>
@@ -551,8 +524,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
-      <footer className="py-16 bg-slate-900 text-slate-300">
+      {/* --- CLEAN DARK FOOTER --- */}
+      <footer className="mt-auto py-16 bg-slate-900 text-slate-300">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
@@ -570,43 +543,66 @@ const Landing = () => {
             <div>
               <h4 className="font-bold text-white mb-6">Platform</h4>
               <ul className="space-y-4 text-sm text-slate-400">
-                <li
-                  className="hover:text-indigo-400 cursor-pointer transition-colors"
-                  onClick={handleExpertsClick}
-                >
-                  For CA Experts
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-indigo-400 cursor-pointer transition-colors block"
+                  >
+                    For CA Experts
+                  </a>
                 </li>
-                <li
-                  className="hover:text-indigo-400 cursor-pointer transition-colors"
-                  onClick={handleServicesClick}
-                >
-                  Browse Services
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-indigo-400 cursor-pointer transition-colors block"
+                  >
+                    Browse Services
+                  </a>
                 </li>
-                <li
-                  className="hover:text-indigo-400 cursor-pointer transition-colors"
-                  onClick={handleGetStartedClick}
-                >
-                  Register
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-indigo-400 cursor-pointer transition-colors block"
+                  >
+                    Register
+                  </a>
                 </li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold text-white mb-6">Legal</h4>
               <ul className="space-y-4 text-sm text-slate-400">
-                <li className="hover:text-white cursor-pointer transition-colors">
-                  Privacy Policy
+                <li>
+                  <a
+                    href="/privacy"
+                    className="hover:text-white cursor-pointer transition-colors block"
+                  >
+                    Privacy Policy
+                  </a>
                 </li>
-                <li className="hover:text-white cursor-pointer transition-colors">
-                  Terms of Service
+                <li>
+                  <a
+                    href="/terms"
+                    className="hover:text-white cursor-pointer transition-colors block"
+                  >
+                    Terms of Service
+                  </a>
                 </li>
-                <li className="hover:text-white cursor-pointer transition-colors">
-                  Contact Support
+                <li>
+                  <a
+                    href="/contact"
+                    className="hover:text-white cursor-pointer transition-colors block"
+                  >
+                    Contact Support
+                  </a>
                 </li>
               </ul>
             </div>
           </div>
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
-            <p>© 2026 TaxConsultGuru. All rights reserved.</p>
+            <p>
+              © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
+            </p>
             <p className="mt-2 md:mt-0">Designed for Professional Excellence</p>
           </div>
         </div>
