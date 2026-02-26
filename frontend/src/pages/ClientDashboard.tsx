@@ -76,7 +76,9 @@ const ClientDashboard = () => {
 
   // Bidding State
   const [bidsDialogOpen, setBidsDialogOpen] = useState(false);
-  const [selectedReqForBids, setSelectedReqForBids] = useState<string | null>(null);
+  const [selectedReqForBids, setSelectedReqForBids] = useState<string | null>(
+    null,
+  );
   const [bids, setBids] = useState<any[]>([]);
   const [isFetchingBids, setIsFetchingBids] = useState(false);
   const [isHiring, setIsHiring] = useState(false);
@@ -92,8 +94,8 @@ const ClientDashboard = () => {
   // 3. Show Spinner while loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -110,7 +112,9 @@ const ClientDashboard = () => {
       r.status === "live",
   );
   const searchingRequests = myRequests.filter((r) => r.status === "searching");
-  const workspaceJobs = myRequests.filter((r) => r.status === "active" && r.isWorkspaceUnlocked === true);
+  const workspaceJobs = myRequests.filter(
+    (r) => r.status === "active" && r.isWorkspaceUnlocked === true,
+  );
   const pastProjects = myRequests.filter((r) => r.isArchived === true);
 
   const handleLogout = () => {
@@ -190,27 +194,42 @@ const ClientDashboard = () => {
   const messages = chatRequestId ? clientMessages[chatRequestId] || [] : [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 transition-all shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <FileText className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
+              <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-heading font-bold text-lg text-foreground">
-                TaxConsultGuru
+              <h1 className="font-extrabold text-xl tracking-tight text-slate-900 leading-none">
+                Tax
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+                  Consult
+                </span>
+                Guru
               </h1>
-              <p className="text-xs text-muted-foreground">Client Portal</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-1">
+                Client Portal
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-foreground">{currentUser.name}</span>
+            <div className="hidden md:flex items-center gap-3 mr-2 text-sm bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
+              <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm">
+                <User className="w-3.5 h-3.5 text-indigo-600" />
+              </div>
+              <span className="font-semibold text-slate-700">
+                {currentUser.name}
+              </span>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-slate-600 border-slate-300 hover:bg-slate-100 hover:text-slate-900 h-10 rounded-lg font-medium"
+            >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
@@ -218,296 +237,293 @@ const ClientDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
+      <main className="flex-1 w-full container mx-auto px-6 py-8 max-w-6xl">
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="mb-8">
-            <TabsTrigger value="dashboard" className="px-8 flex items-center gap-2">
-              <ClipboardCheck className="w-4 h-4" />
+          <TabsList className="mb-8 bg-slate-200/60 p-1.5 rounded-xl inline-flex h-14 border border-slate-200">
+            <TabsTrigger
+              value="dashboard"
+              className="px-6 h-full rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 font-bold text-slate-600"
+            >
+              <ClipboardCheck className="w-4 h-4 mr-2" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="history" className="px-8 flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
+            <TabsTrigger
+              value="history"
+              className="px-6 h-full rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 font-bold text-slate-600"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
               Past Projects
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-10">
+          <TabsContent
+            value="dashboard"
+            className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500"
+          >
             {/* Searching indicator */}
-        {searchingRequests.length > 0 && (
-          <Card className="mb-8 border-primary/30 bg-primary/5">
-            <CardContent className="py-8 text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-              <h3 className="font-heading text-xl font-semibold mb-2">
-                Matching with Expert...
-              </h3>
-              <p className="text-muted-foreground">
-                Please wait while we connect you with the best expert for your{" "}
-                {searchingRequests[0].serviceName} request.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Step 4: Active Workspaces */}
-        {workspaceJobs.length > 0 && (
-          <section className="mb-10">
-            <h2 className="font-heading text-xl font-semibold mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-success" />
-              Secure Active Workspaces
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {workspaceJobs.map((req) => (
-                <Card key={req.id} className="border-success bg-success/5 shadow-md">
-                  <CardHeader className="pb-3 text-success">
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      {req.serviceName}
-                      <Badge className="bg-success text-white">UNLOCKED</Badge>
-                    </CardTitle>
-                    <CardDescription className="text-success/70 font-medium">Workspace Active & Secure</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 font-bold">
-                      Expert Assigned: {req.caName || "Verified Expert"}
-                    </p>
-                    <Button 
-                      className="w-full bg-success hover:bg-success/90 text-white font-bold"
-                      onClick={() => {
-                        toast.success("Redirecting to Secure Workspace...");
-                        navigate(`/workspace/${req.id}`);
-                      }}
+            {searchingRequests.length > 0 && (
+              <Card className="mb-8 border-indigo-200 bg-indigo-50 shadow-sm rounded-2xl overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
+                <CardContent className="py-8 text-center relative z-10">
+                  <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
+                  <h3 className="font-extrabold text-xl text-slate-900 mb-2">
+                    Matching with Expert...
+                  </h3>
+                  <p className="text-slate-600 font-medium">
+                    Please wait while we connect you with the best expert for
+                    your{" "}
+                    <span className="font-bold text-indigo-700">
+                      {searchingRequests[0].serviceName}
+                    </span>{" "}
+                    request.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 4: Active Workspaces */}
+            {workspaceJobs.length > 0 && (
+              <section className="mb-10">
+                <h2 className="text-xl font-extrabold text-slate-900 mb-5 flex items-center gap-2">
+                  <Shield className="w-6 h-6 text-emerald-600" />
+                  Secure Active Workspaces
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {workspaceJobs.map((req) => (
+                    <Card
+                      key={req.id}
+                      className="bg-emerald-600 border-emerald-700 shadow-xl shadow-emerald-200/50 rounded-2xl relative overflow-hidden group"
                     >
-                      <Shield className="w-4 h-4 mr-2" />
-                      Enter Secure Workspace
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Active Requests */}
-        {activeRequests.length > 0 && (
-          <section className="mb-10">
-            <h2 className="font-heading text-xl font-semibold mb-4">
-              Your Active Requests
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {activeRequests.map((req) => (
-                <Card key={req.id} className="border-success/30 bg-success/5">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">
-                        {req.serviceName}
-                      </CardTitle>
-                      <Badge
-                        variant="secondary"
-                        className="bg-success text-success-foreground"
-                      >
-                        {req.status === "pending_approval"
-                          ? "Processing"
-                          : "Active"}
-                      </Badge>
-                    </div>
-                    <CardDescription>Expert team assigned</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {req.description}
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewBids(req.id)}
-                      >
-                        View Proposals
-                      </Button>
-                      <Button size="sm" onClick={() => openChat(req.id)}>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Admin
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Bids Dialog */}
-        <Dialog open={bidsDialogOpen} onOpenChange={setBidsDialogOpen}>
-          <DialogContent className="sm:max-w-xl max-h-[80vh] flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Available Expert Bids</DialogTitle>
-              <DialogDescription>
-                Review proposals from our verified CAs and hire the one that fits your needs.
-              </DialogDescription>
-            </DialogHeader>
-
-            <ScrollArea className="flex-1 mt-4 pr-4">
-              {isFetchingBids ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
-                  <p className="text-sm text-muted-foreground">Fetching latest bids...</p>
-                </div>
-              ) : bids.length === 0 ? (
-                <div className="text-center py-12">
-                  <Calculator className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p className="text-muted-foreground">No bids received yet.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Our experts are reviewing your request.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {bids.map((bid) => (
-                    <Card key={bid.id} className="border-border/50 hover:border-primary/30 transition-colors">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <User className="w-5 h-5 text-primary" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-sm font-bold">{bid.caId?.name || "Expert CA"}</CardTitle>
-                              <CardDescription className="text-xs">{bid.caId?.experience} years experience</CardDescription>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-primary">₹{bid.price.toLocaleString()}</p>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Total Fee</p>
-                          </div>
+                      <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+                        <Shield className="w-32 h-32 text-white" />
+                      </div>
+                      <CardHeader className="pb-3 relative z-10">
+                        <div className="flex justify-between items-start mb-2">
+                          <CardTitle className="text-lg font-bold text-white leading-tight">
+                            {req.serviceName}
+                          </CardTitle>
+                          <Badge className="bg-white text-emerald-700 border-none font-bold text-[10px] tracking-wider uppercase shrink-0 ml-2">
+                            UNLOCKED
+                          </Badge>
                         </div>
+                        <CardDescription className="text-emerald-100 font-medium text-sm">
+                          Workspace Active & Secure
+                        </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="bg-muted/30 p-3 rounded-lg border border-dashed text-sm text-muted-foreground mb-4">
-                          <p className="italic">"{bid.proposalText}"</p>
-                        </div>
-                        <Button 
-                          className="w-full" 
-                          onClick={() => handleHireCA(bid.id)}
-                          disabled={isHiring}
+                      <CardContent className="relative z-10 pt-2">
+                        <p className="text-sm text-emerald-50 mb-5 font-bold">
+                          Expert Assigned: {req.caName || "Verified Expert"}
+                        </p>
+                        <Button
+                          className="w-full bg-white hover:bg-slate-50 text-emerald-700 font-bold h-11 rounded-xl shadow-sm group-hover:shadow-md transition-all"
+                          onClick={() => {
+                            toast.success("Redirecting to Secure Workspace...");
+                            navigate(`/workspace/${req.id}`);
+                          }}
                         >
-                          {isHiring ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Calculator className="w-4 h-4 mr-2" />}
-                          Hire Now
+                          <Shield className="w-4 h-4 mr-2" />
+                          Enter Secure Workspace
                         </Button>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
-              )}
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-        
-        {/* Hire Success Modal */}
-        <Dialog open={hireSuccessOpen} onOpenChange={setHireSuccessOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <div className="mx-auto w-12 h-12 rounded-full bg-success/20 flex items-center justify-center mb-4">
-                <ClipboardCheck className="w-6 h-6 text-success" />
-              </div>
-              <DialogTitle className="text-center font-heading text-xl">
-                Hired!
-              </DialogTitle>
-              <DialogDescription className="text-center text-base py-2">
-                Our support team will contact you shortly for payment.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-center pt-4">
-              <Button onClick={() => setHireSuccessOpen(false)} className="px-10">
-                Great!
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+              </section>
+            )}
 
-        {/* Service Catalog */}
-        <section>
-          <h2 className="font-heading text-2xl font-semibold mb-2">
-            Available Services
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Select a service to request expert assistance
-          </p>
+            {/* Active Requests */}
+            {activeRequests.length > 0 && (
+              <section className="mb-10">
+                <h2 className="text-xl font-extrabold text-slate-900 mb-5">
+                  Your Active Requests
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {activeRequests.map((req) => (
+                    <Card
+                      key={req.id}
+                      className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow rounded-2xl flex flex-col"
+                    >
+                      <CardHeader className="pb-4 border-b border-slate-50">
+                        <div className="flex items-start justify-between mb-2">
+                          <CardTitle className="text-base font-bold text-slate-900 leading-tight pr-2">
+                            {req.serviceName}
+                          </CardTitle>
+                          <Badge
+                            variant="secondary"
+                            className={`text-[10px] px-2 py-0.5 uppercase tracking-wider font-bold shrink-0 ${
+                              req.status === "pending_approval"
+                                ? "bg-amber-100 text-amber-700"
+                                : req.status === "awaiting_payment"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-emerald-100 text-emerald-700"
+                            }`}
+                          >
+                            {req.status === "pending_approval"
+                              ? "Processing"
+                              : req.status === "awaiting_payment"
+                                ? "Payment Due"
+                                : "Active"}
+                          </Badge>
+                        </div>
+                        <CardDescription className="text-xs font-medium text-slate-500">
+                          {req.status === "awaiting_payment"
+                            ? "Expert selected. Awaiting manual payment."
+                            : "Expert team assigned"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-4 mt-auto flex flex-col">
+                        <p className="text-sm text-slate-600 mb-5 line-clamp-2 leading-relaxed">
+                          {req.description}
+                        </p>
+                        <div className="flex gap-2 mt-auto">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-10 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                            onClick={() => handleViewBids(req.id)}
+                          >
+                            View Proposals
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 h-10 font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
+                            onClick={() => openChat(req.id)}
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Admin
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.map((service) => {
-              const IconComponent = iconMap[service.icon] || FileText;
-              return (
-                <Card
-                  key={service.id}
-                  className="cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
-                  onClick={() => setSelectedService(service)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                      <IconComponent className="w-6 h-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg">{service.name}</CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Starting from
-                      </span>
-                      <span className="font-semibold text-primary">
-                        ₹{service.defaultBudget.toLocaleString()}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-      </TabsContent>
-
-          <TabsContent value="history">
+            {/* Service Catalog */}
             <section>
-              <h2 className="font-heading text-2xl font-semibold mb-2">
-                Project History
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                All your completed and archived projects
-              </p>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-xl font-extrabold text-slate-900">
+                  Available Services
+                </h2>
+                <Badge className="bg-indigo-100 text-indigo-700 border-none font-bold px-2 py-0.5 hidden sm:inline-flex">
+                  Request Expert Assistance
+                </Badge>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {SERVICES.map((service) => {
+                  const IconComponent = iconMap[service.icon] || FileText;
+                  return (
+                    <Card
+                      key={service.id}
+                      className="cursor-pointer bg-white border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-indigo-300 transition-all rounded-2xl flex flex-col"
+                      onClick={() => setSelectedService(service)}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-4">
+                          <IconComponent className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <CardTitle className="text-lg font-bold text-slate-900 leading-tight">
+                          {service.name}
+                        </CardTitle>
+                        <CardDescription className="text-sm text-slate-500 leading-relaxed line-clamp-2 mt-1">
+                          {service.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-4 mt-auto">
+                        <div className="flex items-center justify-between text-sm bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                            Starting from
+                          </span>
+                          <span className="font-extrabold text-indigo-600 text-base">
+                            ₹{service.defaultBudget.toLocaleString()}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+          </TabsContent>
+
+          {/* HISTORY TAB */}
+          <TabsContent
+            value="history"
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+          >
+            <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="mb-8">
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
+                  Project History
+                </h2>
+                <p className="text-slate-500 font-medium">
+                  Review all your completed and archived projects in one place.
+                </p>
+              </div>
 
               {pastProjects.length === 0 ? (
-                <Card className="border-dashed py-12">
+                <Card className="border-dashed border-2 border-slate-200 bg-slate-50 rounded-2xl py-16 shadow-none">
                   <CardContent className="text-center">
-                    <BookOpen className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-                    <p className="text-muted-foreground italic text-sm">You haven't archived any projects yet.</p>
+                    <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-4 border border-slate-200 shadow-sm">
+                      <BookOpen className="w-10 h-10 text-slate-300" />
+                    </div>
+                    <p className="text-slate-600 font-bold text-lg">
+                      You haven't archived any projects yet.
+                    </p>
+                    <p className="text-slate-500 font-medium text-sm mt-1">
+                      Completed jobs will appear here.
+                    </p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {pastProjects.map((req) => (
-                    <Card key={req.id} className="bg-muted/30 border-muted opacity-90 grayscale-[0.5] hover:grayscale-0 transition-all">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">
+                    <Card
+                      key={req.id}
+                      className="bg-slate-50/50 border-slate-200 opacity-90 grayscale-[0.3] hover:grayscale-0 hover:bg-white hover:shadow-md transition-all rounded-2xl"
+                    >
+                      <CardHeader className="pb-3 border-b border-slate-100">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] uppercase font-bold tracking-widest bg-white border-slate-300 text-slate-600"
+                          >
                             Archived
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[11px] font-mono font-medium text-slate-400">
                             {new Date(req.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <CardTitle className="text-lg">{req.serviceName}</CardTitle>
-                        <CardDescription className="line-clamp-1">{req.description}</CardDescription>
+                        <CardTitle className="text-base font-bold text-slate-900">
+                          {req.serviceName}
+                        </CardTitle>
+                        <CardDescription className="text-xs text-slate-500 line-clamp-1 mt-1">
+                          {req.description}
+                        </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-col gap-2 p-3 bg-background/50 rounded-lg border border-dashed text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Budget:</span>
-                            <span className="font-bold">₹{req.budget?.toLocaleString()}</span>
+                      <CardContent className="pt-4">
+                        <div className="flex flex-col gap-2 p-4 bg-white rounded-xl border border-slate-200 text-sm shadow-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">
+                              Budget:
+                            </span>
+                            <span className="font-bold text-slate-700">
+                              ₹{req.budget?.toLocaleString()}
+                            </span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Consultant:</span>
-                            <span className="font-bold text-primary">{req.caName || "Expert"}</span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">
+                              Consultant:
+                            </span>
+                            <span className="font-bold text-indigo-600">
+                              {req.caName || "Expert"}
+                            </span>
                           </div>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-dashed flex items-center gap-2 text-success font-bold text-[10px] uppercase">
-                          <CheckCircle className="w-3 h-3" />
+                        <div className="mt-5 flex items-center justify-center gap-2 text-emerald-600 font-bold text-[11px] uppercase tracking-wider bg-emerald-50 py-2 rounded-lg border border-emerald-100">
+                          <CheckCircle className="w-4 h-4" />
                           Work & Payout Completed
                         </div>
                       </CardContent>
@@ -520,101 +536,292 @@ const ClientDashboard = () => {
         </Tabs>
       </main>
 
+      {/* --- NEW DARK THEMED FOOTER --- */}
+      <footer className="mt-auto py-16 bg-slate-900 text-slate-300">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center gap-3 mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white">
+                Tax<span className="text-indigo-400">Consult</span>Guru
+              </div>
+              <p className="text-slate-400 max-w-sm leading-relaxed">
+                India's most trusted managed marketplace connecting businesses
+                with top-tier Chartered Accountants. Fast, secure, and reliable.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold text-white mb-6">Platform</h4>
+              <ul className="space-y-4 text-sm text-slate-400">
+                <li className="hover:text-indigo-400 cursor-pointer transition-colors">
+                  For CA Experts
+                </li>
+                <li className="hover:text-indigo-400 cursor-pointer transition-colors">
+                  Browse Services
+                </li>
+                <li className="hover:text-indigo-400 cursor-pointer transition-colors">
+                  Register
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-white mb-6">Legal</h4>
+              <ul className="space-y-4 text-sm text-slate-400">
+                <li className="hover:text-white cursor-pointer transition-colors">
+                  Privacy Policy
+                </li>
+                <li className="hover:text-white cursor-pointer transition-colors">
+                  Terms of Service
+                </li>
+                <li className="hover:text-white cursor-pointer transition-colors">
+                  Contact Support
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+            <p>
+              © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
+            </p>
+            <p className="mt-2 md:mt-0">Designed for Professional Excellence</p>
+          </div>
+        </div>
+      </footer>
+
       {/* Service Request Dialog */}
       <Dialog
         open={!!selectedService}
         onOpenChange={() => setSelectedService(null)}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-heading">
+        <DialogContent className="sm:max-w-[420px] bg-white border-slate-200 rounded-2xl p-6 shadow-2xl">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="text-xl font-extrabold text-slate-900">
               Request {selectedService?.name}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm font-medium text-slate-500 mt-1">
               Tell us about your requirement and our expert team will take it
               from here.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="p-4 bg-secondary rounded-lg">
+          <div className="space-y-5 pt-4">
+            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">Service</span>
-                <span className="font-medium">{selectedService?.name}</span>
+                <span className="text-xs font-bold text-indigo-900/60 uppercase tracking-wider">
+                  Service
+                </span>
+                <span className="font-bold text-indigo-900">
+                  {selectedService?.name}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs font-bold text-indigo-900/60 uppercase tracking-wider">
                   Est. Budget
                 </span>
-                <span className="font-semibold text-primary">
+                <span className="font-extrabold text-indigo-700 text-lg">
                   ₹{selectedService?.defaultBudget.toLocaleString()}
                 </span>
               </div>
             </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">
                 Requirement Details
               </label>
               <Textarea
-                placeholder="Briefly describe what you need help with (e.g., Company Registration style requirements)..."
+                placeholder="Briefly describe what you need help with..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                className="bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-xl resize-none"
               />
             </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">
                 Expected Budget (₹)
               </label>
               <Input
                 type="number"
                 placeholder={`Suggested: ₹${selectedService?.defaultBudget}`}
                 value={expectedBudget}
-                onChange={(e) => setExpectedBudget(e.target.value === "" ? "" : Number(e.target.value))}
+                onChange={(e) =>
+                  setExpectedBudget(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
+                className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-xl font-medium"
               />
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] font-medium text-slate-400 pl-1">
                 Starting from ₹{selectedService?.defaultBudget.toLocaleString()}
               </p>
             </div>
+
             <Button
               onClick={handleRequestService}
-              className="w-full"
+              className="w-full h-12 font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md mt-2"
               disabled={!description.trim() || isRequesting}
             >
-              {isRequesting && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {isRequesting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Find Expert"
               )}
-              Find Expert
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* Bids Dialog */}
+      <Dialog open={bidsDialogOpen} onOpenChange={setBidsDialogOpen}>
+        <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+          <DialogHeader className="p-6 pb-4 border-b border-slate-100 bg-slate-50">
+            <DialogTitle className="text-xl font-extrabold text-slate-900">
+              Available Expert Proposals
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium text-slate-500 mt-1">
+              Review proposals from our verified experts and hire the best fit.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 p-6 bg-slate-50/50">
+            {isFetchingBids ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                <p className="text-sm font-bold text-slate-600">
+                  Fetching latest proposals...
+                </p>
+              </div>
+            ) : bids.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-4 border border-slate-200 shadow-sm">
+                  <Calculator className="w-10 h-10 text-slate-300" />
+                </div>
+                <p className="text-slate-600 font-bold text-lg">
+                  No proposals received yet.
+                </p>
+                <p className="text-sm font-medium text-slate-500 mt-1">
+                  Our experts are currently reviewing your request.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {bids.map((bid) => (
+                  <Card
+                    key={bid.id}
+                    className="bg-white border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all rounded-2xl"
+                  >
+                    <CardHeader className="pb-3 border-b border-slate-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                            <User className="w-6 h-6 text-indigo-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-base font-bold text-slate-900">
+                              {bid.caId?.name || "Expert"}
+                            </CardTitle>
+                            <CardDescription className="text-xs font-semibold text-emerald-600 mt-0.5 bg-emerald-50 px-2 py-0.5 rounded inline-block">
+                              {bid.caId?.experience} Yrs Experience
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="text-right bg-slate-50 p-2 rounded-lg border border-slate-100">
+                          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">
+                            Fee Quote
+                          </p>
+                          <p className="text-xl font-extrabold text-indigo-600">
+                            ₹{bid.price.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 leading-relaxed mb-5 relative">
+                        <span className="absolute -top-3 left-4 bg-slate-100 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest rounded">
+                          Message from Expert
+                        </span>
+                        <p className="italic">"{bid.proposalText}"</p>
+                      </div>
+                      <Button
+                        className="w-full h-11 font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                        onClick={() => handleHireCA(bid.id)}
+                        disabled={isHiring}
+                      >
+                        {isHiring ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            <ClipboardCheck className="w-4 h-4 mr-2" />
+                            Hire & Proceed to Payment
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Hire Success Modal */}
+      <Dialog open={hireSuccessOpen} onOpenChange={setHireSuccessOpen}>
+        <DialogContent className="sm:max-w-sm bg-white border-slate-200 rounded-3xl p-8 shadow-2xl text-center">
+          <div className="mx-auto w-20 h-20 rounded-full bg-emerald-100 border-4 border-emerald-50 flex items-center justify-center mb-6">
+            <ClipboardCheck className="w-10 h-10 text-emerald-600" />
+          </div>
+          <DialogTitle className="font-extrabold text-2xl text-slate-900 mb-2">
+            Expert Hired!
+          </DialogTitle>
+          <DialogDescription className="text-sm font-medium text-slate-500 leading-relaxed mb-8">
+            Excellent choice. Our support team will contact you shortly to
+            complete the manual payment process and unlock your secure
+            workspace.
+          </DialogDescription>
+          <Button
+            onClick={() => setHireSuccessOpen(false)}
+            className="w-full h-12 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-white"
+          >
+            Got it, thanks!
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       {/* Masked Chat Dialog */}
       <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="sm:max-w-lg h-[600px] flex flex-col">
-          <DialogHeader className="border-b pb-4">
+        <DialogContent className="sm:max-w-md h-[600px] flex flex-col bg-white border-slate-200 rounded-2xl p-0 overflow-hidden gap-0 shadow-2xl">
+          <DialogHeader className="border-b border-slate-100 px-6 py-4 bg-slate-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <Headphones className="w-5 h-5 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm">
+                <Headphones className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <DialogTitle className="font-heading">
-                  TCG Expert Team
+              <div className="text-left">
+                <DialogTitle className="text-base font-extrabold text-slate-900 leading-tight">
+                  TCG Support Team
                 </DialogTitle>
-                <DialogDescription className="text-xs">
-                  Your dedicated support team
+                <DialogDescription className="text-xs font-medium text-slate-500 mt-0.5">
+                  Your dedicated platform assistance
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-5 bg-slate-50/50">
             <div className="space-y-4">
               {messages.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  <Headphones className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Start a conversation with our expert team.</p>
-                  <p className="text-sm mt-1">We're here to help!</p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <Headphones className="w-8 h-8 text-slate-300" />
+                  </div>
+                  <p className="text-slate-600 font-bold">
+                    Start a conversation.
+                  </p>
+                  <p className="text-sm font-medium text-slate-500 mt-1">
+                    We're here to help coordinate with your expert.
+                  </p>
                 </div>
               ) : (
                 messages.map((msg) => (
@@ -627,15 +834,20 @@ const ClientDashboard = () => {
                     }`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm ${
                         msg.senderRole === "client"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-foreground"
+                          ? "bg-indigo-600 text-white rounded-br-none"
+                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
                       }`}
                     >
                       <p className="text-sm">{msg.text}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {/* Safe date formatting now */}
+                      <p
+                        className={`text-[10px] mt-1 text-right font-medium ${
+                          msg.senderRole === "client"
+                            ? "text-indigo-200"
+                            : "text-slate-400"
+                        }`}
+                      >
                         {msg.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -648,15 +860,20 @@ const ClientDashboard = () => {
             </div>
           </ScrollArea>
 
-          <div className="border-t pt-4 flex gap-2">
+          <div className="border-t border-slate-100 p-4 bg-white flex gap-2">
             <Input
-              placeholder="Type a message..."
+              placeholder="Type your message..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              className="bg-slate-50 border-slate-200 h-11 rounded-xl focus-visible:ring-indigo-500"
             />
-            <Button onClick={sendMessage} size="icon">
-              <Send className="w-4 h-4" />
+            <Button
+              onClick={sendMessage}
+              size="icon"
+              className="h-11 w-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-sm shrink-0"
+            >
+              <Send className="w-4 h-4 text-white" />
             </Button>
           </div>
         </DialogContent>

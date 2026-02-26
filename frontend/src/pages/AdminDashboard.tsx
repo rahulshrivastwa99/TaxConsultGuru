@@ -7,16 +7,21 @@ import {
   Briefcase,
   Terminal,
   MessageCircle,
-  Forward,
   Send,
   UserPlus,
   CheckCircle,
   Loader2,
-  ArrowRight, // Added for "Forward to CA" icon
-  ArrowLeft, // Added for "Forward to Client" icon
+  ArrowRight,
+  ArrowLeft,
   Receipt,
   Headphones,
   BookOpen,
+  ShieldCheck,
+  AlertTriangle,
+  CreditCard,
+  Wallet,
+  Eye,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,13 +43,61 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useMockBackend,
   ActivityLog,
   ServiceRequest,
 } from "@/context/MockBackendContext";
 import { toast } from "sonner";
+
+// --- MOVED OUTSIDE TO FIX THE "BLINKING" AND CLICK ISSUES ---
+const SidebarItem = ({
+  id,
+  label,
+  icon: Icon,
+  badge = 0,
+  activeTab,
+  setActiveTab,
+}: {
+  id: any;
+  label: string;
+  icon: React.ElementType;
+  badge?: number;
+  activeTab: string;
+  setActiveTab: (val: any) => void;
+}) => {
+  const isActive = activeTab === id;
+  return (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all mb-1 ${
+        isActive
+          ? "bg-indigo-600 text-white shadow-md shadow-indigo-200/50 font-semibold"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
+      }`}
+    >
+      <div className="flex items-center gap-3 text-[15px]">
+        <Icon
+          className={`w-[18px] h-[18px] ${
+            isActive ? "text-white" : "text-slate-500"
+          }`}
+        />
+        {label}
+      </div>
+      {badge > 0 && (
+        <Badge
+          className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center border-0 ${
+            isActive
+              ? "bg-indigo-500 text-white hover:bg-indigo-500"
+              : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+          }`}
+        >
+          {badge}
+        </Badge>
+      )}
+    </button>
+  );
+};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -60,7 +113,7 @@ const AdminDashboard = () => {
     addClientMessage,
     addCAMessage,
     forwardToClient,
-    forwardToCA, // <--- 1. ADDED THIS (Make sure it's in your Context)
+    forwardToCA,
     addAdmin,
     pendingCAs,
     pendingJobs,
@@ -73,8 +126,17 @@ const AdminDashboard = () => {
   } = useMockBackend();
 
   const [activeTab, setActiveTab] = useState<
-    "bridge" | "team" | "feed" | "verification" | "moderation" | "payments" | "overwatch" | "payouts" | "history"
+    | "bridge"
+    | "team"
+    | "feed"
+    | "verification"
+    | "moderation"
+    | "payments"
+    | "overwatch"
+    | "payouts"
+    | "history"
   >("bridge");
+
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(
     null,
   );
@@ -99,8 +161,8 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -124,7 +186,10 @@ const AdminDashboard = () => {
 
   const getActiveRequests = () =>
     requests.filter(
-      (r) => r.status === "active" || r.status === "live" || r.status === "completed",
+      (r) =>
+        r.status === "active" ||
+        r.status === "live" ||
+        r.status === "completed",
     );
 
   const getPendingPaymentRequests = () =>
@@ -133,9 +198,15 @@ const AdminDashboard = () => {
   const pendingRequests = getPendingApprovalRequests();
   const activeRequests = getActiveRequests();
   const paymentAlerts = getPendingPaymentRequests();
-  const payoutRequests = requests.filter(r => r.status === 'ready_for_payout');
-  const archivedRequests = requests.filter(r => r.isArchived === true);
-  const allActiveAndPending = [...pendingRequests, ...activeRequests, ...paymentAlerts];
+  const payoutRequests = requests.filter(
+    (r) => r.status === "ready_for_payout",
+  );
+  const archivedRequests = requests.filter((r) => r.isArchived === true);
+  const allActiveAndPending = [
+    ...pendingRequests,
+    ...activeRequests,
+    ...paymentAlerts,
+  ];
 
   const onlineClients = users.filter((u) => u.role === "client" && u.isOnline);
   const onlineCAs = users.filter((u) => u.role === "ca" && u.isOnline);
@@ -144,23 +215,22 @@ const AdminDashboard = () => {
   const getLogColor = (type: ActivityLog["type"]) => {
     switch (type) {
       case "request":
-        return "text-warning";
+        return "text-amber-400";
       case "accept":
         return "text-blue-400";
       case "approve":
-        return "text-success";
+        return "text-emerald-400";
       case "forward":
         return "text-purple-400";
       case "admin_added":
         return "text-pink-400";
       default:
-        return "text-muted-foreground";
+        return "text-slate-400";
     }
   };
 
   const highlightSpam = (text: string) => {
     if (!text) return "";
-    // Detect 10-digit numbers or general email patterns
     const spamRegex = /(\d{10}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
     const parts = text.split(spamRegex);
     return (
@@ -169,7 +239,7 @@ const AdminDashboard = () => {
           part && spamRegex.test(part) ? (
             <span
               key={i}
-              className="bg-red-500/30 text-red-200 px-1 rounded font-bold border border-red-500/50"
+              className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-200"
             >
               {part}
             </span>
@@ -186,8 +256,6 @@ const AdminDashboard = () => {
     const spamRegex = /(\d{10}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
     return spamRegex.test(text);
   };
-
-  // --- SENDING LOGIC ---
 
   const sendToClient = () => {
     if (!clientMessageInput.trim() || !selectedRequest) return;
@@ -213,14 +281,11 @@ const AdminDashboard = () => {
     setCAMessageInput("");
   };
 
-  // --- FORWARDING LOGIC ---
-
   const handleForwardToClient = (messageId: string) => {
     if (!selectedRequest) return;
     forwardToClient(selectedRequest.id, messageId);
   };
 
-  // 2. ADDED HANDLER FOR CA FORWARDING
   const handleForwardToCA = (messageId: string) => {
     if (!selectedRequest) return;
     forwardToCA(selectedRequest.id, messageId);
@@ -249,1003 +314,1303 @@ const AdminDashboard = () => {
   const caMsgs = selectedRequest ? caMessages[selectedRequest.id] || [] : [];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
-      {/* Header */}
-      <header className="border-b border-slate-700 py-4 px-6 bg-slate-900/95 sticky top-0 z-10">
-        <div className="container mx-auto flex items-center justify-between">
+    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+      {/* --- SIDEBAR --- */}
+      <aside className="w-[280px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shrink-0">
+        {/* Logo & Header Section */}
+        <div className="p-6 pb-4">
           <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="font-heading font-bold text-lg">
-                TCG Command Center
+            <div className="w-10 h-10 rounded-[10px] bg-indigo-600 flex items-center justify-center shadow-sm">
+              <Shield className="w-[22px] h-[22px] text-white" />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-xl tracking-tight text-slate-900 leading-tight">
+                <span className="font-extrabold">Command</span>
+                <span className="font-medium text-slate-700">Center</span>
               </h1>
-              <p className="text-xs text-slate-400">God Mode Active</p>
+              <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mt-0.5">
+                God Mode Active
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Navigation Links Area */}
+        <ScrollArea className="flex-1 px-4">
+          <div className="py-2">
+            {/* OPERATIONS SECTION */}
+            <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 mt-2">
+              Operations
+            </p>
+            <SidebarItem
+              id="bridge"
+              label="Bridge Chat"
+              icon={MessageCircle}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <SidebarItem
+              id="feed"
+              label="Live Feed"
+              icon={Activity}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <SidebarItem
+              id="overwatch"
+              label="Overwatch"
+              icon={Eye}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+
+            {/* REVIEW & APPROVALS SECTION */}
+            <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 mt-6">
+              Review & Approvals
+            </p>
+            <SidebarItem
+              id="verification"
+              label="CA Verification"
+              icon={ShieldCheck}
+              badge={pendingCAs.length}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <SidebarItem
+              id="moderation"
+              label="Job Moderation"
+              icon={AlertTriangle}
+              badge={pendingJobs.length}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+
+            {/* FINANCIALS SECTION */}
+            <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 mt-6">
+              Financials
+            </p>
+            <SidebarItem
+              id="payments"
+              label="Pending Payments"
+              icon={CreditCard}
+              badge={paymentAlerts.length}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <SidebarItem
+              id="payouts"
+              label="Payouts"
+              icon={Wallet}
+              badge={payoutRequests.length}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+
+            {/* MANAGEMENT SECTION */}
+            <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 mt-6">
+              Management
+            </p>
+            <SidebarItem
+              id="team"
+              label="Admin Team"
+              icon={Users}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <SidebarItem
+              id="history"
+              label="Archives"
+              icon={BookOpen}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          </div>
+        </ScrollArea>
+
+        {/* Footer / Logout Section */}
+        <div className="p-4 border-t border-slate-100 bg-white">
           <Button
-            variant="ghost"
-            size="sm"
-            className="text-slate-300 hover:bg-slate-800"
+            variant="outline"
+            className="w-full justify-start text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 h-11"
             onClick={handleLogout}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Exit
+            <LogOut className="w-4 h-4 mr-3 text-slate-400" />
+            Sign Out Securely
           </Button>
         </div>
-      </header>
+      </aside>
 
-      <div className="container mx-auto p-6">
-        {/* Stats Row */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-slate-400">
-                Online Clients
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-slate-100">
-                {onlineClients.length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-slate-400">
-                Online CAs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-slate-100">
-                {onlineCAs.length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-slate-400">
-                Pending Verification (CA)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-pink-400">
-                {pendingCAs.length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-slate-400">
-                Pending Approval (Jobs)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-warning">
-                {pendingJobs.length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-slate-400">
-                Active Jobs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-success">
-                {activeRequests.length}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+      {/* --- MAIN CONTENT --- */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Subtle Background Blur Decor */}
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-100/40 rounded-full blur-[100px] pointer-events-none z-0" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-cyan-100/40 rounded-full blur-[100px] pointer-events-none z-0" />
 
-        {/* Main Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-        >
-          <TabsList className="bg-slate-800 border-slate-700">
-            <TabsTrigger
-              value="bridge"
-              className="data-[state=active]:bg-primary"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" /> Bridge Chat
-            </TabsTrigger>
-            <TabsTrigger
-              value="team"
-              className="data-[state=active]:bg-primary"
-            >
-              <Users className="w-4 h-4 mr-2" /> Team/Staff
-            </TabsTrigger>
-            <TabsTrigger
-              value="feed"
-              className="data-[state=active]:bg-primary"
-            >
-              <Terminal className="w-4 h-4 mr-2" /> Live Feed
-            </TabsTrigger>
-            <TabsTrigger
-              value="verification"
-              className="data-[state=active]:bg-pink-600"
-            >
-              <Shield className="w-4 h-4 mr-2" /> CA Verification
-            </TabsTrigger>
-            <TabsTrigger
-              value="moderation"
-              className="data-[state=active]:bg-warning"
-            >
-              <Briefcase className="w-4 h-4 mr-2" /> Job Moderation
-            </TabsTrigger>
-            <TabsTrigger
-              value="payments"
-              className="data-[state=active]:bg-success"
-            >
-              <Receipt className="w-4 h-4 mr-2" /> Pending Payments
-              {paymentAlerts.length > 0 && (
-                <Badge className="ml-2 bg-white text-success animate-bounce h-5 px-1.5 min-w-[20px]">
-                  {paymentAlerts.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="overwatch"
-              className="data-[state=active]:bg-indigo-600"
-            >
-              <Shield className="w-4 h-4 mr-2" /> Overwatch
-            </TabsTrigger>
-            <TabsTrigger
-              value="payouts"
-              className="data-[state=active]:bg-purple-600"
-            >
-              <Receipt className="w-4 h-4 mr-2" /> Payouts
-              {payoutRequests.length > 0 && (
-                <Badge className="ml-2 bg-white text-purple-600 h-5 px-1.5 min-w-[20px]">
-                  {payoutRequests.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="data-[state=active]:bg-slate-700"
-            >
-              <BookOpen className="w-4 h-4 mr-2" /> History
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Bridge Chat Tab */}
-          <TabsContent value="bridge" className="mt-6">
-            <div className="grid lg:grid-cols-4 gap-6">
-              {/* Job List Sidebar */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-sm">Active Jobs</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {allActiveAndPending.length === 0 ? (
-                    <p className="text-sm text-slate-400">No active jobs</p>
-                  ) : (
-                    allActiveAndPending.map((req) => (
-                      <div
-                        key={req.id}
-                        onClick={() => setSelectedRequest(req)}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedRequest?.id === req.id ? "bg-primary/20 border border-primary" : "bg-slate-700/50 hover:bg-slate-700"}`}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="font-medium text-sm">
-                            {req.serviceName}
-                          </span>
-                          <Badge
-                            variant="secondary"
-                            className={
-                              req.status === "pending_approval"
-                                ? "bg-warning/20 text-warning"
-                                : req.status === "completed"
-                                ? "bg-indigo-600/20 text-indigo-400"
-                                : "bg-success/20 text-success"
-                            }
-                          >
-                            {req.status === "pending_approval"
-                              ? "Pending"
-                              : req.status === "completed"
-                              ? "Awaiting Client"
-                              : "Active"}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-slate-400">
-                          Client: {req.clientName}
-                        </p>
-                        {req.caName && (
-                          <p className="text-xs text-slate-400">
-                            CA: {req.caName}
-                          </p>
-                        )}
-                        {req.expectedBudget && (
-                          <p className="text-xs font-semibold text-blue-400 mt-1">
-                            Exp. Budget: ₹{req.expectedBudget.toLocaleString()}
-                          </p>
-                        )}
-                        {req.status === "pending_approval" && (
-                          <Button
-                            size="sm"
-                            className="w-full mt-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleApprove(req.id);
-                            }}
-                          >
-                            <CheckCircle className="w-3 h-3 mr-1" /> Approve
-                          </Button>
-                        )}
-                      </div>
-                    ))
-                  )}
+        <ScrollArea className="flex-1 z-10">
+          <div className="p-8">
+            {/* Top Stats Grid */}
+            <div className="grid gap-6 md:grid-cols-4 mb-8">
+              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 mb-1">
+                        Online Clients
+                      </p>
+                      <p className="text-3xl font-extrabold text-slate-900">
+                        {onlineClients.length}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-blue-600" />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Split Chat View */}
-              <div className="lg:col-span-3">
-                {selectedRequest ? (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* --- LEFT: Client Chat --- */}
-                    <Card className="bg-slate-800/50 border-slate-700 h-[500px] flex flex-col">
-                      <CardHeader className="border-b border-slate-700 py-3 bg-blue-900/10 flex flex-row items-center justify-between">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                            <Users className="w-3 h-3 text-white" />
-                          </div>
-                          Client: {selectedRequest.clientName}
-                        </CardTitle>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
-                          onClick={() => navigate(`/workspace/${selectedRequest.id}`)}
-                        >
-                          <Shield className="w-3 h-3 mr-1" />
-                          View Full Workspace
-                        </Button>
-                      </CardHeader>
-                      <ScrollArea className="flex-1 p-3">
-                        <div className="space-y-3">
-                          {clientMsgs.map((msg) => {
-                            const isAdmin = msg.senderRole === "admin";
-                            return (
-                              <div
-                                key={msg.id}
-                                className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
-                              >
-                                <div
-                                  className={`flex flex-col ${isAdmin ? "items-end" : "items-start"} max-w-[85%]`}
-                                >
-                                  <div
-                                    className={`rounded-lg px-3 py-2 text-sm ${isAdmin ? "bg-blue-600 text-white" : "bg-slate-700 text-slate-200"}`}
-                                  >
-                                    <p>{msg.text}</p>
-                                    <p className="text-xs opacity-60 mt-1 text-right">
-                                      {msg.timestamp.toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                      {msg.isForwarded && " • Fwd"}
-                                    </p>
-                                  </div>
-
-                                  {/* 3. FORWARD BUTTON (Visible only on Client Messages) */}
-                                  {!isAdmin && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="text-[10px] h-6 px-2 text-blue-400 hover:text-blue-300 mt-1"
-                                      onClick={() => handleForwardToCA(msg.id)}
-                                    >
-                                      Forward to CA{" "}
-                                      <ArrowRight className="w-3 h-3 ml-1" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                      <div className="border-t border-slate-700 p-3 flex gap-2">
-                        <Input
-                          placeholder="Reply as TCG Expert Team..."
-                          value={clientMessageInput}
-                          onChange={(e) =>
-                            setClientMessageInput(e.target.value)
-                          }
-                          onKeyDown={(e) => e.key === "Enter" && sendToClient()}
-                          className="bg-slate-700 border-slate-600"
-                        />
-                        <Button
-                          size="icon"
-                          onClick={sendToClient}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Send className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-
-                    {/* --- RIGHT: CA Chat --- */}
-                    <Card className="bg-slate-800/50 border-slate-700 h-[500px] flex flex-col">
-                      <CardHeader className="border-b border-slate-700 py-3 bg-green-900/10">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                            <Briefcase className="w-3 h-3 text-white" />
-                          </div>
-                          CA: {selectedRequest.caName || "Not assigned"}
-                        </CardTitle>
-                      </CardHeader>
-                      <ScrollArea className="flex-1 p-3">
-                        <div className="space-y-3">
-                          {caMsgs.map((msg) => {
-                            const isAdmin = msg.senderRole === "admin";
-                            return (
-                              <div
-                                key={msg.id}
-                                className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
-                              >
-                                <div
-                                  className={`flex flex-col ${isAdmin ? "items-end" : "items-start"} max-w-[85%]`}
-                                >
-                                  <div
-                                    className={`rounded-lg px-3 py-2 text-sm ${isAdmin ? "bg-green-600 text-white" : "bg-slate-700 text-slate-200"}`}
-                                  >
-                                    <p>{msg.text}</p>
-                                    <p className="text-xs opacity-60 mt-1 text-right">
-                                      {msg.timestamp.toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                      {msg.isForwarded && " • Fwd"}
-                                    </p>
-                                  </div>
-
-                                  {/* 4. FORWARD BUTTON (Visible only on CA Messages) */}
-                                  {!isAdmin && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="text-[10px] h-6 px-2 text-green-400 hover:text-green-300 mt-1"
-                                      onClick={() =>
-                                        handleForwardToClient(msg.id)
-                                      }
-                                    >
-                                      <ArrowLeft className="w-3 h-3 mr-1" />{" "}
-                                      Forward to Client
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                      <div className="border-t border-slate-700 p-3 flex gap-2">
-                        <Input
-                          placeholder="Message CA directly..."
-                          value={caMessageInput}
-                          onChange={(e) => setCAMessageInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && sendToCA()}
-                          className="bg-slate-700 border-slate-600"
-                        />
-                        <Button
-                          size="icon"
-                          onClick={sendToCA}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Send className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
-                ) : (
-                  <Card className="bg-slate-800/50 border-slate-700 h-[500px] flex items-center justify-center">
-                    <div className="text-center text-slate-400">
-                      <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>Select a job to view the bridge chat</p>
+              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 mb-1">
+                        Online CAs
+                      </p>
+                      <p className="text-3xl font-extrabold text-slate-900">
+                        {onlineCAs.length}
+                      </p>
                     </div>
-                  </Card>
-                )}
-              </div>
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                      <Briefcase className="w-6 h-6 text-emerald-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 mb-1">
+                        Pending Moderation
+                      </p>
+                      <p className="text-3xl font-extrabold text-amber-600">
+                        {pendingJobs.length}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                      <AlertTriangle className="w-6 h-6 text-amber-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 mb-1">
+                        Active Jobs
+                      </p>
+                      <p className="text-3xl font-extrabold text-indigo-600">
+                        {activeRequests.length}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                      <Activity className="w-6 h-6 text-indigo-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </TabsContent>
 
-          {/* Team/Staff Tab (UNCHANGED) */}
-          <TabsContent value="team" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" /> Admin Team
-                </CardTitle>
-                <Dialog open={addAdminOpen} onOpenChange={setAddAdminOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                      <UserPlus className="w-4 h-4 mr-2" /> Add New Admin
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-slate-800 border-slate-700">
-                    <DialogHeader>
-                      <DialogTitle>Add New Admin</DialogTitle>
-                      <DialogDescription className="text-slate-400">
-                        Create a new admin account. This is the only way to add
-                        admins.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Name</label>
-                        <Input
-                          placeholder="Admin name"
-                          value={newAdminName}
-                          onChange={(e) => setNewAdminName(e.target.value)}
-                          className="bg-slate-700 border-slate-600"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Email</label>
-                        <Input
-                          type="email"
-                          placeholder="admin@tcg.com"
-                          value={newAdminEmail}
-                          onChange={(e) => setNewAdminEmail(e.target.value)}
-                          className="bg-slate-700 border-slate-600"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Password</label>
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          value={newAdminPassword}
-                          onChange={(e) => setNewAdminPassword(e.target.value)}
-                          className="bg-slate-700 border-slate-600"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setAddAdminOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleAddAdmin}>Create Admin</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {adminUsers.map((admin) => (
-                    <div
-                      key={admin.id}
-                      className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Shield className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{admin.name}</p>
-                          <p className="text-sm text-slate-400">
-                            {admin.email}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className={
-                          admin.isOnline ? "bg-success/20 text-success" : ""
-                        }
-                      >
-                        {admin.isOnline ? "Online" : "Offline"}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            {/* --- TAB CONTENTS --- */}
 
-          {/* Live Feed Tab (UNCHANGED) */}
-          <TabsContent value="feed" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader className="flex flex-row items-center gap-2">
-                <Terminal className="w-5 h-5" />
-                <CardTitle>Live Activity Feed</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <div className="font-mono text-sm space-y-1">
-                    {logs.map((log) => (
-                      <div key={log.id} className="flex gap-2">
-                        <span className="text-slate-500">
-                          [{formatTime(log.timestamp)}]
-                        </span>
-                        <span className={getLogColor(log.type)}>
-                          {log.message}
-                        </span>
-                      </div>
-                    ))}
-                    <div className="terminal-cursor" />
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* CA Verification Tab */}
-          <TabsContent value="verification" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader>
-                <CardTitle>Pending CA Verifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {pendingCAs.length === 0 ? (
-                    <p className="text-sm text-slate-400 py-8 text-center border border-dashed border-slate-700 rounded-lg">
-                      No CAs waiting for verification.
-                    </p>
-                  ) : (
-                    pendingCAs.map((ca) => (
-                      <div
-                        key={ca.id}
-                        className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg border border-slate-700"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center border border-pink-500/20">
-                            <Users className="w-6 h-6 text-pink-400" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-100">
-                              {ca.name}
-                            </p>
-                            <div className="flex gap-3 text-xs text-slate-400 mt-1">
-                              <span>Experience: {ca.experience} Years</span>
-                              <span>Email: {ca.email}</span>
-                            </div>
-                            {ca.certificationDetails && (
-                              <p className="text-[10px] text-pink-400/80 mt-1 italic">
-                                {ca.certificationDetails}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          className="bg-success hover:bg-success/90 text-white"
-                          onClick={() => verifyCA(ca.id)}
+            {/* 1. BRIDGE CHAT */}
+            {activeTab === "bridge" && (
+              <div className="grid lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Job List Sidebar */}
+                <Card className="bg-white border-slate-200 shadow-sm">
+                  <CardHeader className="pb-3 border-b border-slate-100">
+                    <CardTitle className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+                      Active Jobs
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3 space-y-2">
+                    {allActiveAndPending.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-4">
+                        No active jobs
+                      </p>
+                    ) : (
+                      allActiveAndPending.map((req) => (
+                        <div
+                          key={req.id}
+                          onClick={() => setSelectedRequest(req)}
+                          className={`p-3 rounded-xl cursor-pointer transition-all border ${
+                            selectedRequest?.id === req.id
+                              ? "bg-indigo-50 border-indigo-200 shadow-sm"
+                              : "bg-white border-transparent hover:border-slate-200 hover:bg-slate-50"
+                          }`}
                         >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Verify CA
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Job Moderation Tab */}
-          <TabsContent value="moderation" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader>
-                <CardTitle>Pending Jobs for Moderation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {pendingJobs.length === 0 ? (
-                    <p className="text-sm text-slate-400 py-8 text-center border border-dashed border-slate-700 rounded-lg">
-                      No jobs pending moderation.
-                    </p>
-                  ) : (
-                    pendingJobs.map((job) => (
-                      <div
-                        key={job.id}
-                        className="p-4 bg-slate-700/30 rounded-lg border border-slate-700"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <Badge className="mb-2 bg-primary/20 text-primary hover:bg-primary/30 border-none">
-                              {job.serviceName}
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-sm text-slate-800">
+                              {req.serviceName}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className={`text-[10px] px-1.5 ${
+                                req.status === "pending_approval"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : req.status === "completed"
+                                    ? "bg-indigo-100 text-indigo-700"
+                                    : "bg-emerald-100 text-emerald-700"
+                              }`}
+                            >
+                              {req.status === "pending_approval"
+                                ? "Pending"
+                                : req.status === "completed"
+                                  ? "Awaiting Client"
+                                  : "Active"}
                             </Badge>
-                            <h3 className="font-medium text-slate-100">
-                              {job.clientName}'s Request
-                            </h3>
-                            {hasSpam(job.description) && (
-                              <Badge
-                                variant="destructive"
-                                className="mt-2 animate-pulse"
-                              >
-                                ⚠️ SPAM WARNING: Contact Info Detected
-                              </Badge>
-                            )}
                           </div>
-                          <div className="text-right">
-                            <p className="text-xs text-slate-400">Budget</p>
-                            <p className="text-lg font-bold text-success">
-                              ₹{job.budget?.toLocaleString()}
+                          <p className="text-xs text-slate-500 font-medium">
+                            Client: {req.clientName}
+                          </p>
+                          {req.caName && (
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Expert: {req.caName}
                             </p>
+                          )}
+                          {req.status === "pending_approval" && (
+                            <Button
+                              size="sm"
+                              className="w-full mt-3 h-8 bg-indigo-600 hover:bg-indigo-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApprove(req.id);
+                              }}
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                            </Button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Split Chat View */}
+                <div className="lg:col-span-3">
+                  {selectedRequest ? (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* --- LEFT: Client Chat --- */}
+                      <Card className="bg-white border-slate-200 shadow-sm h-[600px] flex flex-col overflow-hidden">
+                        <CardHeader className="border-b border-slate-100 py-3 bg-blue-50/50 flex flex-row items-center justify-between">
+                          <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
+                              <Users className="w-4 h-4 text-blue-600" />
+                            </div>
+                            Client: {selectedRequest.clientName}
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                            onClick={() =>
+                              navigate(`/workspace/${selectedRequest.id}`)
+                            }
+                          >
+                            <Shield className="w-3 h-3 mr-1" />
+                            View Workspace
+                          </Button>
+                        </CardHeader>
+                        <ScrollArea className="flex-1 p-4 bg-slate-50/50">
+                          <div className="space-y-4">
+                            {clientMsgs.map((msg) => {
+                              const isAdmin = msg.senderRole === "admin";
+                              return (
+                                <div
+                                  key={msg.id}
+                                  className={`flex ${
+                                    isAdmin ? "justify-end" : "justify-start"
+                                  }`}
+                                >
+                                  <div
+                                    className={`flex flex-col ${
+                                      isAdmin ? "items-end" : "items-start"
+                                    } max-w-[85%]`}
+                                  >
+                                    <div
+                                      className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                                        isAdmin
+                                          ? "bg-indigo-600 text-white rounded-br-none"
+                                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
+                                      }`}
+                                    >
+                                      <p>{msg.text}</p>
+                                      <p
+                                        className={`text-[10px] mt-1 text-right ${
+                                          isAdmin
+                                            ? "text-indigo-200"
+                                            : "text-slate-400"
+                                        }`}
+                                      >
+                                        {msg.timestamp.toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                        {msg.isForwarded && " • Fwd"}
+                                      </p>
+                                    </div>
+                                    {!isAdmin && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-[10px] h-6 px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 mt-1"
+                                        onClick={() =>
+                                          handleForwardToCA(msg.id)
+                                        }
+                                      >
+                                        Forward to CA
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        </div>
-                        <div className="bg-slate-900/50 p-3 rounded border border-slate-700 mb-4">
-                          <p className="text-xs text-slate-500 mb-1 uppercase tracking-wider font-bold">
-                            Description (Spam Check Active)
-                          </p>
-                          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
-                            {highlightSpam(job.description)}
-                          </p>
-                        </div>
-                        <div className="flex justify-end gap-3">
+                        </ScrollArea>
+                        <div className="border-t border-slate-100 p-3 bg-white flex gap-2">
+                          <Input
+                            placeholder="Reply as TCG Expert Team..."
+                            value={clientMessageInput}
+                            onChange={(e) =>
+                              setClientMessageInput(e.target.value)
+                            }
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && sendToClient()
+                            }
+                            className="bg-slate-50 border-slate-200 focus-visible:ring-indigo-500"
+                          />
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-slate-400 border-slate-600 hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => {
-                              if (confirm("Are you sure you want to reject this job?")) {
-                                rejectJob(job.id);
-                              }
-                            }}
+                            size="icon"
+                            onClick={sendToClient}
+                            className="bg-indigo-600 hover:bg-indigo-700 shrink-0"
                           >
-                            Reject
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90"
-                            onClick={() => approveJob(job.id)}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Approve & Go Live
+                            <Send className="w-4 h-4" />
                           </Button>
                         </div>
+                      </Card>
+
+                      {/* --- RIGHT: CA Chat --- */}
+                      <Card className="bg-white border-slate-200 shadow-sm h-[600px] flex flex-col overflow-hidden">
+                        <CardHeader className="border-b border-slate-100 py-3 bg-emerald-50/50">
+                          <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200">
+                              <Briefcase className="w-4 h-4 text-emerald-600" />
+                            </div>
+                            Expert: {selectedRequest.caName || "Not assigned"}
+                          </CardTitle>
+                        </CardHeader>
+                        <ScrollArea className="flex-1 p-4 bg-slate-50/50">
+                          <div className="space-y-4">
+                            {caMsgs.map((msg) => {
+                              const isAdmin = msg.senderRole === "admin";
+                              return (
+                                <div
+                                  key={msg.id}
+                                  className={`flex ${
+                                    isAdmin ? "justify-end" : "justify-start"
+                                  }`}
+                                >
+                                  <div
+                                    className={`flex flex-col ${
+                                      isAdmin ? "items-end" : "items-start"
+                                    } max-w-[85%]`}
+                                  >
+                                    <div
+                                      className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                                        isAdmin
+                                          ? "bg-slate-800 text-white rounded-br-none"
+                                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
+                                      }`}
+                                    >
+                                      <p>{msg.text}</p>
+                                      <p
+                                        className={`text-[10px] mt-1 text-right ${
+                                          isAdmin
+                                            ? "text-slate-400"
+                                            : "text-slate-400"
+                                        }`}
+                                      >
+                                        {msg.timestamp.toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                        {msg.isForwarded && " • Fwd"}
+                                      </p>
+                                    </div>
+                                    {!isAdmin && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-[10px] h-6 px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 mt-1"
+                                        onClick={() =>
+                                          handleForwardToClient(msg.id)
+                                        }
+                                      >
+                                        <ArrowLeft className="w-3 h-3 mr-1" />
+                                        Forward to Client
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                        <div className="border-t border-slate-100 p-3 bg-white flex gap-2">
+                          <Input
+                            placeholder="Message CA directly..."
+                            value={caMessageInput}
+                            onChange={(e) => setCAMessageInput(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && sendToCA()}
+                            className="bg-slate-50 border-slate-200 focus-visible:ring-slate-800"
+                          />
+                          <Button
+                            size="icon"
+                            onClick={sendToCA}
+                            className="bg-slate-800 hover:bg-slate-900 shrink-0"
+                          >
+                            <Send className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  ) : (
+                    <Card className="bg-white border-slate-200 shadow-sm h-[600px] flex items-center justify-center border-dashed">
+                      <div className="text-center text-slate-400">
+                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <MessageCircle className="w-10 h-10 text-slate-300" />
+                        </div>
+                        <p className="font-medium text-slate-500">
+                          Select a job to view the bridge chat
+                        </p>
                       </div>
-                    ))
+                    </Card>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          {/* Pending Payments Section */}
-          <TabsContent value="payments" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-                    <Receipt className="w-5 h-5 text-success" />
+            {/* 2. LIVE FEED */}
+            {activeTab === "feed" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CardHeader className="border-b border-slate-100 bg-slate-50 flex flex-row items-center gap-3">
+                  <div className="p-2 bg-slate-200 rounded-lg">
+                    <Terminal className="w-5 h-5 text-slate-700" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl">Pending Payments (Hire Alerts)</CardTitle>
+                    <CardTitle className="text-lg">
+                      Live Activity Feed
+                    </CardTitle>
                     <CardDescription>
-                      These clients have selected an expert. Call them to confirm manual payment.
+                      Real-time system operations log.
                     </CardDescription>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-slate-900/50 rounded-lg overflow-hidden border border-slate-700">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="bg-slate-800 text-slate-400">
-                        <th className="p-4 font-medium">Job Details</th>
-                        <th className="p-4 font-medium">Client Info</th>
-                        <th className="p-4 font-medium">Selected CA</th>
-                        <th className="p-4 font-medium">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800">
-                      {paymentAlerts.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-500">
-                            No pending payments at this time.
-                          </td>
-                        </tr>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {/* Terminal Look container */}
+                  <div className="bg-slate-900 rounded-xl p-4 shadow-inner border border-slate-800">
+                    <ScrollArea className="h-[500px]">
+                      <div className="font-mono text-sm space-y-1.5">
+                        {logs.map((log) => (
+                          <div key={log.id} className="flex gap-3 items-start">
+                            <span className="text-slate-500 shrink-0">
+                              [{formatTime(log.timestamp)}]
+                            </span>
+                            <span className={getLogColor(log.type)}>
+                              {log.message}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="terminal-cursor mt-2" />
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 3. OVERWATCH */}
+            {activeTab === "overwatch" && (
+              <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <Card className="bg-white border-slate-200 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                    <Eye className="w-48 h-48 text-indigo-900" />
+                  </div>
+                  <CardHeader className="border-b border-slate-100 bg-indigo-50/50">
+                    <CardTitle className="flex items-center gap-2 text-indigo-900">
+                      <Eye className="w-6 h-6 text-indigo-600" />
+                      Live Workspace Overwatch
+                    </CardTitle>
+                    <CardDescription>
+                      Monitor active project collaboration and quality assurance
+                      in real-time.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {requests.filter(
+                        (r) =>
+                          r.status === "active" || r.status === "completed",
+                      ).length === 0 ? (
+                        <div className="col-span-full py-20 text-center opacity-50">
+                          <Eye className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+                          <p className="text-slate-500 font-medium">
+                            No active workspaces to monitor at the moment.
+                          </p>
+                        </div>
                       ) : (
-                        paymentAlerts.map((req) => (
-                          <tr key={req.id} className="hover:bg-slate-800/30 transition-colors">
-                            <td className="p-4 font-medium">
-                              <div>{req.serviceName}</div>
-                              <div className="text-xs text-slate-500 mt-1">
-                                {formatTime(new Date(req.createdAt))}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="font-semibold text-slate-200">{req.clientName}</div>
-                              <div className="text-xs text-slate-400">
-                                {users.find(u => u.id === req.clientId)?.email || "Email Hidden"}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                                {req.caName || "Expert Assigned"}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex flex-col gap-2">
+                        requests
+                          .filter(
+                            (r) =>
+                              r.status === "active" || r.status === "completed",
+                          )
+                          .map((req) => (
+                            <Card
+                              key={req.id}
+                              className="bg-white border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all group"
+                            >
+                              <CardHeader className="p-5 pb-3">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <CardTitle className="text-base font-bold text-slate-800 truncate max-w-[160px]">
+                                      {req.serviceName}
+                                    </CardTitle>
+                                    <CardDescription className="text-[11px] mt-0.5 font-mono">
+                                      ID: {req.id.substring(0, 8)}
+                                    </CardDescription>
+                                  </div>
+                                  <Badge
+                                    className={`${
+                                      req.status === "active"
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : "bg-indigo-100 text-indigo-700"
+                                    } text-[10px]`}
+                                  >
+                                    {req.status.toUpperCase()}
+                                  </Badge>
+                                </div>
+                              </CardHeader>
+                              <CardContent className="p-5 pt-0">
+                                <div className="space-y-3 mb-5 pt-4 border-t border-slate-100">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">
+                                      Client:
+                                    </span>
+                                    <span className="text-slate-800 font-semibold">
+                                      {req.clientName}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">
+                                      Expert:
+                                    </span>
+                                    <span className="text-slate-800 font-semibold">
+                                      {req.caName || "N/A"}
+                                    </span>
+                                  </div>
+                                </div>
                                 <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 h-8 border border-indigo-500/20"
-                                  onClick={() => navigate(`/workspace/${req.id}`)}
+                                  className="w-full bg-slate-900 hover:bg-slate-800 text-white h-10 font-bold group-hover:bg-indigo-600 transition-colors"
+                                  onClick={() =>
+                                    navigate(`/workspace/${req.id}`)
+                                  }
                                 >
-                                  <MessageCircle className="w-3.5 h-3.5 mr-2" />
-                                  View Chat
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Enter Overwatch
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  className="bg-success hover:bg-success/90 h-8"
-                                  onClick={() => {
-                                    toast.info(`Initiating follow-up for ${req.clientName}`);
-                                    setSelectedRequest(req);
-                                  }}
-                                >
-                                  <Headphones className="w-3 h-3 mr-2" />
-                                  Call Now
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
-                                                                                                                                                                                                                                                                                            onClick={() => {
-                                    if(confirm(`Are you sure you want to unlock workspace for ${req.clientName}? This marks the project as PAID & ACTIVE.`)) {
-                                      unlockWorkspace(req.id);
-                                    }
-                                  }}
-                                >
-                                  <Shield className="w-3 h-3 mr-2" />
-                                  Unlock Workspace
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
+                              </CardContent>
+                            </Card>
+                          ))
                       )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Overwatch Tab */}
-          <TabsContent value="overwatch" className="mt-6">
-            <div className="grid gap-6">
-              <Card className="bg-slate-800/50 border-slate-700 shadow-xl overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                   <Shield className="w-24 h-24 text-indigo-400" />
-                </div>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-indigo-400">
-                    <Shield className="w-6 h-6" />
-                    Live Workspace Overwatch
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* 4. CA VERIFICATION */}
+            {activeTab === "verification" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CardHeader className="border-b border-slate-100 bg-slate-50">
+                  <CardTitle className="text-slate-800">
+                    Pending CA Verifications
                   </CardTitle>
                   <CardDescription>
-                    Monitor active project collaboration and quality assurance in real-time.
+                    Review expert credentials before allowing them on the
+                    platform.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {requests.filter(r => r.status === 'active' || r.status === 'completed').length === 0 ? (
-                        <div className="col-span-full py-20 text-center opacity-40">
-                            <MessageCircle className="w-16 h-16 mx-auto mb-4" />
-                            <p>No active workspaces to monitor at the moment.</p>
-                        </div>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {pendingCAs.length === 0 ? (
+                      <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                        <ShieldCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-sm text-slate-500 font-medium">
+                          No experts waiting for verification.
+                        </p>
+                      </div>
                     ) : (
-                        requests.filter(r => r.status === 'active' || r.status === 'completed').map(req => (
-                            <Card key={req.id} className="bg-slate-700/30 border-slate-600 hover:border-indigo-500/50 transition-all group">
-                                <CardHeader className="p-4 pb-2">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle className="text-sm font-bold truncate max-w-[150px]">{req.serviceName}</CardTitle>
-                                            <CardDescription className="text-[10px]">ID: {req.id.substring(0,8)}</CardDescription>
-                                        </div>
-                                        <Badge className={`${req.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'} text-[10px]`}>
-                                            {req.status.toUpperCase()}
-                                        </Badge>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-0">
-                                    <div className="space-y-2 mb-4 pt-3 border-t border-slate-600/50">
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-slate-400">Client:</span>
-                                            <span className="text-slate-200 font-medium">{req.clientName}</span>
-                                        </div>
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-slate-400">Expert:</span>
-                                            <span className="text-slate-200 font-medium">{req.caName || "N/A"}</span>
-                                        </div>
-                                    </div>
-                                    <Button 
-                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-xs h-9 font-bold group-hover:scale-[1.02] transition-transform"
-                                        onClick={() => navigate(`/workspace/${req.id}`)}
-                                    >
-                                        <MessageCircle className="w-3.5 h-3.5 mr-2" />
-                                        View Chat (Overwatch)
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))
+                      pendingCAs.map((ca) => (
+                        <div
+                          key={ca.id}
+                          className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-colors gap-4"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100 shrink-0">
+                              <ShieldCheck className="w-7 h-7 text-indigo-600" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-lg text-slate-900">
+                                {ca.name}
+                              </p>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 mt-1">
+                                <span className="flex items-center gap-1">
+                                  <Briefcase className="w-3.5 h-3.5" />
+                                  {ca.experience} Years Exp.
+                                </span>
+                                <span>•</span>
+                                <span>{ca.email}</span>
+                              </div>
+                              {ca.certificationDetails && (
+                                <p className="text-xs text-indigo-600 bg-indigo-50 inline-block px-2 py-1 rounded mt-2 font-medium">
+                                  Creds: {ca.certificationDetails}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm w-full md:w-auto"
+                            onClick={() => verifyCA(ca.id)}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Approve Expert
+                          </Button>
+                        </div>
+                      ))
                     )}
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
+            )}
 
-          {/* Payouts Tab */}
-          <TabsContent value="payouts" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700 shadow-xl overflow-hidden">
-              <CardHeader className="border-b border-slate-700 bg-purple-900/10">
-                <CardTitle className="flex items-center gap-2 text-purple-400">
-                  <Receipt className="w-6 h-6" />
-                  Ready for Payout
-                </CardTitle>
-                <CardDescription>
-                  Calculate commissions and release payments to experts for completed and approved work.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="bg-slate-900/50 text-slate-400 border-b border-slate-700">
-                        <th className="p-4 font-bold">Project Details</th>
-                        <th className="p-4 font-bold">Expert Info</th>
-                        <th className="p-4 font-bold">Financial Breakdown</th>
-                        <th className="p-4 font-bold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700/50">
-                      {payoutRequests.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="p-20 text-center text-slate-500 italic">
-                            No projects are currently awaiting payout.
-                          </td>
+            {/* 5. JOB MODERATION */}
+            {activeTab === "moderation" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CardHeader className="border-b border-slate-100 bg-amber-50/50">
+                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    Pending Jobs for Moderation
+                  </CardTitle>
+                  <CardDescription>
+                    Review client job postings for spam or direct contact info
+                    before pushing them live.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    {pendingJobs.length === 0 ? (
+                      <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                        <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-sm text-slate-500 font-medium">
+                          Queue is clear. No jobs pending moderation.
+                        </p>
+                      </div>
+                    ) : (
+                      pendingJobs.map((job) => (
+                        <div
+                          key={job.id}
+                          className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <Badge className="mb-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none px-2 py-1">
+                                {job.serviceName}
+                              </Badge>
+                              <h3 className="font-bold text-lg text-slate-900">
+                                {job.clientName}'s Request
+                              </h3>
+                              {hasSpam(job.description) && (
+                                <Badge
+                                  variant="destructive"
+                                  className="mt-2 bg-red-100 text-red-700 hover:bg-red-200 border-red-200 px-2"
+                                >
+                                  <AlertTriangle className="w-3 h-3 mr-1" />
+                                  Spam/Contact Info Detected
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-right bg-slate-50 p-3 rounded-lg border border-slate-100">
+                              <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                Budget
+                              </p>
+                              <p className="text-xl font-extrabold text-emerald-600 mt-0.5">
+                                ₹{job.budget?.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 mb-5">
+                            <p className="text-xs text-slate-400 mb-2 uppercase tracking-wider font-bold">
+                              Description (Spam Check Active)
+                            </p>
+                            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                              {highlightSpam(job.description)}
+                            </p>
+                          </div>
+                          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                            <Button
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 bg-white"
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to reject this job?",
+                                  )
+                                ) {
+                                  rejectJob(job.id);
+                                }
+                              }}
+                            >
+                              Reject & Delete
+                            </Button>
+                            <Button
+                              className="bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+                              onClick={() => approveJob(job.id)}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Approve & Go Live
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 6. PENDING PAYMENTS */}
+            {activeTab === "payments" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CardHeader className="border-b border-slate-100 bg-blue-50/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200">
+                      <CreditCard className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-slate-800">
+                        Pending Payments (Hire Alerts)
+                      </CardTitle>
+                      <CardDescription>
+                        Clients who have selected an expert. Call to collect
+                        payment and unlock workspace.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Job Details
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Client Info
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Selected CA
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">
+                            Action
+                          </th>
                         </tr>
-                      ) : (
-                        payoutRequests.map((req) => {
-                          const budget = req.budget || 0;
-                          const commission = budget * 0.1;
-                          const finalPayout = budget - commission;
-
-                          return (
-                            <tr key={req.id} className="hover:bg-slate-700/20 transition-colors">
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {paymentAlerts.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="p-16 text-center text-slate-400 bg-slate-50/50"
+                            >
+                              No pending payments at this time.
+                            </td>
+                          </tr>
+                        ) : (
+                          paymentAlerts.map((req) => (
+                            <tr
+                              key={req.id}
+                              className="hover:bg-blue-50/30 transition-colors"
+                            >
                               <td className="p-4">
-                                <span className="font-bold text-slate-200">{req.serviceName}</span>
-                                <div className="text-[10px] text-slate-500 mt-1 uppercase tracking-tighter">ID: {req.id}</div>
+                                <div className="font-bold text-slate-800">
+                                  {req.serviceName}
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1 font-mono">
+                                  {formatTime(new Date(req.createdAt))}
+                                </div>
                               </td>
                               <td className="p-4">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold">
-                                    {req.caName?.[0] || 'E'}
+                                <div className="font-bold text-slate-800">
+                                  {req.clientName}
+                                </div>
+                                <div className="text-xs text-slate-500 mt-0.5">
+                                  {users.find((u) => u.id === req.clientId)
+                                    ?.email || "Email Hidden"}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold"
+                                >
+                                  {req.caName || "Expert Assigned"}
+                                </Badge>
+                              </td>
+                              <td className="p-4 text-right">
+                                <div className="flex flex-col gap-2 items-end">
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-slate-600 hover:text-slate-900 border-slate-200 h-8"
+                                      onClick={() =>
+                                        navigate(`/workspace/${req.id}`)
+                                      }
+                                    >
+                                      <MessageCircle className="w-3.5 h-3.5 mr-2" />
+                                      Chat
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-700 h-8 shadow-sm"
+                                      onClick={() => {
+                                        toast.info(
+                                          `Initiating follow-up for ${req.clientName}`,
+                                        );
+                                        setSelectedRequest(req);
+                                        setActiveTab("bridge");
+                                      }}
+                                    >
+                                      <Headphones className="w-3 h-3 mr-2" />
+                                      Call
+                                    </Button>
                                   </div>
-                                  <div>
-                                    <div className="font-medium">{req.caName || "Unknown Expert"}</div>
-                                    <div className="text-[10px] text-slate-400">Verified Expert</div>
+                                  <Button
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 w-full shadow-sm"
+                                    onClick={() => {
+                                      if (
+                                        confirm(
+                                          `Are you sure you want to unlock workspace for ${req.clientName}? This marks the project as PAID & ACTIVE.`,
+                                        )
+                                      ) {
+                                        unlockWorkspace(req.id);
+                                      }
+                                    }}
+                                  >
+                                    <Shield className="w-3 h-3 mr-2" />
+                                    Mark Paid & Unlock
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 7. PAYOUTS */}
+            {activeTab === "payouts" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CardHeader className="border-b border-slate-100 bg-purple-50/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center border border-purple-200">
+                      <Wallet className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-slate-800">
+                        Ready for Payout
+                      </CardTitle>
+                      <CardDescription>
+                        Release payments to experts for completed work.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Project
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Expert
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Financials
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {payoutRequests.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="p-16 text-center text-slate-400 bg-slate-50/50"
+                            >
+                              No projects currently awaiting payout.
+                            </td>
+                          </tr>
+                        ) : (
+                          payoutRequests.map((req) => {
+                            const budget = req.budget || 0;
+                            const commission = budget * 0.1;
+                            const finalPayout = budget - commission;
+
+                            return (
+                              <tr
+                                key={req.id}
+                                className="hover:bg-purple-50/30 transition-colors"
+                              >
+                                <td className="p-4">
+                                  <div className="font-bold text-slate-800">
+                                    {req.serviceName}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 mt-1 font-mono uppercase tracking-wider">
+                                    ID: {req.id.substring(0, 12)}...
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 font-bold shadow-sm">
+                                      {req.caName?.[0] || "E"}
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-slate-800">
+                                        {req.caName || "Unknown"}
+                                      </div>
+                                      <div className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">
+                                        Verified Expert
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 w-fit space-y-1.5">
+                                    <div className="flex justify-between gap-6 text-xs">
+                                      <span className="text-slate-500 font-medium">
+                                        Total:
+                                      </span>
+                                      <span className="font-mono text-slate-700 font-semibold">
+                                        ₹{budget.toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between gap-6 text-xs">
+                                      <span className="text-pink-600 font-medium">
+                                        Fee (10%):
+                                      </span>
+                                      <span className="font-mono text-pink-600 font-semibold">
+                                        -₹{commission.toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <div className="h-px bg-slate-200 my-1.5" />
+                                    <div className="flex justify-between gap-6 text-sm font-black">
+                                      <span className="text-emerald-700">
+                                        Payout:
+                                      </span>
+                                      <span className="font-mono text-emerald-700">
+                                        ₹{finalPayout.toLocaleString()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4 text-right">
+                                  <Button
+                                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-md hover:shadow-lg transition-all"
+                                    onClick={() => {
+                                      if (
+                                        confirm(
+                                          `Confirm manual payout of ₹${finalPayout.toLocaleString()} to ${
+                                            req.caName
+                                          }? This will archive the project.`,
+                                        )
+                                      ) {
+                                        archiveProject(req.id);
+                                        toast.success(
+                                          "Payout marked complete and project archived.",
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Mark Paid & Archive
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 8. ADMIN TEAM */}
+            {activeTab === "team" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl">
+                <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between py-4">
+                  <div>
+                    <CardTitle className="text-slate-800">Admin Team</CardTitle>
+                    <CardDescription>
+                      Manage command center access.
+                    </CardDescription>
+                  </div>
+                  <Dialog open={addAdminOpen} onOpenChange={setAddAdminOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="bg-slate-900 hover:bg-slate-800"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" /> Add Admin
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-white border-slate-200">
+                      <DialogHeader>
+                        <DialogTitle>Add New Admin</DialogTitle>
+                        <DialogDescription>
+                          Create a new admin account with full command center
+                          access.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Name
+                          </label>
+                          <Input
+                            placeholder="Admin Name"
+                            value={newAdminName}
+                            onChange={(e) => setNewAdminName(e.target.value)}
+                            className="border-slate-200 focus-visible:ring-indigo-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Email
+                          </label>
+                          <Input
+                            type="email"
+                            placeholder="admin@tcg.com"
+                            value={newAdminEmail}
+                            onChange={(e) => setNewAdminEmail(e.target.value)}
+                            className="border-slate-200 focus-visible:ring-indigo-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Password
+                          </label>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            value={newAdminPassword}
+                            onChange={(e) =>
+                              setNewAdminPassword(e.target.value)
+                            }
+                            className="border-slate-200 focus-visible:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setAddAdminOpen(false)}
+                          className="border-slate-200 text-slate-600"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleAddAdmin}
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          Create Admin
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    {adminUsers.map((admin) => (
+                      <div
+                        key={admin.id}
+                        className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+                            <Shield className="w-6 h-6 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900">
+                              {admin.name}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {admin.email}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            admin.isOnline
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                              : "bg-slate-100 text-slate-500 border-slate-200"
+                          }
+                        >
+                          {admin.isOnline ? "Online" : "Offline"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 9. HISTORY */}
+            {activeTab === "history" && (
+              <Card className="bg-white border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <CardHeader className="border-b border-slate-100 bg-slate-50/50">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
+                    <BookOpen className="w-5 h-5 text-slate-600" />
+                    Project Archives
+                  </CardTitle>
+                  <CardDescription>
+                    Historical record of completed and paid projects.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Project
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Users
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Budget
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs">
+                            Archived On
+                          </th>
+                          <th className="p-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {archivedRequests.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="p-16 text-center text-slate-400 bg-slate-50/50"
+                            >
+                              The archives are currently empty.
+                            </td>
+                          </tr>
+                        ) : (
+                          archivedRequests.map((req) => (
+                            <tr
+                              key={req.id}
+                              className="hover:bg-slate-50 transition-colors"
+                            >
+                              <td className="p-4">
+                                <span className="font-bold text-slate-800">
+                                  {req.serviceName}
+                                </span>
+                                <div className="text-[10px] text-slate-400 mt-1 font-mono uppercase">
+                                  ID: {req.id.substring(0, 8)}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="text-xs space-y-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                                    <span className="text-slate-500">C:</span>
+                                    <span className="text-slate-800 font-semibold truncate max-w-[120px]">
+                                      {req.clientName}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                    <span className="text-slate-500">E:</span>
+                                    <span className="text-slate-800 font-semibold truncate max-w-[120px]">
+                                      {req.caName || "N/A"}
+                                    </span>
                                   </div>
                                 </div>
                               </td>
                               <td className="p-4">
-                                <div className="space-y-1 bg-black/20 p-3 rounded-lg border border-slate-700 w-fit">
-                                  <div className="flex justify-between gap-8 text-[11px]">
-                                    <span className="text-slate-400">Total Budget:</span>
-                                    <span className="font-mono text-slate-200">₹{budget.toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between gap-8 text-[11px]">
-                                    <span className="text-pink-400">Platform (10%):</span>
-                                    <span className="font-mono text-pink-400">-₹{commission.toLocaleString()}</span>
-                                  </div>
-                                  <div className="h-px bg-slate-700 my-1" />
-                                  <div className="flex justify-between gap-8 text-xs font-bold">
-                                    <span className="text-success">Net Payout:</span>
-                                    <span className="font-mono text-success">₹{finalPayout.toLocaleString()}</span>
-                                  </div>
+                                <div className="font-mono text-slate-700 font-semibold">
+                                  ₹{(req.budget || 0).toLocaleString()}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="text-xs text-slate-500 font-medium">
+                                  {new Date(req.updatedAt).toLocaleDateString(
+                                    undefined,
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    },
+                                  )}
                                 </div>
                               </td>
                               <td className="p-4 text-right">
-                                <Button
-                                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-10 px-6 rounded-lg shadow-lg hover:scale-[1.02] transition-all"
-                                  onClick={() => {
-                                    if(confirm(`Release ₹${finalPayout.toLocaleString()} to ${req.caName} and archive this project?`)) {
-                                      archiveProject(req.id);
-                                    }
-                                  }}
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Archive Job (Payout Done)
-                                </Button>
+                                <Badge className="bg-slate-200 text-slate-600 border-none hover:bg-slate-200">
+                                  ARCHIVED
+                                </Badge>
                               </td>
                             </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* History Tab */}
-          <TabsContent value="history" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700 shadow-xl overflow-hidden">
-              <CardHeader className="border-b border-slate-700">
-                <CardTitle className="flex items-center gap-2 text-slate-300">
-                  <BookOpen className="w-6 h-6" />
-                  Project Archives & History
-                </CardTitle>
-                <CardDescription>
-                  View all past projects that have been completed, paid out, and archived.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="bg-slate-900/50 text-slate-400 border-b border-slate-700">
-                        <th className="p-4 font-bold">Project</th>
-                        <th className="p-4 font-bold">Participants</th>
-                        <th className="p-4 font-bold">Financials</th>
-                        <th className="p-4 font-bold">Completion Date</th>
-                        <th className="p-4 font-bold text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700/50">
-                      {archivedRequests.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-20 text-center text-slate-500 italic">
-                            The archives are currently empty.
-                          </td>
-                        </tr>
-                      ) : (
-                        archivedRequests.map((req) => (
-                          <tr key={req.id} className="hover:bg-slate-700/20 transition-colors">
-                            <td className="p-4">
-                              <span className="font-bold text-slate-200">{req.serviceName}</span>
-                              <div className="text-[10px] text-slate-500 mt-1 uppercase tracking-tighter">ID: {req.id}</div>
-                            </td>
-                            <td className="p-4">
-                              <div className="text-xs space-y-1">
-                                <div className="flex items-center gap-1.5">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                  <span className="text-slate-400">Client:</span>
-                                  <span className="text-slate-200 font-medium">{req.clientName}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                                  <span className="text-slate-400">Expert:</span>
-                                  <span className="text-slate-200 font-medium">{req.caName || "N/A"}</span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="font-mono text-slate-200">₹{(req.budget || 0).toLocaleString()}</div>
-                              <div className="text-[10px] text-green-400 font-bold uppercase tracking-tighter mt-0.5">PAYOUT COMPLETE</div>
-                            </td>
-                            <td className="p-4">
-                              <div className="text-xs text-slate-400">
-                                {new Date(req.updatedAt).toLocaleDateString(undefined, {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric'
-                                })}
-                              </div>
-                            </td>
-                            <td className="p-4 text-right">
-                              <Badge className="bg-slate-700 text-slate-300 border-slate-600">ARCHIVED</Badge>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </ScrollArea>
+      </main>
     </div>
   );
 };
