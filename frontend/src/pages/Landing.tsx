@@ -158,13 +158,9 @@ const Landing = () => {
         className="fixed bottom-6 right-6 z-[100] drop-shadow-2xl hover:scale-110 transition-transform cursor-pointer flex items-center justify-center animate-float"
       >
         <img
-          src="/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.png"
+          src="/Picsart_26-02-26_20-21-22-387.png"
           alt="WhatsApp Chat"
           className="w-14 h-14 object-contain"
-          onError={(e) => {
-            e.currentTarget.src =
-              "/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.svg";
-          }}
         />
       </a>
 
@@ -209,13 +205,9 @@ const Landing = () => {
               <Mail className="w-5 h-5 hover:text-indigo-600 cursor-pointer transition-colors" />
               <div className="cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center">
                 <img
-                  src="/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.png"
+                  src="/Picsart_26-02-26_20-21-22-387.png"
                   alt="WhatsApp"
                   className="w-6 h-6 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      "/fi41wha0011-whatsapp-logo-file-whatsapp-svg-wikimedia-commons.svg";
-                  }}
                 />
               </div>
             </div>
@@ -280,14 +272,17 @@ const Landing = () => {
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src="/Make_AI_Video_Look_Real.mp4" type="video/mp4" />
+            {/* Replaced old video with the new one from the public folder */}
+            <source
+              src="/Video_Generation_Request_Fulfilled.mp4"
+              type="video/mp4"
+            />
           </video>
 
           {/* Overlay to ensure text visibility but keeps video highly visible on the right */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent"></div>
         </div>
         {/* ============================== */}
-
         <div className="container mx-auto px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column: Text & CTA */}
@@ -372,96 +367,7 @@ const Landing = () => {
             <div className="relative hidden lg:flex h-full min-h-[550px] w-full items-center justify-center animate-in fade-in slide-in-from-right-12 duration-700 delay-200">
               {/* Structured Layered Composition Wrapper */}
               <div className="relative w-full max-w-[420px] h-[400px]">
-                {/* Top Right Card: Form 16 Notification */}
-                <div className="absolute -top-8 -right-8 z-10 w-[260px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/50 rounded-2xl p-4 animate-float-delayed">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-cyan-50 rounded-xl">
-                      <FileText className="w-6 h-6 text-cyan-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-slate-800">
-                        Form 16 Uploaded
-                      </p>
-                      <p className="text-xs font-medium text-slate-500 mt-0.5">
-                        Awaiting CA Review
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Center Main Card: CA Profile */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[340px] bg-white/90 backdrop-blur-xl shadow-2xl shadow-indigo-900/10 border border-white/50 rounded-3xl p-6 animate-float">
-                  <div className="flex items-center gap-4 border-b border-slate-200/60 pb-5 mb-5">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-cyan-500 p-[2px]">
-                      <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                        <span className="text-lg font-bold text-indigo-600">
-                          CA
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900 text-lg">
-                        CA Ramesh Kumar
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                        <span className="text-xs font-semibold text-slate-500">
-                          Verified Tax Expert
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center bg-white/80 p-3.5 rounded-xl border border-slate-100 shadow-sm">
-                      <span className="text-sm font-semibold text-slate-600">
-                        ITR Filing Status
-                      </span>
-                      <span className="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-lg">
-                        In Progress
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center bg-emerald-50/80 p-3.5 rounded-xl border border-emerald-100/50 shadow-sm">
-                      <span className="text-sm font-semibold text-emerald-800">
-                        Tax Savings Found
-                      </span>
-                      <span className="text-base font-black text-emerald-600">
-                        ₹ 42,500
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Left Card: Tax Alert */}
-                <div className="absolute -bottom-10 -left-10 z-30 w-[260px] bg-white/80 backdrop-blur-xl shadow-xl border border-white/50 rounded-2xl p-4 animate-float-delayed">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-rose-50 rounded-xl">
-                      <Clock className="w-6 h-6 text-rose-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-slate-800">
-                        Advance Tax Due
-                      </p>
-                      <p className="text-xs font-bold text-rose-500 mt-0.5">
-                        15th March 2026
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Middle Left: Security Badge */}
-                <div className="absolute top-24 -left-16 z-10 bg-white/80 backdrop-blur-xl shadow-lg border border-white/50 rounded-2xl p-3 flex items-center gap-3 animate-float">
-                  <div className="p-2 bg-indigo-50 rounded-lg">
-                    <Shield className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-xs text-slate-800">
-                      100% Secure
-                    </p>
-                    <p className="text-[10px] font-medium text-slate-500">
-                      Encrypted
-                    </p>
-                  </div>
-                </div>
+                {/* The 4 boxes have been removed from here as requested */}
               </div>
             </div>
           </div>
