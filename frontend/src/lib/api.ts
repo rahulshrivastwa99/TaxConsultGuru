@@ -73,7 +73,7 @@ export const updateRequestStatus = async (id: string, action: 'accept' | 'approv
 
 // --- CHAT ---
 export const sendMessageAPI = async (requestId: string, messageData: any, token: string) => {
-  const response = await fetch(`${API_URL}/requests/${requestId}/messages`, {
+  const response = await fetch(`${API_URL}/chat/${requestId}/messages`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -86,8 +86,35 @@ export const sendMessageAPI = async (requestId: string, messageData: any, token:
   return normalize(data);
 };
 
+// NEW: Upload file with Cloudinary & Multer support via FormData
+export const sendMessageWithFile = async (
+  requestId: string,
+  messageData: { text: string, senderId: string, senderRole: string, senderName: string },
+  file: File,
+  token: string
+) => {
+  const formData = new FormData();
+  formData.append('text', messageData.text);
+  formData.append('senderId', messageData.senderId);
+  formData.append('senderRole', messageData.senderRole);
+  formData.append('senderName', messageData.senderName);
+  formData.append('file', file);
+
+  const response = await fetch(`${API_URL}/chat/${requestId}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // Do NOT set Content-Type here; browser sets it with boundaries automatically for FormData!
+    },
+    body: formData,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to send message with file");
+  return normalize(data);
+};
+
 export const fetchMessagesAPI = async (requestId: string, token: string) => {
-  const response = await fetch(`${API_URL}/requests/${requestId}/messages`, {
+  const response = await fetch(`${API_URL}/chat/${requestId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -137,7 +164,7 @@ export const rejectJob = async (id: string, token: string) => {
 };
 
 export const fetchLiveJobs = async () => {
-  const response = await fetch(`${API_URL}/requests/all?status=live`); // Assuming backend handles status filter or we filter frontend
+  const response = await fetch(`${API_URL}/requests/all?status=live`);
   const data = await response.json();
   return Array.isArray(data) ? data.map(normalize) : [];
 };
