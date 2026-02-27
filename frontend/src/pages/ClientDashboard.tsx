@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMockBackend, SERVICES } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
+import { PremiumAlert } from "@/components/ui/PremiumAlert";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   FileText,
@@ -134,17 +135,26 @@ const ClientDashboard = () => {
   if (!currentUser) return null;
 
   const myRequests = requests.filter((r) => r.clientId === currentUser.id);
+  
+  const searchingRequests = myRequests.filter((r) => r.status === "searching");
+  
+  const workspaceJobs = myRequests.filter(
+    (r) => r.isWorkspaceUnlocked === true && !r.isArchived,
+  );
+
   const activeRequests = myRequests.filter(
     (r) =>
-      r.status === "active" ||
-      r.status === "pending_approval" ||
-      r.status === "awaiting_payment" ||
-      r.status === "live",
+      !r.isWorkspaceUnlocked &&
+      !r.isArchived &&
+      r.status !== "searching" &&
+      (r.status === "active" ||
+        r.status === "pending_approval" ||
+        r.status === "awaiting_payment" ||
+        r.status === "live" ||
+        r.status === "completed" ||
+        r.status === "ready_for_payout"),
   );
-  const searchingRequests = myRequests.filter((r) => r.status === "searching");
-  const workspaceJobs = myRequests.filter(
-    (r) => r.status === "active" && r.isWorkspaceUnlocked === true,
-  );
+  
   const pastProjects = myRequests.filter((r) => r.isArchived === true);
 
   // Stats Calculations
@@ -418,7 +428,7 @@ const ClientDashboard = () => {
                   {workspaceJobs.map((req) => (
                     <Card
                       key={req.id}
-                      className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-none shadow-xl shadow-emerald-900/20 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300"
+                      className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-none shadow-xl shadow-emerald-900/20 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 flex flex-col min-h-[320px]"
                     >
                       <div className="absolute -right-6 -top-6 opacity-[0.07] group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                         <Shield className="w-40 h-40 text-white" />
@@ -488,20 +498,26 @@ const ClientDashboard = () => {
                                 ? "bg-amber-50 text-amber-700 border-amber-200"
                                 : req.status === "awaiting_payment"
                                   ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : (req.status === "active" && !req.isWorkspaceUnlocked)
+                                    ? "bg-orange-50 text-orange-700 border-orange-200"
+                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
                             }`}
                           >
                             {req.status === "pending_approval"
                               ? "Processing"
                               : req.status === "awaiting_payment"
                                 ? "Payment Due"
-                                : "Active"}
+                                : (req.status === "active" && !req.isWorkspaceUnlocked)
+                                  ? "Awaiting Unlock"
+                                  : "Active"}
                           </Badge>
                         </div>
                         <CardDescription className="text-xs font-semibold text-slate-500">
                           {req.status === "awaiting_payment"
                             ? "Expert selected. Awaiting manual payment."
-                            : "Expert team assigned"}
+                            : (req.status === "active" && !req.isWorkspaceUnlocked)
+                              ? "Payment received. Awaiting admin verification."
+                              : "Expert team assigned"}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-6 pt-4 mt-auto flex flex-col bg-slate-50/30">
@@ -983,16 +999,12 @@ const ClientDashboard = () => {
           <ScrollArea className="flex-1 p-6 bg-slate-50/50">
             <div className="space-y-5">
               {messages.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="w-20 h-20 bg-white border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
-                    <Headphones className="w-10 h-10 text-slate-300" />
-                  </div>
-                  <p className="text-slate-800 font-extrabold text-lg mb-1">
-                    Start a conversation.
-                  </p>
-                  <p className="text-sm font-medium text-slate-500">
-                    We're here to help coordinate with your expert safely.
-                  </p>
+                <div className="py-10">
+                  <PremiumAlert
+                    type="info"
+                    title="Start a conversation"
+                    description="Our expert support team is here to help you coordinate safely. Feel free to ask any questions or share concerns."
+                  />
                 </div>
               ) : (
                 messages.map((msg) => (

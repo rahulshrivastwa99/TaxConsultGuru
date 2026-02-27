@@ -41,6 +41,7 @@ import {
 } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
+import { PremiumAlert } from "@/components/ui/PremiumAlert";
 
 const CADashboard = () => {
   const navigate = useNavigate();
@@ -142,6 +143,8 @@ const CADashboard = () => {
   const myJobs = requests.filter(
     (r) =>
       r.caId === currentUser.id &&
+      !r.isArchived &&
+      !r.isWorkspaceUnlocked &&
       (r.status === "pending_approval" ||
         r.status === "active" ||
         r.status === "awaiting_payment"),
@@ -150,9 +153,10 @@ const CADashboard = () => {
   const workspaceJobs = requests.filter(
     (r) =>
       r.caId === currentUser.id &&
-      r.status === "active" &&
-      r.isWorkspaceUnlocked === true,
+      r.isWorkspaceUnlocked === true &&
+      !r.isArchived,
   );
+  
   const pastJobs = requests.filter(
     (r) => r.caId === currentUser.id && r.isArchived === true,
   );
@@ -440,21 +444,15 @@ const CADashboard = () => {
               <h2 className="text-xl font-extrabold text-slate-900 mb-5">
                 My Pipeline ({myJobs.length})
               </h2>
-              {myJobs.length === 0 ? (
-                <Card className="border-dashed border-2 border-slate-200 bg-white rounded-2xl shadow-sm">
-                  <CardContent className="py-16 text-center">
-                    <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                      <Clock className="w-8 h-8 text-slate-400" />
-                    </div>
-                    <p className="text-slate-600 font-bold text-lg">
-                      No active jobs in your pipeline.
-                    </p>
-                    <p className="text-sm text-slate-500 font-medium mt-1">
-                      Stay online and bid on new opportunities to get started.
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
+                {myJobs.length === 0 ? (
+                  <div className="py-20">
+                    <PremiumAlert
+                      type="info"
+                      title="No active jobs"
+                      description="Your project pipeline is currently quiet. Stay online to be notified of new opportunities."
+                    />
+                  </div>
+                ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {myJobs.map((job) => (
                     <Card
@@ -610,19 +608,13 @@ const CADashboard = () => {
               </div>
 
               {pastJobs.length === 0 ? (
-                <Card className="border-dashed border-2 border-slate-200 bg-slate-50 rounded-2xl py-16 shadow-none">
-                  <CardContent className="text-center">
-                    <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-4 border border-slate-200 shadow-sm">
-                      <BookOpen className="w-10 h-10 text-slate-300" />
-                    </div>
-                    <p className="text-slate-600 font-bold text-lg">
-                      No history available yet.
-                    </p>
-                    <p className="text-slate-500 font-medium text-sm mt-1">
-                      Completed and archived jobs will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="py-20">
+                  <PremiumAlert
+                    type="info"
+                    title="No project history"
+                    description="Your completed and archived jobs will appear here once you've finished your first project."
+                  />
+                </div>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {pastJobs.map((job) => {

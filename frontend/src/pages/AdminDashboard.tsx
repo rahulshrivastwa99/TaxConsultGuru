@@ -50,6 +50,8 @@ import {
 } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
+import { PremiumAlert } from "@/components/ui/PremiumAlert";
+import { PremiumConfirmDialog, ConfirmType } from "@/components/ui/PremiumConfirmDialog";
 
 // --- MOVED OUTSIDE TO FIX THE "BLINKING" AND CLICK ISSUES ---
 const SidebarItem = ({
@@ -87,10 +89,10 @@ const SidebarItem = ({
       </div>
       {badge > 0 && (
         <Badge
-          className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center border-0 ${
+          className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center border-0 text-[10px] font-black ${
             isActive
-              ? "bg-indigo-500 text-white hover:bg-indigo-500"
-              : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+              ? "bg-white/20 text-white"
+              : "bg-indigo-600 text-white shadow-sm"
           }`}
         >
           {badge}
@@ -150,6 +152,30 @@ const AdminDashboard = () => {
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+
+  // Confirmation state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    type: ConfirmType;
+  }>({
+    title: "",
+    description: "",
+    onConfirm: () => {},
+    type: "question",
+  });
+
+  const triggerConfirm = (config: {
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    type: ConfirmType;
+  }) => {
+    setConfirmConfig(config);
+    setConfirmOpen(true);
+  };
 
   useEffect(() => {
     if (!isLoading) {
@@ -324,7 +350,9 @@ const AdminDashboard = () => {
 
   const handleApprove = (requestId: string) => {
     approveJob(requestId);
-    toast.success("Request approved! Job is now live for CAs.");
+    toast.success("Request Approved!", {
+      description: "Job is now live and available for experts to bid.",
+    });
   };
 
   const handleAddAdmin = () => {
@@ -995,11 +1023,12 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {pendingCAs.length === 0 ? (
-                      <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-                        <ShieldCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                        <p className="text-sm text-slate-500 font-medium">
-                          No experts waiting for verification.
-                        </p>
+                      <div className="py-20">
+                        <PremiumAlert
+                          type="info"
+                          title="No pending experts"
+                          description="The elite workspace queue is currently clear. No experts are waiting for verification at this time."
+                        />
                       </div>
                     ) : (
                       pendingCAs.map((ca) => (
@@ -1061,11 +1090,12 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="space-y-6">
                     {pendingJobs.length === 0 ? (
-                      <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-                        <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                        <p className="text-sm text-slate-500 font-medium">
-                          Queue is clear. No jobs pending moderation.
-                        </p>
+                      <div className="py-20">
+                        <PremiumAlert
+                          type="success"
+                          title="All clear!"
+                          description="The job moderation queue is verified and live. No new requests are pending your review."
+                        />
                       </div>
                     ) : (
                       pendingJobs.map((job) => (
@@ -1113,13 +1143,18 @@ const AdminDashboard = () => {
                               variant="outline"
                               className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 bg-white"
                               onClick={() => {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to reject this job?",
-                                  )
-                                ) {
-                                  rejectJob(job.id);
-                                }
+                                triggerConfirm({
+                                  type: "danger",
+                                  title: "Reject Job Request?",
+                                  description: "Are you sure you want to reject this job? This action will permanently delete the request.",
+                                  onConfirm: () => {
+                                    rejectJob(job.id);
+                                    setConfirmOpen(false);
+                                    toast.error("Job Rejected", {
+                                      description: "The job request has been removed from the platform.",
+                                    });
+                                  },
+                                });
                               }}
                             >
                               Reject & Delete
@@ -1181,11 +1216,12 @@ const AdminDashboard = () => {
                       <tbody className="divide-y divide-slate-100">
                         {paymentAlerts.length === 0 ? (
                           <tr>
-                            <td
-                              colSpan={4}
-                              className="p-16 text-center text-slate-400 bg-slate-50/50"
-                            >
-                              No pending payments at this time.
+                            <td colSpan={4} className="p-8">
+                              <PremiumAlert
+                                type="info"
+                                title="No pending payments"
+                                description="All clients have successfully paid or are currently in the selection phase."
+                              />
                             </td>
                           </tr>
                         ) : (
@@ -1252,13 +1288,18 @@ const AdminDashboard = () => {
                                     size="sm"
                                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 w-full shadow-sm"
                                     onClick={() => {
-                                      if (
-                                        confirm(
-                                          `Are you sure you want to unlock workspace for ${req.clientName}? This marks the project as PAID & ACTIVE.`,
-                                        )
-                                      ) {
-                                        unlockWorkspace(req.id);
-                                      }
+                                      triggerConfirm({
+                                        type: "success",
+                                        title: "Unlock Workspace?",
+                                        description: `Are you sure you want to unlock the workspace for ${req.clientName}? This marks the project as PAID & ACTIVE.`,
+                                        onConfirm: () => {
+                                          unlockWorkspace(req.id);
+                                          setConfirmOpen(false);
+                                          toast.success("Workspace Unlocked", {
+                                            description: "Client and Expert can now collaborate in the secure workspace.",
+                                          });
+                                        },
+                                      });
                                     }}
                                   >
                                     <Shield className="w-3 h-3 mr-2" />
@@ -1316,11 +1357,12 @@ const AdminDashboard = () => {
                       <tbody className="divide-y divide-slate-100">
                         {payoutRequests.length === 0 ? (
                           <tr>
-                            <td
-                              colSpan={4}
-                              className="p-16 text-center text-slate-400 bg-slate-50/50"
-                            >
-                              No projects currently awaiting payout.
+                            <td colSpan={4} className="p-8">
+                              <PremiumAlert
+                                type="info"
+                                title="No payouts scheduled"
+                                description="All completed projects have been processed. The accounts balance is currently balanced."
+                              />
                             </td>
                           </tr>
                         ) : (
@@ -1390,18 +1432,18 @@ const AdminDashboard = () => {
                                   <Button
                                     className="bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-md hover:shadow-lg transition-all"
                                     onClick={() => {
-                                      if (
-                                        confirm(
-                                          `Confirm manual payout of ₹${finalPayout.toLocaleString()} to ${
-                                            req.caName
-                                          }? This will archive the project.`,
-                                        )
-                                      ) {
-                                        archiveProject(req.id);
-                                        toast.success(
-                                          "Payout marked complete and project archived.",
-                                        );
-                                      }
+                                      triggerConfirm({
+                                        type: "warning",
+                                        title: "Confirm Payout?",
+                                        description: `Confirm manual payout of ₹${finalPayout.toLocaleString()} to ${req.caName}? This will archive the project.`,
+                                        onConfirm: () => {
+                                          archiveProject(req.id);
+                                          setConfirmOpen(false);
+                                          toast.success("Payout Released", {
+                                            description: "The expert has been paid and the project is now archived.",
+                                          });
+                                        },
+                                      });
                                     }}
                                   >
                                     <CheckCircle className="w-4 h-4 mr-2" />
@@ -1686,6 +1728,15 @@ const AdminDashboard = () => {
           </footer>
         </ScrollArea>
       </main>
+
+      <PremiumConfirmDialog
+        isOpen={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        type={confirmConfig.type}
+      />
     </div>
   );
 };

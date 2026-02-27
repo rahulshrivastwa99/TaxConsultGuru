@@ -28,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PremiumConfirmDialog, ConfirmType } from "@/components/ui/PremiumConfirmDialog";
 
 const Workspace = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,16 +43,45 @@ const Workspace = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Confirmation state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    type: ConfirmType;
+  }>({
+    title: "",
+    description: "",
+    onConfirm: () => {},
+    type: "question",
+  });
+
+  const triggerConfirm = (config: {
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    type: ConfirmType;
+  }) => {
+    setConfirmConfig(config);
+    setConfirmOpen(true);
+  };
+
   const request = requests.find((r) => r.id === id);
   const messages = allMessages.filter((m) => m.requestId === id);
 
   // Status-based Access Control
   useEffect(() => {
-    if (!isLoading && request && !["active", "completed", "ready_for_payout", "payout_completed"].includes(request.status)) {
-      toast.warning("This workspace is not available.");
-      navigate(-1);
+    if (!isLoading && request) {
+      const isStatusValid = ["active", "completed", "ready_for_payout", "payout_completed"].includes(request.status);
+      const isUnlocked = request.isWorkspaceUnlocked === true;
+      
+      if (!isStatusValid || !isUnlocked) {
+        toast.warning("This workspace is not available or hasn't been unlocked yet.");
+        navigate(-1);
+      }
     }
-  }, [request, navigate]);
+  }, [request, navigate, isLoading]);
 
   // Real-time Anti-Bypass Validation
   useEffect(() => {
@@ -523,9 +553,15 @@ const Workspace = () => {
                 <Button 
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-full shadow-sm transition-colors"
                   onClick={() => {
-                    if(confirm("Are you sure you have completed the work? This will notify the client for approval.")) {
-                      completeRequest(id!);
-                    }
+                    triggerConfirm({
+                      type: "question",
+                      title: "Submit Work?",
+                      description: "Are you sure you have completed the work? This will notify the client for approval.",
+                      onConfirm: () => {
+                        completeRequest(id!);
+                        setConfirmOpen(false);
+                      },
+                    });
                   }}
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -552,9 +588,18 @@ const Workspace = () => {
                   <Button 
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 h-12 rounded-full shadow-md transition-all"
                     onClick={() => {
-                      if(confirm("By approving this work, you confirm satisfaction. The project will move to the payout stage.")) {
-                        approveWork(id!);
-                      }
+                      triggerConfirm({
+                        type: "success",
+                        title: "Approve Work?",
+                        description: "By approving this work, you confirm satisfaction. The project will move to the payout stage.",
+                        onConfirm: () => {
+                          approveWork(id!);
+                          setConfirmOpen(false);
+                          toast.success("Work Approved", {
+                            description: "The project has moved to the payout stage.",
+                          });
+                        },
+                      });
                     }}
                   >
                      Approve & Release Payment
@@ -563,9 +608,18 @@ const Workspace = () => {
                     variant="outline"
                     className="border-gray-200 text-gray-700 hover:bg-gray-50 font-bold px-6 h-12 rounded-full transition-all bg-white shadow-sm"
                     onClick={() => {
-                      if(confirm("Are you sure you want to request changes? This will move the project back to 'Active' status.")) {
-                        rejectWork(id!);
-                      }
+                      triggerConfirm({
+                        type: "warning",
+                        title: "Request Changes?",
+                        description: "Are you sure you want to request changes? This will move the project back to 'Active' status.",
+                        onConfirm: () => {
+                          rejectWork(id!);
+                          setConfirmOpen(false);
+                          toast.info("Changes Requested", {
+                            description: "Review comments and wait for the expert to update.",
+                          });
+                        },
+                      });
                     }}
                   >
                      Request Changes
@@ -643,6 +697,14 @@ const Workspace = () => {
           )}
         </div>
       </main>
+      <PremiumConfirmDialog
+        isOpen={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        type={confirmConfig.type}
+      />
     </div>
   );
 };
