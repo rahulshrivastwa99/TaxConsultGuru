@@ -39,27 +39,64 @@ app.use("/api/bids", require("./routes/bidRoutes"));
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Production mein frontend URL yahan replace karna
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
-io.on("connection", (socket) => {
-  console.log("User Connected:", socket.id);
+// Map to track online users: userId -> socketId
+const onlineUsers = new Map();
 
-  socket.on("join_room", (room) => {
-    socket.join(room);
-    console.log(`User joined room: ${room}`);
+io.on("connection", (socket) => {
+  console.log("New Connection:", socket.id);
+
+  // User identities setup
+  socket.on("setup", (userId) => {
+    socket.join(userId);
+    
+    // Only log if the user is connecting with a new socket ID
+    const existingSocketId = onlineUsers.get(userId);
+    if (existingSocketId !== socket.id) {
+      onlineUsers.set(userId, socket.id);
+      console.log(`User ${userId} registered with socket ${socket.id}`);
+    }
+    
+    socket.emit("connected");
+  });
+
+  socket.on("join_chat", (requestId) => {
+    socket.join(requestId);
+    console.log(`User joined chat room: ${requestId}`);
   });
 
   socket.on("new_request", (data) => {
+    // Broadcast to all admins and available CAs
     io.emit("request_alert", data);
   });
 
   socket.on("send_message", (data) => {
-    io.emit("receive_message", data);
+    // data should contain requestId
+    if (data.requestId) {
+      socket.to(data.requestId).emit("receive_message", data);
+    } else {
+      io.emit("receive_message", data); // Fallback
+    }
+  });
+
+  socket.on("disconnect", () => {
+    // Find and remove the user from onlineUsers
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        console.log(`User ${userId} offline`);
+        break;
+      }
+    }
   });
 });
+
+// Export io so it can be used in routes
+app.set("socketio", io);
 // seedAdmin(); // Seed the Master Admin if not exists
 seedAdmin();
 const PORT = process.env.PORT || 5000;

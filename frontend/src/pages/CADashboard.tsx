@@ -39,6 +39,7 @@ import {
   SERVICES,
   ServiceRequest,
 } from "@/context/MockBackendContext";
+import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
 
 const CADashboard = () => {
@@ -52,7 +53,9 @@ const CADashboard = () => {
     placeBid,
     caMessages,
     addCAMessage,
+    refreshData,
   } = useMockBackend();
+  const { socket } = useSocket();
 
   const [isListening, setIsListening] = useState(true);
   const [seenJobIds, setSeenJobIds] = useState<Set<string>>(new Set());
@@ -63,11 +66,11 @@ const CADashboard = () => {
   const [newMessage, setNewMessage] = useState("");
 
   // Bidding State
-  const [selectedJobToBid, setSelectedJobToBid] =
+  const [selectedJob, setSelectedJob] =
     useState<ServiceRequest | null>(null);
-  const [bidDialogOpen, setBidDialogOpen] = useState(false);
-  const [bidAmount, setBidAmount] = useState("");
-  const [proposalText, setProposalText] = useState("");
+  const [isBidModalOpen, setIsBidModalOpen] = useState(false);
+  const [bidPrice, setBidPrice] = useState("");
+  const [bidProposal, setBidProposal] = useState("");
   const [isSubmittingBid, setIsSubmittingBid] = useState(false);
 
   useEffect(() => {
@@ -80,29 +83,49 @@ const CADashboard = () => {
   }, [currentUser, isLoading, navigate]);
 
   useEffect(() => {
-    if (!isListening) return;
+    if (!socket || !isListening) return;
 
-    const interval = setInterval(() => {
-      const live = getLiveJobs();
-      const newJobs = live.filter((job) => !seenJobIds.has(job.id));
+    const handleNewJob = (newJob: any) => {
+      // Avoid duplicates
+      if (seenJobIds.has(newJob.id || newJob._id)) return;
+      
+      setSeenJobIds((prev) => new Set(prev).add(newJob.id || newJob._id));
 
-      if (newJobs.length > 0) {
-        const nextJob = newJobs[0];
-        setSeenJobIds((prev) => new Set(prev).add(nextJob.id));
+      toast.info("New Job Opportunity!", {
+        description: `${newJob.serviceName} - ₹${newJob.budget.toLocaleString()}`,
+        action: {
+          label: "Bid Now",
+          onClick: () => handleOpenBidDialog(newJob),
+        },
+        duration: 10000,
+      });
+      refreshData(); // Sync the list
+    };
 
-        toast.info("New Job Opportunity!", {
-          description: `${nextJob.serviceName} - ₹${nextJob.budget.toLocaleString()}`,
-          action: {
-            label: "Bid Now",
-            onClick: () => handleOpenBidDialog(nextJob),
-          },
-          duration: 10000,
-        });
-      }
-    }, 3000);
+    const handleAccountVerified = () => {
+      toast.success("Account Verified!", {
+        description: "You can now place bids on live jobs."
+      });
+      refreshData();
+    };
 
-    return () => clearInterval(interval);
-  }, [isListening, getLiveJobs, seenJobIds]);
+    const handleWorkspaceUnlocked = (data: any) => {
+      toast.success("Workspace Unlocked!", {
+        description: "A client has unlocked a workspace for you."
+      });
+      refreshData();
+    };
+
+    socket.on("new_live_job", handleNewJob);
+    socket.on("account_verified", handleAccountVerified);
+    socket.on("workspace_unlocked", handleWorkspaceUnlocked);
+
+    return () => {
+      socket.off("new_live_job", handleNewJob);
+      socket.off("account_verified", handleAccountVerified);
+      socket.off("workspace_unlocked", handleWorkspaceUnlocked);
+    };
+  }, [socket, isListening, refreshData, seenJobIds]); // seenJobIds added just in case, but refreshData is now stable
 
   // 3. Show Spinner while loading
   if (isLoading) {
@@ -138,7 +161,7 @@ const CADashboard = () => {
   // Jobs available for bidding (not accepted by any CA, not completed, not cancelled)
   const availableJobs = requests.filter(
     (r) =>
-      !r.caId &&
+      (!r.caId || r.caId === null || r.caId === "") &&
       r.status !== "completed" &&
       r.status !== "cancelled" &&
       r.status !== "pending_approval", // Exclude jobs already bid on and pending approval
@@ -150,13 +173,13 @@ const CADashboard = () => {
   };
 
   const handleOpenBidDialog = (job: ServiceRequest) => {
-    setBidAmount(job.budget.toString());
-    setSelectedJobToBid(job);
-    setBidDialogOpen(true);
+    setSelectedJob(job);
+    setBidPrice((job.budget || 0).toString());
+    setIsBidModalOpen(true);
   };
 
   const handleSubmitBid = async () => {
-    if (!selectedJobToBid || !currentUser || !bidAmount || !proposalText) {
+    if (!selectedJob || !currentUser || !bidPrice || !bidProposal) {
       toast.error("Please fill all fields");
       return;
     }
@@ -164,18 +187,29 @@ const CADashboard = () => {
     setIsSubmittingBid(true);
     try {
       await placeBid({
-        requestId: selectedJobToBid?.id || "",
-        price: Number(bidAmount),
-        proposalText: proposalText,
+        requestId: selectedJob?.id || "",
+        price: Number(bidPrice),
+        proposalText: bidProposal,
       });
+
+      // Show success toast
+      toast.success("Bid submitted successfully!");
+
+      // Optional: Emit socket event so client gets it instantly
+      if (socket) {
+        socket.emit("new_bid", { requestId: selectedJob.id });
+      }
+
       // Mark as seen so it doesn't pop up again
-      setSeenJobIds((prev) => new Set(prev).add(selectedJobToBid.id));
-      setBidDialogOpen(false);
-      setSelectedJobToBid(null);
-      setBidAmount("");
-      setProposalText("");
+      setSeenJobIds((prev) => new Set(prev).add(selectedJob.id));
+      
+      // Close modal and clear inputs
+      setIsBidModalOpen(false);
+      setSelectedJob(null);
+      setBidPrice("");
+      setBidProposal("");
     } catch (e) {
-      // Error handled by context toast
+      // Error handled by context toast or API layer
     } finally {
       setIsSubmittingBid(false);
     }
@@ -656,14 +690,14 @@ const CADashboard = () => {
       </main>
 
       {/* Actual Bidding Modal */}
-      <Dialog open={bidDialogOpen} onOpenChange={setBidDialogOpen}>
+      <Dialog open={isBidModalOpen} onOpenChange={setIsBidModalOpen}>
         <DialogContent className="sm:max-w-[420px] bg-white border-slate-200 rounded-2xl p-6 shadow-2xl">
           <DialogHeader className="mb-2">
             <DialogTitle className="text-xl font-extrabold text-slate-900">
-              Place Your Bid
+              {selectedJob ? selectedJob.serviceName : "Place Your Bid"}
             </DialogTitle>
-            <DialogDescription className="text-sm font-medium text-slate-500 mt-1">
-              Submit your best price and a short proposal to the client.
+            <DialogDescription className="text-sm font-medium text-slate-500 mt-1 line-clamp-3">
+              {selectedJob ? selectedJob.description : "Submit your best price and a short proposal to the client."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-5 py-4">
@@ -678,8 +712,8 @@ const CADashboard = () => {
                 id="price"
                 type="number"
                 placeholder="e.g. 5000"
-                value={bidAmount}
-                onChange={(e) => setBidAmount(e.target.value)}
+                value={bidPrice}
+                onChange={(e) => setBidPrice(e.target.value)}
                 className="h-12 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 text-lg font-semibold rounded-xl"
               />
             </div>
@@ -695,8 +729,8 @@ const CADashboard = () => {
                   id="proposal"
                   className="flex min-h-[120px] w-full bg-transparent px-4 py-3 text-sm placeholder:text-slate-400 focus-visible:outline-none resize-none"
                   placeholder="Tell the client why you are the best fit for this job..."
-                  value={proposalText}
-                  onChange={(e) => setProposalText(e.target.value)}
+                  value={bidProposal}
+                  onChange={(e) => setBidProposal(e.target.value)}
                 />
               </ScrollArea>
             </div>
@@ -704,7 +738,7 @@ const CADashboard = () => {
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button
               variant="outline"
-              onClick={() => setBidDialogOpen(false)}
+              onClick={() => setIsBidModalOpen(false)}
               disabled={isSubmittingBid}
               className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl font-semibold h-11"
             >

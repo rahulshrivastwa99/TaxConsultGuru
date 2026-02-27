@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMockBackend } from "@/context/MockBackendContext";
+import { useSocket } from "@/context/SocketContext";
 import {
   Shield,
   FileArchive,
@@ -28,7 +29,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const Workspace = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentUser, requests, isLoading, allMessages, sendMessageWrapper, completeRequest, approveWork, rejectWork } = useMockBackend();
+  const { currentUser, requests, isLoading, allMessages, sendMessageWrapper, completeRequest, approveWork, rejectWork, refreshData } = useMockBackend();
+  const { socket } = useSocket();
   const [newMessage, setNewMessage] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -61,6 +63,32 @@ const Workspace = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Socket Room Joining and Message Handling
+  useEffect(() => {
+    if (!socket || !id || isLoading) return;
+
+    // Join the specific room for this request
+    socket.emit("join", id);
+    console.log(`🏠 [Workspace] Joined room: ${id}`);
+
+    const handleReceiveMessage = (msg: any) => {
+      // Though MockBackendContext handles global messages, 
+      // we refresh here to ensure local component state is perfectly in sync
+      if (msg.requestId === id) {
+        console.log(`📩 [Workspace] Real-time message received in room ${id}`);
+        refreshData();
+      }
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
+
+    return () => {
+      socket.emit("leave", id);
+      socket.off("receive_message", handleReceiveMessage);
+      console.log(`🚪 [Workspace] Left room: ${id}`);
+    };
+  }, [socket, id, isLoading, refreshData]);
 
 
   if (isLoading || !request || !currentUser) {

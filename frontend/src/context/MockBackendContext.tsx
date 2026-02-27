@@ -4,10 +4,12 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { toast } from "sonner";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
+import { useSocket } from "./SocketContext";
 import * as api from "../lib/api";
 
 // --- DYNAMIC CONFIGURATION ---
@@ -214,18 +216,17 @@ interface BackendContextType {
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
   forwardToCA: (requestId: string, messageId: string) => Promise<void>; 
   addAdmin: (name: string, email: string, password: string) => void;
+  refreshData: () => Promise<void>;
 }
 
 const MockBackendContext = createContext<BackendContextType | undefined>(
   undefined,
 );
 
-// Initialize Socket with Dynamic URL
-const socket: Socket = io(BACKEND_URL);
-
 export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const { socket } = useSocket();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
@@ -252,6 +253,44 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     timestamp: new Date(m.createdAt || m.timestamp),
   });
 
+  const refreshData = useCallback(async () => {
+    try {
+      // 1. Fetch Requests
+      const reqs = await api.fetchRequests();
+      const formattedReqs = reqs.map(formatRequest);
+      setRequests(formattedReqs);
+
+      // 2. Fetch Chat History for all relevant requests
+      if (formattedReqs.length > 0 && currentUser?.token) {
+        const msgPromises = formattedReqs.map((r: any) =>
+          api.fetchMessagesAPI(r.id, currentUser.token!).catch(() => []),
+        );
+
+        const responses = await Promise.all(msgPromises);
+        const allMsgs = responses.flat().map(formatMessage);
+
+        allMsgs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+        setAllMessages(allMsgs);
+      }
+    } catch (e) {
+      console.error("Failed to fetch data", e);
+    }
+  }, [currentUser?.token]);
+
+  const fetchAdminData = useCallback(async () => {
+    if (!currentUser?.token) return;
+    try {
+      const [pCAs, pJobs] = await Promise.all([
+        api.fetchPendingCAs(currentUser.token),
+        api.fetchPendingJobs(currentUser.token),
+      ]);
+      setPendingCAs(pCAs);
+      setPendingJobs(pJobs);
+    } catch (e) {
+      console.error("Failed to fetch admin data", e);
+    }
+  }, [currentUser?.token]);
+
   // 1. INITIALIZE APP
   useEffect(() => {
     const init = async () => {
@@ -270,90 +309,136 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     init();
+  }, [refreshData]);
 
-    // Socket Listeners
-    socket.on("connect", () =>
-      console.log("🟢 Socket Connected to:", BACKEND_URL),
-    );
+  // 2. SOCKET SETUP (Isolated to prevent infinite loops)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const userId = (currentUser as any).id || (currentUser as any)._id;
+    if (!userId) return;
+
+    const handleSetup = () => {
+      socket.emit("setup", userId);
+      console.log(`📡 [MockBackendContext] Emitted setup for user: ${userId}`);
+    };
+
+    // Emit immediately if connected
+    if (socket.connected) {
+      handleSetup();
+    }
+
+    // Also emit on reconnection
+    socket.on("connect", handleSetup);
+
+    return () => {
+      socket.off("connect", handleSetup);
+    };
+  }, [socket, currentUser?.id, (currentUser as any)?._id]);
+
+  // 3. SOCKET LISTENERS
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("new_pending_job", (newJob: any) => {
+      const formatted = formatRequest(newJob);
+      setRequests((prev) => [formatted, ...prev]);
+      if (currentUser?.role === "admin") {
+        toast.info(`New Job Posted: ${formatted.serviceName}`);
+      }
+    });
+
+    socket.on("new_live_job", (job: any) => {
+      const formatted = formatRequest(job);
+      setRequests((prev) => {
+        const index = prev.findIndex((r) => r.id === formatted.id);
+        if (index !== -1) {
+          const updated = [...prev];
+          updated[index] = formatted;
+          return updated;
+        }
+        return [formatted, ...prev];
+      });
+      // Component CADashboard handles the toast for CA users to provide a "Bid Now" button
+    });
+
+    socket.on("account_verified", (data: any) => {
+      toast.success(data.message);
+      setCurrentUser((prev: any) => prev ? { ...prev, isVerified: true } : prev);
+    });
 
     socket.on("request_alert", (updatedRequest: any) => {
       const formatted = formatRequest(updatedRequest);
       setRequests((prev) => {
         const index = prev.findIndex((r) => r.id === formatted.id);
         if (index !== -1) {
-          // Update existing
           const newRequests = [...prev];
           newRequests[index] = formatted;
           return newRequests;
         }
-        // Add new
         return [formatted, ...prev];
       });
 
-      // Notify if it's a new 'live' job for CAs or a assigned job for Client
-      if (
-        (formatted.status as string) === "live" &&
-        currentUser?.role === "ca"
-      ) {
+      if (formatted.status === "live" && currentUser?.role === "ca") {
         toast.info(`New Job Available: ${formatted.serviceName}`);
       }
     });
 
+    socket.on("request_update", (updatedRequest: any) => {
+      const formatted = formatRequest(updatedRequest);
+      setRequests((prev) => prev.map(r => r.id === formatted.id ? formatted : r));
+      toast.success(`Request Updated: ${formatted.serviceName} status is now ${formatted.status}`);
+    });
+
+    socket.on("new_bid_received", (data: any) => {
+      // Refresh the specific request's bids if possible, or just toast
+      toast.success(`New bid received for your project!`);
+      refreshData();
+    });
+
+    socket.on("new_pending_payment", (data: any) => {
+      if (currentUser?.role === "admin") {
+        toast.info(`New Hire! Pending Payment for: ${data.request.serviceName}`);
+        refreshData();
+      }
+    });
+
+    socket.on("workspace_unlocked", (data: any) => {
+      toast.success("Workspace Unlocked! You can now start collaborating.");
+      refreshData();
+    });
+
+    socket.on("job_status_updated", (data: any) => {
+      toast.info(`Update: ${data.message}`);
+      refreshData();
+    });
+
     socket.on("receive_message", (msg: any) => {
       const formatted = formatMessage(msg);
-      console.debug("[socket.receive_message] incoming:", msg);
       setAllMessages((prev) => {
         if (prev.find((m) => m.id === formatted.id)) return prev;
         return [...prev, formatted];
       });
     });
 
+    socket.on("message_alert", (data: { requestId: string, message: any }) => {
+       // Optional: Notify user of new message if not in the chat room
+    });
+
     return () => {
+      socket.off("new_pending_job");
+      socket.off("new_live_job");
+      socket.off("account_verified");
       socket.off("request_alert");
+      socket.off("request_update");
+      socket.off("new_bid_received");
+      socket.off("new_pending_payment");
+      socket.off("workspace_unlocked");
+      socket.off("job_status_updated");
       socket.off("receive_message");
+      socket.off("message_alert");
     };
-  }, []);
-
-  const refreshData = async () => {
-    try {
-      // 1. Fetch Requests
-      const reqs = await api.fetchRequests();
-      const formattedReqs = reqs.map(formatRequest);
-      setRequests(formattedReqs);
-
-      // 2. NEW: Fetch Chat History for all requests
-      // This ensures messages appear when you reload the page
-      if (formattedReqs.length > 0 && currentUser?.token) {
-        const msgPromises = formattedReqs.map((r: any) =>
-          api.fetchMessagesAPI(r.id, currentUser.token!).catch(() => []),
-        );
-
-        const responses = await Promise.all(msgPromises);
-        const allMsgs = responses.flat().map(formatMessage);
-
-        // Sort by time so they appear in order
-        allMsgs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
-        setAllMessages(allMsgs);
-      }
-    } catch (e) {
-      console.error("Failed to fetch data", e);
-    }
-  };
-
-  const fetchAdminData = async () => {
-    if (!currentUser?.token) return;
-    try {
-      const [pCAs, pJobs] = await Promise.all([
-        api.fetchPendingCAs(currentUser.token),
-        api.fetchPendingJobs(currentUser.token),
-      ]);
-      setPendingCAs(pCAs);
-      setPendingJobs(pJobs);
-    } catch (e) {
-      console.error("Failed to fetch admin data", e);
-    }
-  };
+  }, [socket, currentUser?.role, refreshData]);
 
   const verifyCA = async (id: string) => {
     if (!currentUser?.token) return;
@@ -772,6 +857,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         toast.error(error.message || "Failed to archive project");
       }
     },
+    refreshData,
   };
 
   return (

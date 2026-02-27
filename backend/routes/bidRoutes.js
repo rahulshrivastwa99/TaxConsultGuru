@@ -31,6 +31,13 @@ router.post("/:id/hire", protect, async (req, res) => {
     );
 
     res.json({ message: "CA hired successfully via bid", request, bid });
+
+    // Notify CA and Admin
+    const io = req.app.get("socketio");
+    if (io) {
+      io.emit("new_pending_payment", { requestId: request._id, request });
+      io.emit("request_update", request);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

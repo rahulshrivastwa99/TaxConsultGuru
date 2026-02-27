@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMockBackend, SERVICES } from "@/context/MockBackendContext";
+import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -60,7 +61,9 @@ const ClientDashboard = () => {
     hireCA,
     clientMessages,
     addClientMessage,
+    refreshData,
   } = useMockBackend();
+  const { socket } = useSocket();
 
   const [selectedService, setSelectedService] = useState<
     (typeof SERVICES)[0] | null
@@ -90,6 +93,32 @@ const ClientDashboard = () => {
       navigate("/");
     }
   }, [currentUser, isLoading, navigate]);
+
+  useEffect(() => {
+    if (!socket || currentUser?.role !== "client") return;
+
+    const handleNewBid = (data: any) => {
+      toast.success("New Bid Received!", {
+        description: "An expert has submitted a proposal for your project."
+      });
+      refreshData();
+    };
+
+    const handleWorkspaceUnlocked = (data: any) => {
+      toast.success("Workspace Unlocked!", {
+        description: "Your session is now active. You can chat with your expert."
+      });
+      refreshData();
+    };
+
+    socket.on("new_bid_received", handleNewBid);
+    socket.on("workspace_unlocked", handleWorkspaceUnlocked);
+
+    return () => {
+      socket.off("new_bid_received", handleNewBid);
+      socket.off("workspace_unlocked", handleWorkspaceUnlocked);
+    };
+  }, [socket, currentUser, refreshData]);
 
   // 3. Show Spinner while loading
   if (isLoading) {

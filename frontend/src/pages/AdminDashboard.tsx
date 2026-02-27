@@ -48,6 +48,7 @@ import {
   ActivityLog,
   ServiceRequest,
 } from "@/context/MockBackendContext";
+import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
 
 // --- MOVED OUTSIDE TO FIX THE "BLINKING" AND CLICK ISSUES ---
@@ -124,6 +125,7 @@ const AdminDashboard = () => {
     unlockWorkspace,
     archiveProject,
   } = useMockBackend();
+  const { socket } = useSocket();
 
   const [activeTab, setActiveTab] = useState<
     | "bridge"
@@ -158,6 +160,35 @@ const AdminDashboard = () => {
       }
     }
   }, [currentUser, isLoading, navigate, fetchAdminData]);
+
+  useEffect(() => {
+    if (!socket || currentUser?.role !== "admin") return;
+
+    const handleNewJob = (data: any) => {
+      toast.info(`New Job Posted: ${data.serviceName}`);
+      fetchAdminData();
+    };
+
+    const handlePendingPayment = (data: any) => {
+      toast.info(`New Hire! Pending Payment for: ${data.request.serviceName}`);
+      fetchAdminData();
+    };
+
+    const handleStatusUpdate = (data: any) => {
+      toast.info(`Status Update: ${data.message}`);
+      fetchAdminData();
+    };
+
+    socket.on("new_pending_job", handleNewJob);
+    socket.on("new_pending_payment", handlePendingPayment);
+    socket.on("job_status_updated", handleStatusUpdate);
+
+    return () => {
+      socket.off("new_pending_job", handleNewJob);
+      socket.off("new_pending_payment", handlePendingPayment);
+      socket.off("job_status_updated", handleStatusUpdate);
+    };
+  }, [socket, currentUser, fetchAdminData]);
 
   if (isLoading) {
     return (

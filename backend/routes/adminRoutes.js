@@ -28,6 +28,16 @@ router.patch("/verify-ca/:id", async (req, res) => {
 
     user.isVerified = true;
     await user.save();
+
+    // Notify CA in real-time
+    const io = req.app.get("socketio");
+    if (io) {
+      io.to(user._id.toString()).emit("account_verified", { 
+        message: "Your account has been verified by the administrator!",
+        user 
+      });
+    }
+
     res.json({ message: "CA verified successfully", user });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -60,6 +70,17 @@ router.patch("/approve-job/:id", async (req, res) => {
     }
 
     await request.save();
+
+    // Real-time notifications
+    const io = req.app.get("socketio");
+    if (io) {
+      if (request.status === "live") {
+        io.emit("new_live_job", request);
+      } else {
+        io.emit("request_update", request);
+      }
+    }
+
     res.json({ message: `Job approved and is now ${request.status}`, request });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -92,6 +113,16 @@ router.patch("/requests/:id/unlock", async (req, res) => {
     request.isWorkspaceUnlocked = true;
     
     await request.save();
+    
+    // Notify Client and CA
+    const io = req.app.get("socketio");
+    if (io) {
+      const updateData = { requestId: request._id, message: "Workspace unlocked by Admin" };
+      io.to(request.clientId.toString()).emit("workspace_unlocked", updateData);
+      if (request.caId) io.to(request.caId.toString()).emit("workspace_unlocked", updateData);
+      io.emit("job_status_updated", { ...updateData, status: "active" });
+    }
+
     res.json({ message: "Workspace unlocked and project is now active", request });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -109,6 +140,15 @@ router.patch("/requests/:id/archive", async (req, res) => {
     request.isArchived = true;
     
     await request.save();
+
+    // Notify relevant parties
+    const io = req.app.get("socketio");
+    if (io) {
+      const updateData = { requestId: request._id, status: "payout_completed", message: "Project archived and payout completed" };
+      io.to(request.clientId.toString()).emit("job_status_updated", updateData);
+      if (request.caId) io.to(request.caId.toString()).emit("job_status_updated", updateData);
+    }
+
     res.json({ message: "Job archived and payout completed", request });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -128,6 +168,15 @@ router.patch("/requests/:id/force-approve", async (req, res) => {
 
     request.status = "ready_for_payout";
     await request.save();
+
+    // Notify relevant parties
+    const io = req.app.get("socketio");
+    if (io) {
+      const updateData = { requestId: request._id, status: "ready_for_payout", message: "Admin Intervention: Work force-approved" };
+      io.to(request.clientId.toString()).emit("job_status_updated", updateData);
+      if (request.caId) io.to(request.caId.toString()).emit("job_status_updated", updateData);
+    }
+
     res.json({ message: "Admin intervention: Work force-approved.", request });
   } catch (error) {
     res.status(500).json({ message: error.message });
