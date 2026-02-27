@@ -696,6 +696,12 @@ const CADashboard = () => {
           </p>
           <div className="flex items-center gap-6 text-sm font-semibold text-slate-500">
             <a
+              href="/about"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              About Us
+            </a>
+            <a
               href="/privacy"
               className="hover:text-indigo-600 transition-colors"
             >

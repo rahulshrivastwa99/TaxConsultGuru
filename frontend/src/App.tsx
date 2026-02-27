@@ -15,7 +15,7 @@ import Workspace from "./pages/Workspace";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactSupport from "./pages/ContactSupport";
-
+import AboutUs from "./pages/AboutUs";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -34,7 +34,7 @@ const App = () => (
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/contact" element={<ContactSupport />} />
-              {/* Secret Admin Route - NO link anywhere */}
+              <Route path="/about" element={<AboutUs />} />
               <Route path="/tcg-master-control" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
