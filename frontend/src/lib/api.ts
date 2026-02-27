@@ -24,7 +24,7 @@ export const registerUser = async (userData: any) => {
   return normalize(data);
 };
 
-export const loginUser = async (userData: any) => {
+export const loginUser = async (userData: { email: string; password: string; role: string }) => {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -32,6 +32,17 @@ export const loginUser = async (userData: any) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Login failed");
+  return normalize(data);
+};
+
+export const verifyOtp = async (otpData: { email: string; otp: string }) => {
+  const response = await fetch(`${API_URL}/auth/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(otpData),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to verify OTP");
   return normalize(data);
 };
 
