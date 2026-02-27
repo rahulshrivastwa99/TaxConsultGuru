@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMockBackend } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
+import { sendMessageWithFile } from "@/lib/api"; // Added Import
 import {
   Shield,
   FileArchive,
@@ -37,6 +38,7 @@ const Workspace = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // New Upload State
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -119,14 +121,63 @@ const Workspace = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      toast.info(`Uploading ${file.name}... (Simulated)`);
-      setTimeout(() => {
-        sendMessageWrapper(id!, `Shared a file: ${file.name}`, currentUser.role, false, undefined, "https://example.com/file", file.name);
-        toast.success("File shared successfully");
-      }, 1000);
+    if (!file) return;
+  
+    // Client-side file size validation (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File is too large. Maximum size is 10MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+  
+    setIsUploading(true);
+    const loadingToastId = toast.loading(`Uploading ${file.name}...`);
+  
+    try {
+      // Get auth token from local storage (or your context)
+      const token = currentUser?.token || "";
+      
+      await sendMessageWithFile(id!, {
+          text: `Shared a document`,
+          senderId: currentUser.id,
+          senderRole: currentUser.role,
+          senderName: currentUser.name
+      }, file, token);
+  
+      toast.success("File securely uploaded", { id: loadingToastId });
+      refreshData(); // Fetch the newly saved file message from DB
+      
+      // Clear input so same file can be uploaded again if needed
+      if (fileInputRef.current) fileInputRef.current.value = ""; 
+      
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload file. Please try again.", { id: loadingToastId });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDownload = async (fileUrl: string, fileName: string) => {
+    try {
+      toast.info(`Starting download for ${fileName}...`);
+      // Fetch as blob to force a direct download window instead of opening in a new tab
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || 'Document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Failed to download file directly. Opening in new tab...");
+      window.open(fileUrl, '_blank');
     }
   };
 
@@ -295,11 +346,12 @@ const Workspace = () => {
                   
                   <Button 
                     variant="outline" 
+                    disabled={isUploading}
                     className="w-full mt-2 h-auto py-4 border-dashed border-2 rounded-2xl border-slate-300 dark:border-slate-800 hover:border-primary hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary gap-2"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Paperclip className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Upload Document</span>
+                    <span className="text-sm font-semibold">{isUploading ? "Uploading..." : "Upload Document"}</span>
                   </Button>
                   <input 
                     type="file" 
@@ -368,13 +420,11 @@ const Workspace = () => {
                 messages
                   .filter((msg) => !searchQuery || msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
                   .map((msg, idx, filteredArr) => {
-                  // `msg.senderId` is safely normalized to string by `MockBackendContext`'s `formatMessage`.
                   let isMe = false;
                   let isRightAligned = false;
                   
                   if (currentUser.role === 'admin') {
                     // Admin view: Client on the Right, CA on the Left. 
-                    // Admin's own messages (if they somehow sent one) would be right aligned too.
                     isRightAligned = (msg.senderRole === 'client' || msg.senderRole === 'admin');
                   } else {
                     // Normal view: Own messages on the Right.
@@ -421,8 +471,8 @@ const Workspace = () => {
                               }`}>
                                 <FileArchive className="w-5 h-5" />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-[13px] font-bold truncate">{msg.fileName || "Shared Document"}</div>
+                              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleDownload(msg.fileUrl!, msg.fileName || 'Shared Document')}>
+                                <div className="text-[13px] font-bold truncate hover:underline">{msg.fileName || "Shared Document"}</div>
                                 <div className={`text-[10px] uppercase font-bold tracking-wider mt-0.5 ${
                                   isRightAligned ? "text-white/70" : "text-slate-500"
                                 }`}>
@@ -434,9 +484,14 @@ const Workspace = () => {
                                   Logged
                                 </div>
                               ) : (
-                                <Button size="icon" variant={isRightAligned ? "ghost" : "outline"} className={`w-8 h-8 rounded-full ${
-                                  isRightAligned ? "hover:bg-white/20 text-white" : "hover:text-blue-500"
-                                }`}>
+                                <Button 
+                                  size="icon" 
+                                  variant={isRightAligned ? "ghost" : "outline"} 
+                                  onClick={() => handleDownload(msg.fileUrl!, msg.fileName || 'Shared Document')}
+                                  className={`w-8 h-8 rounded-full ${
+                                    isRightAligned ? "hover:bg-white/20 text-white" : "hover:text-blue-500"
+                                  }`}
+                                >
                                   <Download className="w-3.5 h-3.5" />
                                 </Button>
                               )}
@@ -536,6 +591,7 @@ const Workspace = () => {
                   <Button 
                     variant="outline" 
                     size="icon" 
+                    disabled={isUploading}
                     className="h-12 w-12 rounded-full shrink-0 border-gray-200 bg-white hover:bg-gray-50 text-gray-500 shadow-sm transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -545,8 +601,9 @@ const Workspace = () => {
                   <div className="flex-1 relative flex items-center">
                     <Input
                       className="rounded-full bg-white border-gray-200 px-6 h-12 shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 text-[15px] w-full transition-all"
-                      placeholder="Type your message securely..."
+                      placeholder={isUploading ? "Uploading file..." : "Type your message securely..."}
                       value={newMessage}
+                      disabled={isUploading}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                     />
@@ -555,12 +612,12 @@ const Workspace = () => {
                   <Button 
                     size="icon" 
                     className={`h-12 w-12 rounded-full shrink-0 transition-colors p-3 ${
-                      isBlocked || !newMessage.trim() 
+                      isBlocked || !newMessage.trim() || isUploading
                         ? "bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-200 shadow-sm" 
                         : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                     }`}
                     onClick={handleSendMessage}
-                    disabled={isBlocked || !newMessage.trim()}
+                    disabled={isBlocked || !newMessage.trim() || isUploading}
                   >
                     <Send className="w-5 h-5 ml-0.5" />
                   </Button>
@@ -591,4 +648,3 @@ const Workspace = () => {
 };
 
 export default Workspace;
-
