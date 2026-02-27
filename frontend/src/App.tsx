@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,8 +22,7 @@ const App = () => (
     <SocketProvider>
       <MockBackendProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
+          <Sonner position="top-right" expand={false} richColors />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Landing />} />
