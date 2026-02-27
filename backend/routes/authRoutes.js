@@ -107,6 +107,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isVerified: user.isVerified,
         token: generateToken(user._id),
         message: "Login successful!"
       });
@@ -135,10 +136,15 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
-    // OTP is valid - Mark user as verified and clear OTP fields
-    user.isVerified = true;
+    // OTP is valid - clear OTP fields
     user.otp = undefined;
     user.otpExpires = undefined;
+
+    // Only mark non-CAs as verified automatically.
+    // CAs must be manually verified by the Admin.
+    if (user.role !== "ca") {
+      user.isVerified = true;
+    }
     await user.save();
 
     // Now we finally send the token and user data to the frontend
@@ -147,6 +153,7 @@ router.post("/verify-otp", async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      isVerified: user.isVerified,
       token: generateToken(user._id),
       message: "Authentication successful!"
     });

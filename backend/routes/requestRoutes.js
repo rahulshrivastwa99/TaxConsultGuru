@@ -10,7 +10,13 @@ router.post("/create", async (req, res) => {
       ...req.body,
       status: "pending_approval", // Ensure newly created requests are pending approval
     });
-    // TODO: Emit Socket Event here (later)
+    
+    // Emit Socket Event to Admins
+    const io = req.app.get("socketio");
+    if (io) {
+      io.emit("new_pending_job", newRequest);
+    }
+
     res.status(201).json(newRequest);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -50,6 +56,13 @@ router.put("/:id/approve", async (req, res) => {
       { status: "active", adminApprove: true },
       { new: true },
     );
+
+    // Notify Client and CA
+    const io = req.app.get("socketio");
+    if (io) {
+      io.emit("request_update", updatedRequest);
+    }
+
     res.json(updatedRequest);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -82,6 +95,16 @@ router.post("/:id/bids", protect, async (req, res) => {
       price,
       proposalText,
     });
+
+    // Notify Client in real-time
+    const io = req.app.get("socketio");
+    if (io) {
+      // Emit to the client's room
+      io.to(request.clientId.toString()).emit("new_bid_received", {
+        requestId: request._id,
+        bid
+      });
+    }
 
     res.status(201).json(bid);
   } catch (error) {
@@ -148,6 +171,23 @@ router.post("/:id/messages", protect, async (req, res) => {
       intendedFor: req.user.role === "admin" ? intendedFor : undefined,
     });
 
+    // Notify participants in real-time
+    const io = req.app.get("socketio");
+    if (io) {
+      // 1. Emit to the chat room (participants)
+      io.to(req.params.id).emit("receive_message", newMessage);
+      
+      // 2. Also emit to specific rooms for notification toasts/alerts
+      if (req.user.role === "client") {
+        if (request.caId) io.to(request.caId.toString()).emit("receive_message", newMessage);
+      } else if (req.user.role === "ca") {
+        io.to(request.clientId.toString()).emit("receive_message", newMessage);
+      }
+      
+      // 3. Notify Admins (broadcast or admin room)
+      io.emit("message_alert", { requestId: req.params.id, message: newMessage });
+    }
+
     res.status(201).json(newMessage);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -168,6 +208,14 @@ router.patch("/:id/complete", protect, async (req, res) => {
 
     request.status = "completed";
     await request.save();
+
+    // Notify Client and Admin
+    const io = req.app.get("socketio");
+    if (io) {
+      const updateData = { requestId: request._id, status: "completed", message: "Expert marked work as completed" };
+      io.to(request.clientId.toString()).emit("job_status_updated", updateData);
+      io.emit("job_status_updated", updateData); // Broadcast to admins
+    }
 
     res.json({ message: "Work marked as completed. Waiting for client approval.", request });
   } catch (error) {
@@ -194,6 +242,14 @@ router.patch("/:id/approve-work", protect, async (req, res) => {
     request.status = "ready_for_payout";
     await request.save();
 
+    // Notify CA and Admin
+    const io = req.app.get("socketio");
+    if (io) {
+      const updateData = { requestId: request._id, status: "ready_for_payout", message: "Client approved work" };
+      if (request.caId) io.to(request.caId.toString()).emit("job_status_updated", updateData);
+      io.emit("job_status_updated", updateData); // Broadcast to admins
+    }
+
     res.json({ message: "Work approved. Payment is now ready for payout.", request });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -218,6 +274,14 @@ router.patch("/:id/reject-work", protect, async (req, res) => {
 
     request.status = "active"; // Move back to active
     await request.save();
+
+    // Notify CA and Admin
+    const io = req.app.get("socketio");
+    if (io) {
+      const updateData = { requestId: request._id, status: "active", message: "Client requested changes" };
+      if (request.caId) io.to(request.caId.toString()).emit("job_status_updated", updateData);
+      io.emit("job_status_updated", updateData);
+    }
 
     res.json({ message: "Changes requested. The project is now active again.", request });
   } catch (error) {

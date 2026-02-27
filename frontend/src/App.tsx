@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MockBackendProvider } from "@/context/MockBackendContext";
+import { SocketProvider } from "@/context/SocketContext";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import ClientDashboard from "./pages/ClientDashboard";
@@ -19,27 +20,29 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <MockBackendProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/client/dashboard" element={<ClientDashboard />} />
-            <Route path="/ca/dashboard" element={<CADashboard />} />
-            <Route path="/workspace/:id" element={<Workspace />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/contact" element={<ContactSupport />} />
-            {/* Secret Admin Route - NO link anywhere */}
-            <Route path="/tcg-master-control" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </MockBackendProvider>
+    <SocketProvider>
+      <MockBackendProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/client/dashboard" element={<ClientDashboard />} />
+              <Route path="/ca/dashboard" element={<CADashboard />} />
+              <Route path="/workspace/:id" element={<Workspace />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/contact" element={<ContactSupport />} />
+              {/* Secret Admin Route - NO link anywhere */}
+              <Route path="/tcg-master-control" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </MockBackendProvider>
+    </SocketProvider>
   </QueryClientProvider>
 );
 
