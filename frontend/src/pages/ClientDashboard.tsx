@@ -99,14 +99,15 @@ const ClientDashboard = () => {
 
     const handleNewBid = (data: any) => {
       toast.success("New Bid Received!", {
-        description: "An expert has submitted a proposal for your project."
+        description: "An expert has submitted a proposal for your project.",
       });
       refreshData();
     };
 
     const handleWorkspaceUnlocked = (data: any) => {
       toast.success("Workspace Unlocked!", {
-        description: "Your session is now active. You can chat with your expert."
+        description:
+          "Your session is now active. You can chat with your expert.",
       });
       refreshData();
     };
@@ -233,11 +234,11 @@ const ClientDashboard = () => {
             </div>
             <div>
               <h1 className="font-extrabold text-xl tracking-tight text-slate-900 leading-none">
-                Tax
+                {"Tax"}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
                   Consult
                 </span>
-                Guru
+                {"Guru"}
               </h1>
               <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-1">
                 Client Portal
@@ -266,7 +267,7 @@ const ClientDashboard = () => {
         </div>
       </header>
 
-      <main className="flex-1 w-full container mx-auto px-6 py-8 max-w-6xl">
+      <main className="flex-1 w-full container mx-auto px-6 py-8 max-w-6xl pb-24">
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="mb-8 bg-slate-200/60 p-1.5 rounded-xl inline-flex h-14 border border-slate-200">
             <TabsTrigger
@@ -565,86 +566,31 @@ const ClientDashboard = () => {
         </Tabs>
       </main>
 
-      {/* --- CLEAN DARK FOOTER --- */}
-      <footer className="mt-auto py-16 bg-slate-900 text-slate-300">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <div
-                className="flex items-center gap-3 mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white"
-                onClick={() => navigate("/")}
-              >
-                Tax<span className="text-indigo-400">Consult</span>Guru
-              </div>
-              <p className="text-slate-400 max-w-sm leading-relaxed">
-                India's most trusted managed marketplace connecting businesses
-                with top-tier Chartered Accountants. Fast, secure, and reliable.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-6">Platform</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-indigo-400 cursor-pointer transition-colors block"
-                  >
-                    For CA Experts
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-indigo-400 cursor-pointer transition-colors block"
-                  >
-                    Browse Services
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-indigo-400 cursor-pointer transition-colors block"
-                  >
-                    Register
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-6">Legal</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                <li>
-                  <a
-                    href="/privacy"
-                    className="hover:text-white cursor-pointer transition-colors block"
-                  >
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/terms"
-                    className="hover:text-white cursor-pointer transition-colors block"
-                  >
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/contact"
-                    className="hover:text-white cursor-pointer transition-colors block"
-                  >
-                    Contact Support
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
-            <p>
-              © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
-            </p>
-            <p className="mt-2 md:mt-0">Designed for Professional Excellence</p>
+      {/* --- MINIMAL LIGHT FOOTER --- */}
+      <footer className="mt-auto border-t border-slate-200 bg-white/60 backdrop-blur-md">
+        <div className="container mx-auto px-6 py-6 max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-slate-500 font-medium">
+            © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6 text-sm font-semibold text-slate-500">
+            <a
+              href="/privacy"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/terms"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Terms of Service
+            </a>
+            <a
+              href="/contact"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Support
+            </a>
           </div>
         </div>
       </footer>

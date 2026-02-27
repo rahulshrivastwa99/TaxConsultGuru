@@ -21,6 +21,7 @@ const Landing = () => {
 
   const handleServicesClick = () => {
     setMobileMenuOpen(false);
+    // Note: Make sure your ServicesShowcase component has an id="services-section" in its top div
     const section = document.getElementById("services-section");
     if (section) {
       section.scrollIntoView({ behavior: "smooth" });
@@ -79,11 +80,17 @@ const Landing = () => {
         }}
       />
 
+      {/* SHIFTED LAYOUT FOR A PROFESSIONAL FLOW:
+        1. Features (Trust building)
+        2. How It Works (Process)
+        3. Services Showcase (The 6 boxes shifted down) 
+      */}
+
+      <Features />
+
       <HowItWorks />
 
       <ServicesShowcase />
-
-      <Features />
 
       <Footer onLogoClick={handleLogoClick} />
 

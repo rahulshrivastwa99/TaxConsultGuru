@@ -1,87 +1,216 @@
-// src/components/landing/ServicesShowcase.tsx
 import { useState } from "react";
-import { BarChart3, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  Landmark,
+  FileBadge,
+  ShieldCheck,
+  TreeDeciduous,
+  Receipt,
+  Lightbulb,
+  FileText,
+} from "lucide-react";
 
+// Added specific icons for each category to make it look premium
 const categories = [
-  { 
-    id: "business", 
-    name: "Business Registration", 
-    subtitle: "We help you register your business" 
+  {
+    id: "business",
+    name: "Business Registration",
+    subtitle: "We help you register your business",
+    icon: Building2,
   },
-  { 
-    id: "government", 
-    name: "Government Registration", 
-    subtitle: "Get govt. registration certificates" 
+  {
+    id: "government",
+    name: "Government Registration",
+    subtitle: "Get govt. registration certificates",
+    icon: Landmark,
   },
-  { 
-    id: "licenses", 
-    name: "Government Licenses", 
-    subtitle: "Getting govt. licenses with us is easy" 
+  {
+    id: "licenses",
+    name: "Government Licenses",
+    subtitle: "Getting govt. licenses with us is easy",
+    icon: FileBadge,
   },
-  { 
-    id: "rbi", 
-    name: "RBI Regulatory", 
-    subtitle: "Streamline compliance with our experts" 
+  {
+    id: "rbi",
+    name: "RBI Regulatory",
+    subtitle: "Streamline compliance with our experts",
+    icon: ShieldCheck,
   },
-  { 
-    id: "environment", 
-    name: "Environment Laws", 
-    subtitle: "We ensure eco-sustainable growth" 
+  {
+    id: "environment",
+    name: "Environment Laws",
+    subtitle: "We ensure eco-sustainable growth",
+    icon: TreeDeciduous,
   },
-  { 
-    id: "tax", 
-    name: "Tax Filing", 
-    subtitle: "We simplify the process of tax filing" 
+  {
+    id: "tax",
+    name: "Tax Filing",
+    subtitle: "We simplify the process of tax filing",
+    icon: Receipt,
   },
-  { 
-    id: "ipr", 
-    name: "IPR", 
-    subtitle: "We provide top-notch IPR Services" 
+  {
+    id: "ipr",
+    name: "IPR",
+    subtitle: "We provide top-notch IPR Services",
+    icon: Lightbulb,
   },
 ];
 
 const servicesData: Record<string, any[]> = {
   business: [
-    { title: "Company Registration", description: "Company Registration in India Save 50% Today on Professional Services Avail consultation from our seasoned consultants for expert suppor.." },
-    { title: "LLP Registration", description: "LLP Registration- Register a Limited Liability Partnership in 1 Week Are you a business enthusiast seeking LLP registration in India? If.." },
-    { title: "One Person Company Registration", description: "One Person Company Registration Facing challenges in making the desired choice for solopreneurs? Get expert assistance for easy-breezy On.." },
-    { title: "Partnership Firm Registration", description: "Partnership Firm Registration in India Grab 50% Off on TaxConsultGuru® Expert Services Are you seeking partnership firm registration in Ind.." },
+    {
+      title: "Company Registration",
+      description:
+        "Company Registration in India Save 50% Today on Professional Services Avail consultation from our seasoned consultants for expert suppor..",
+    },
+    {
+      title: "LLP Registration",
+      description:
+        "LLP Registration- Register a Limited Liability Partnership in 1 Week Are you a business enthusiast seeking LLP registration in India? If..",
+    },
+    {
+      title: "One Person Company Registration",
+      description:
+        "One Person Company Registration Facing challenges in making the desired choice for solopreneurs? Get expert assistance for easy-breezy On..",
+    },
+    {
+      title: "Partnership Firm Registration",
+      description:
+        "Partnership Firm Registration in India Grab 50% Off on TaxConsultGuru® Expert Services Are you seeking partnership firm registration in Ind..",
+    },
   ],
   government: [
-    { title: "GST Registration", description: "GST Registration Online Step-by-Step (REG-01) & Expert Help Are you facing challenges during GST registration? Get your GSTIN quickl.." },
-    { title: "MSME / Udyam", description: "MSME Udyam Registration in India - Avail benefits and subsidies provided by the government to micro, small, and medium enterprises.." },
-    { title: "FSSAI License", description: "FSSAI License Registration Online Get your food business registered quickly. Ensure compliance and build trust with your customers.." },
-    { title: "Import Export Code", description: "IEC Code Registration Take your business global. Get your Import Export Code seamlessly with our expert guidance and support.." },
+    {
+      title: "GST Registration",
+      description:
+        "GST Registration Online Step-by-Step (REG-01) & Expert Help Are you facing challenges during GST registration? Get your GSTIN quickl..",
+    },
+    {
+      title: "MSME / Udyam",
+      description:
+        "MSME Udyam Registration in India - Avail benefits and subsidies provided by the government to micro, small, and medium enterprises..",
+    },
+    {
+      title: "FSSAI License",
+      description:
+        "FSSAI License Registration Online Get your food business registered quickly. Ensure compliance and build trust with your customers..",
+    },
+    {
+      title: "Import Export Code",
+      description:
+        "IEC Code Registration Take your business global. Get your Import Export Code seamlessly with our expert guidance and support..",
+    },
   ],
   licenses: [
-    { title: "Trade License", description: "Trade License Registration - Start your business legally. We assist in obtaining municipal trade licenses without the standard hassle.." },
-    { title: "PSARA License", description: "PSARA License for Private Security Agencies. Navigate the complex regulatory framework with our dedicated licensing experts.." },
-    { title: "Drug License", description: "Drug License Registration - Mandatory for manufacturing, selling, or distributing drugs and cosmetics in India. Get compliant today.." },
-    { title: "Fire NOC", description: "Fire No Objection Certificate. Ensure your commercial premises meet all safety regulations and secure your Fire NOC efficiently.." },
+    {
+      title: "Trade License",
+      description:
+        "Trade License Registration - Start your business legally. We assist in obtaining municipal trade licenses without the standard hassle..",
+    },
+    {
+      title: "PSARA License",
+      description:
+        "PSARA License for Private Security Agencies. Navigate the complex regulatory framework with our dedicated licensing experts..",
+    },
+    {
+      title: "Drug License",
+      description:
+        "Drug License Registration - Mandatory for manufacturing, selling, or distributing drugs and cosmetics in India. Get compliant today..",
+    },
+    {
+      title: "Fire NOC",
+      description:
+        "Fire No Objection Certificate. Ensure your commercial premises meet all safety regulations and secure your Fire NOC efficiently..",
+    },
   ],
   rbi: [
-    { title: "NBFC Registration", description: "NBFC Registration in India Save 50% Today on Professional Services Is your business engaged in financial activities such as.." },
-    { title: "NBFC Takeover", description: "NBFC Takeover- Avail 50% Off on Professional Fees Are you looking for an NBFC takeover in India? Talk to our experts at Co.." },
-    { title: "FFMC License", description: "FFMC License in India Are you all set to operate legally in the foreign exchange market? If yes, you must opt for the FFMC license in In.." },
-    { title: "Microfinance Company Registration", description: "Microfinance Company Registration Experience Smooth Funding and get reasonable Microfinance company registration services for small.." },
+    {
+      title: "NBFC Registration",
+      description:
+        "NBFC Registration in India Save 50% Today on Professional Services Is your business engaged in financial activities such as..",
+    },
+    {
+      title: "NBFC Takeover",
+      description:
+        "NBFC Takeover- Avail 50% Off on Professional Fees Are you looking for an NBFC takeover in India? Talk to our experts at Co..",
+    },
+    {
+      title: "FFMC License",
+      description:
+        "FFMC License in India Are you all set to operate legally in the foreign exchange market? If yes, you must opt for the FFMC license in In..",
+    },
+    {
+      title: "Microfinance Company Registration",
+      description:
+        "Microfinance Company Registration Experience Smooth Funding and get reasonable Microfinance company registration services for small..",
+    },
   ],
   environment: [
-    { title: "EPR Fulfillment in E-Waste Management", description: "EPR Compliance for E-Waste Management Achieve effortless EPR compliance for E-Waste management with TaxConsultGuru. Let experts guide y.." },
-    { title: "E-Waste Recycling Authorization", description: "E-Waste Recycling Authorization Ready to get your e-waste recycling authorization? Let TaxConsultGuru guide you in taking the first step.." },
-    { title: "Refurbisher Authorization and License", description: "Refurbisher Authorization and License Ready to obtain your refurbisher authorization and license? Ensure compliance, build trust, and dri.." },
-    { title: "Plastic Waste Authorization", description: "Plastic Waste Authorization in India Get 50% off on Professional Services Today Unmanaged plastic waste can harm your brand's.." },
+    {
+      title: "EPR Fulfillment in E-Waste Management",
+      description:
+        "EPR Compliance for E-Waste Management Achieve effortless EPR compliance for E-Waste management with TaxConsultGuru. Let experts guide y..",
+    },
+    {
+      title: "E-Waste Recycling Authorization",
+      description:
+        "E-Waste Recycling Authorization Ready to get your e-waste recycling authorization? Let TaxConsultGuru guide you in taking the first step..",
+    },
+    {
+      title: "Refurbisher Authorization and License",
+      description:
+        "Refurbisher Authorization and License Ready to obtain your refurbisher authorization and license? Ensure compliance, build trust, and dri..",
+    },
+    {
+      title: "Plastic Waste Authorization",
+      description:
+        "Plastic Waste Authorization in India Get 50% off on Professional Services Today Unmanaged plastic waste can harm your brand's..",
+    },
   ],
   tax: [
-    { title: "GST Registration", description: "GST Registration Online Step-by-Step (REG-01) & Expert Help Are you facing challenges during GST registration? Get your GSTIN quickl.." },
-    { title: "TDS Return Filing", description: "TDS Return Filing Online- File TDS Return in 1 Hour Received a TDS notice? At TaxConsultGuru, we have successfully solved 99% cas.." },
-    { title: "GST Return Filing", description: "GST Return Filing Starting from Just ₹ 999/ Month Do you want to maximize your input tax credit while filing GST? Talk to our experts.." },
-    { title: "Professional Tax Registration", description: "Professional Tax Registration - Get Compliant from Day 1 Are you paying salaries without professional tax registration? If you ha.." },
+    {
+      title: "GST Registration",
+      description:
+        "GST Registration Online Step-by-Step (REG-01) & Expert Help Are you facing challenges during GST registration? Get your GSTIN quickl..",
+    },
+    {
+      title: "TDS Return Filing",
+      description:
+        "TDS Return Filing Online- File TDS Return in 1 Hour Received a TDS notice? At TaxConsultGuru, we have successfully solved 99% cas..",
+    },
+    {
+      title: "GST Return Filing",
+      description:
+        "GST Return Filing Starting from Just ₹ 999/ Month Do you want to maximize your input tax credit while filing GST? Talk to our experts..",
+    },
+    {
+      title: "Professional Tax Registration",
+      description:
+        "Professional Tax Registration - Get Compliant from Day 1 Are you paying salaries without professional tax registration? If you ha..",
+    },
   ],
   ipr: [
-    { title: "Trademark Assignment", description: "Trademark Assignment To transfer the ownership of a trademark from one party to another whether along with or without the goodwill of the.." },
-    { title: "Trademark Objection", description: "Trademark Objection- Get First Drafted Reply in 1 Hour Get TaxConsultGuru expert-led support for the trademark objection reply in.." },
-    { title: "Trademark Registration", description: "Trademark Registration in India Avail 50% Off on Professional Services Are you finding it difficult to register for a trademark?.." },
-    { title: "Trademark Rectification", description: "Trademark Rectification in India In Just ₹2499 +Govt.Fee Did you discover an error in the trademark registration? If yes, get.." },
+    {
+      title: "Trademark Assignment",
+      description:
+        "Trademark Assignment To transfer the ownership of a trademark from one party to another whether along with or without the goodwill of the..",
+    },
+    {
+      title: "Trademark Objection",
+      description:
+        "Trademark Objection- Get First Drafted Reply in 1 Hour Get TaxConsultGuru expert-led support for the trademark objection reply in..",
+    },
+    {
+      title: "Trademark Registration",
+      description:
+        "Trademark Registration in India Avail 50% Off on Professional Services Are you finding it difficult to register for a trademark?..",
+    },
+    {
+      title: "Trademark Rectification",
+      description:
+        "Trademark Rectification in India In Just ₹2499 +Govt.Fee Did you discover an error in the trademark registration? If yes, get..",
+    },
   ],
 };
 
@@ -89,51 +218,71 @@ const ServicesShowcase = () => {
   const [activeCategory, setActiveCategory] = useState("business");
 
   return (
-    <section className="py-20 bg-slate-50 relative overflow-hidden">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-            Legal Help Across Wide Range of Services
+    // ID added here so the "Services" nav link scrolls perfectly to this section
+    <section
+      id="services-section"
+      className="py-24 bg-white relative overflow-hidden"
+    >
+      {/* Subtle Background Glows */}
+      <div className="absolute top-0 left-[-10%] w-[40%] h-[40%] bg-indigo-50 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] bg-cyan-50 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="container mx-auto px-6 relative z-10 max-w-7xl">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+            Legal Help Across <br className="md:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+              Wide Range of Services
+            </span>
           </h2>
-          <p className="text-slate-600 max-w-3xl mx-auto text-sm md:text-base">
-            TaxConsultGuru focuses predominantly on assisting entrepreneurs or SMEs by providing services such as Business Registration, Government Registration, Regulatory Measures, Tax Filing, IPR, and much more.
+          <p className="text-slate-500 max-w-2xl mx-auto text-base md:text-lg font-medium leading-relaxed">
+            TaxConsultGuru focuses predominantly on assisting entrepreneurs and
+            SMEs by providing services such as Business Registration, Government
+            Registration, Regulatory Measures, Tax Filing, IPR, and much more.
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row shadow-2xl shadow-slate-200/50 rounded-2xl overflow-hidden bg-white border border-slate-100">
-          
-          {/* Left Sidebar - Dark Theme Navigation */}
-          <div className="lg:w-[32%] bg-[#063057] flex flex-col md:overflow-y-auto max-h-[600px] scrollbar-hide">
+        {/* Main Unified Container */}
+        <div className="bg-slate-50 rounded-[2rem] p-3 md:p-5 border border-slate-200 flex flex-col lg:flex-row gap-5 shadow-sm">
+          {/* Left Sidebar - Light Theme Navigation */}
+          <div className="lg:w-[32%] flex flex-col gap-2 md:overflow-y-auto max-h-[650px] scrollbar-hide">
             {categories.map((category) => {
               const isActive = activeCategory === category.id;
+              const Icon = category.icon;
+
               return (
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`w-full flex items-start gap-4 p-5 text-left transition-all duration-300 relative group ${
-                    isActive 
-                      ? "bg-white" 
-                      : "hover:bg-white/5 border-b border-white/5"
+                  className={`w-full flex items-center gap-4 p-4 text-left transition-all duration-300 rounded-2xl border ${
+                    isActive
+                      ? "bg-white shadow-md shadow-indigo-100/50 border-slate-200 ring-1 ring-indigo-500/10"
+                      : "bg-transparent border-transparent hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  {/* Right orange border indicator for active tab */}
-                  {isActive && (
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-amber-500 rounded-l-md" />
-                  )}
-                  
-                  <div className={`mt-1 ${isActive ? "text-rose-500" : "text-white group-hover:text-rose-300"}`}>
-                    <BarChart3 size={24} strokeWidth={2.5} />
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300 shadow-sm ${
+                      isActive
+                        ? "bg-indigo-600 text-white"
+                        : "bg-white text-slate-400 border border-slate-200"
+                    }`}
+                  >
+                    <Icon size={22} strokeWidth={2.5} />
                   </div>
-                  
+
                   <div>
-                    <h3 className={`font-bold text-base mb-1 transition-colors ${
-                      isActive ? "text-[#063057]" : "text-white"
-                    }`}>
+                    <h3
+                      className={`font-bold text-[15px] leading-tight transition-colors duration-300 ${
+                        isActive ? "text-indigo-950" : "text-slate-700"
+                      }`}
+                    >
                       {category.name}
                     </h3>
-                    <p className={`text-xs ${
-                      isActive ? "text-slate-500" : "text-blue-100/70"
-                    }`}>
+                    <p
+                      className={`text-xs mt-1 font-medium transition-colors duration-300 ${
+                        isActive ? "text-indigo-600/70" : "text-slate-400"
+                      }`}
+                    >
                       {category.subtitle}
                     </p>
                   </div>
@@ -143,40 +292,42 @@ const ServicesShowcase = () => {
           </div>
 
           {/* Right Content Area - Cards */}
-          <div className="lg:w-[68%] p-6 lg:p-8 bg-slate-50/50">
-            {/* Added a key here so React re-mounts the div, triggering the animation on tab switch */}
-            <div 
-              key={activeCategory} 
-              className="grid md:grid-cols-2 gap-5 animate-in fade-in slide-in-from-right-8 duration-500 ease-out"
+          <div className="lg:w-[68%] bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+            <div
+              key={activeCategory}
+              className="grid md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500 ease-out"
             >
               {servicesData[activeCategory].map((service, index) => (
                 <div
                   key={index}
-                  className="bg-white p-6 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-slate-100/80 group hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+                  className="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-indigo-100 hover:border-indigo-300 transition-all duration-300 flex flex-col h-full cursor-pointer"
                 >
-                  <div className="flex items-start gap-4 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
-                      <BarChart3 size={20} className="text-rose-500" strokeWidth={2.5} />
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors duration-300 border border-amber-100 group-hover:border-indigo-100">
+                      <FileText size={22} strokeWidth={2.5} />
                     </div>
-                    <h3 className="text-base font-bold text-[#0056b3] leading-tight pt-1 group-hover:text-indigo-700 transition-colors">
+                    <h3 className="text-[17px] font-extrabold text-slate-900 leading-tight pt-1 group-hover:text-indigo-700 transition-colors">
                       {service.title}
                     </h3>
                   </div>
-                  
-                  <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3">
+
+                  <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow line-clamp-3 font-medium">
                     {service.description}
                   </p>
 
-                  <div className="mt-auto flex justify-end">
-                    <button className="w-8 h-8 rounded-full bg-[#0056b3] text-white flex items-center justify-center group-hover:bg-indigo-700 group-hover:shadow-md transition-all duration-300">
-                      <ArrowRight size={16} strokeWidth={2.5} />
-                    </button>
+                  <div className="mt-auto pt-4 border-t border-slate-100">
+                    <span className="inline-flex items-center text-sm font-bold text-indigo-600 group-hover:text-indigo-700 transition-colors">
+                      read more{" "}
+                      <ArrowRight
+                        size={16}
+                        className="ml-1.5 group-hover:translate-x-1 transition-transform"
+                      />
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          
         </div>
       </div>
     </section>

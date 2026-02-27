@@ -10,15 +10,19 @@ const Footer = ({ onLogoClick }: FooterProps) => {
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
+            {/* FIX: Removed 'gap-3' and wrapped parts in spans to stick them perfectly together */}
             <div
-              className="flex items-center gap-3 mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white"
+              className="flex items-center mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white"
               onClick={onLogoClick}
             >
-              Tax<span className="text-indigo-400">Consult</span>Guru
+              <span>Tax</span>
+              <span className="text-indigo-400">Consult</span>
+              <span>Guru</span>
             </div>
+
             <p className="text-slate-400 max-w-sm leading-relaxed">
-              India's most trusted managed marketplace connecting businesses with
-              top-tier Chartered Accountants. Fast, secure, and reliable.
+              India's most trusted managed marketplace connecting businesses
+              with top-tier Chartered Accountants. Fast, secure, and reliable.
             </p>
           </div>
           <div>
