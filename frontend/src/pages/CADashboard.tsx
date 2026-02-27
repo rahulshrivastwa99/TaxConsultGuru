@@ -66,8 +66,7 @@ const CADashboard = () => {
   const [newMessage, setNewMessage] = useState("");
 
   // Bidding State
-  const [selectedJob, setSelectedJob] =
-    useState<ServiceRequest | null>(null);
+  const [selectedJob, setSelectedJob] = useState<ServiceRequest | null>(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
   const [bidPrice, setBidPrice] = useState("");
   const [bidProposal, setBidProposal] = useState("");
@@ -88,7 +87,7 @@ const CADashboard = () => {
     const handleNewJob = (newJob: any) => {
       // Avoid duplicates
       if (seenJobIds.has(newJob.id || newJob._id)) return;
-      
+
       setSeenJobIds((prev) => new Set(prev).add(newJob.id || newJob._id));
 
       toast.info("New Job Opportunity!", {
@@ -104,14 +103,14 @@ const CADashboard = () => {
 
     const handleAccountVerified = () => {
       toast.success("Account Verified!", {
-        description: "You can now place bids on live jobs."
+        description: "You can now place bids on live jobs.",
       });
       refreshData();
     };
 
     const handleWorkspaceUnlocked = (data: any) => {
       toast.success("Workspace Unlocked!", {
-        description: "A client has unlocked a workspace for you."
+        description: "A client has unlocked a workspace for you.",
       });
       refreshData();
     };
@@ -125,7 +124,7 @@ const CADashboard = () => {
       socket.off("account_verified", handleAccountVerified);
       socket.off("workspace_unlocked", handleWorkspaceUnlocked);
     };
-  }, [socket, isListening, refreshData, seenJobIds]); // seenJobIds added just in case, but refreshData is now stable
+  }, [socket, isListening, refreshData, seenJobIds]);
 
   // 3. Show Spinner while loading
   if (isLoading) {
@@ -202,7 +201,7 @@ const CADashboard = () => {
 
       // Mark as seen so it doesn't pop up again
       setSeenJobIds((prev) => new Set(prev).add(selectedJob.id));
-      
+
       // Close modal and clear inputs
       setIsBidModalOpen(false);
       setSelectedJob(null);
@@ -235,7 +234,7 @@ const CADashboard = () => {
   const messages = chatRequestId ? caMessages[chatRequestId] || [] : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 transition-all shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -245,11 +244,11 @@ const CADashboard = () => {
             </div>
             <div>
               <h1 className="font-extrabold text-xl tracking-tight text-slate-900 leading-none">
-                Tax
+                {"Tax"}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
                   Consult
                 </span>
-                Guru
+                {"Guru"}
               </h1>
               <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-1">
                 Expert Portal
@@ -278,7 +277,7 @@ const CADashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8 max-w-6xl">
+      <main className="flex-1 container mx-auto px-6 py-8 max-w-6xl pb-24">
         <Tabs defaultValue="jobs" className="w-full">
           <TabsList className="mb-8 bg-slate-200/60 p-1.5 rounded-xl inline-flex h-14 border border-slate-200">
             <TabsTrigger
@@ -666,7 +665,7 @@ const CADashboard = () => {
                             </div>
                             <div className="flex justify-between items-center text-pink-600">
                               <span className="font-medium">
-                                Platform Fee (10%):
+                                Admin Fee (10%):
                               </span>
                               <span className="font-bold">
                                 -₹{commission.toLocaleString()}
@@ -689,6 +688,35 @@ const CADashboard = () => {
         </Tabs>
       </main>
 
+      {/* --- MINIMAL LIGHT FOOTER --- */}
+      <footer className="mt-auto border-t border-slate-200 bg-white/60 backdrop-blur-md">
+        <div className="container mx-auto px-6 py-6 max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-slate-500 font-medium">
+            © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6 text-sm font-semibold text-slate-500">
+            <a
+              href="/privacy"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/terms"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Terms of Service
+            </a>
+            <a
+              href="/contact"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Support
+            </a>
+          </div>
+        </div>
+      </footer>
+
       {/* Actual Bidding Modal */}
       <Dialog open={isBidModalOpen} onOpenChange={setIsBidModalOpen}>
         <DialogContent className="sm:max-w-[420px] bg-white border-slate-200 rounded-2xl p-6 shadow-2xl">
@@ -697,7 +725,9 @@ const CADashboard = () => {
               {selectedJob ? selectedJob.serviceName : "Place Your Bid"}
             </DialogTitle>
             <DialogDescription className="text-sm font-medium text-slate-500 mt-1 line-clamp-3">
-              {selectedJob ? selectedJob.description : "Submit your best price and a short proposal to the client."}
+              {selectedJob
+                ? selectedJob.description
+                : "Submit your best price and a short proposal to the client."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-5 py-4">

@@ -459,7 +459,15 @@ const AdminDashboard = () => {
         </ScrollArea>
 
         {/* Footer / Logout Section */}
-        <div className="p-4 border-t border-slate-100 bg-white">
+        <div className="p-4 border-t border-slate-100 bg-white flex flex-col gap-4">
+          <div
+            className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity text-sm font-extrabold tracking-tight text-slate-900"
+            onClick={() => navigate("/")}
+          >
+            {"Tax"}
+            <span className="text-indigo-600">Consult</span>
+            {"Guru"}
+          </div>
           <Button
             variant="outline"
             className="w-full justify-start text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 h-11"
@@ -1640,6 +1648,36 @@ const AdminDashboard = () => {
               </Card>
             )}
           </div>
+
+          {/* Subtle minimal footer added inside ScrollArea so it sits at the bottom of content */}
+          <footer className="mt-8 border-t border-slate-200 bg-transparent py-6 px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500 font-medium">
+              <p>
+                © {new Date().getFullYear()} TaxConsultGuru. All rights
+                reserved.
+              </p>
+              <div className="flex gap-6">
+                <a
+                  href="/privacy"
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  Privacy Policy
+                </a>
+                <a
+                  href="/terms"
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  Terms of Service
+                </a>
+                <a
+                  href="/contact"
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  Support
+                </a>
+              </div>
+            </div>
+          </footer>
         </ScrollArea>
       </main>
     </div>
