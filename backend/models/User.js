@@ -11,7 +11,10 @@ const userSchema = mongoose.Schema(
       enum: ["client", "ca", "admin"], // Strict roles
       required: true,
     },
-    isVerified: { type: Boolean, default: false }, // For CA verification
+    // Add these to your existing User schema
+    isVerified: { type: Boolean, default: false },
+    otp: { type: String },
+    otpExpires: { type: Date }, // For CA verification
     experience: { type: Number }, // Experience for CAs
     certificationDetails: { type: String }, // Certification details for CAs
   },

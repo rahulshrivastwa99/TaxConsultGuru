@@ -141,7 +141,7 @@ interface BackendContextType {
   requests: ServiceRequest[];
   users: User[];
   logs: ActivityLog[];
-  login: (email: string, password: string) => Promise<User | null>;
+  login: (email: string, password: string, role: UserRole) => Promise<User | null>;
   logout: () => void;
   registerUser: (
     name: string,
@@ -392,9 +392,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, role: UserRole) => {
     try {
-      const user = await api.loginUser({ email, password });
+      const user = await api.loginUser({ email, password, role });
       setCurrentUser(user);
       localStorage.setItem("userInfo", JSON.stringify(user));
       await refreshData();
