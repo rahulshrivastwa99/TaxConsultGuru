@@ -16,6 +16,8 @@ import {
   Users,
   AlertTriangle,
   CheckCircle,
+  Clock,
+  Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +35,8 @@ const Workspace = () => {
   const { socket } = useSocket();
   const [newMessage, setNewMessage] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,13 +72,10 @@ const Workspace = () => {
   useEffect(() => {
     if (!socket || !id || isLoading) return;
 
-    // Join the specific room for this request
     socket.emit("join", id);
     console.log(`🏠 [Workspace] Joined room: ${id}`);
 
     const handleReceiveMessage = (msg: any) => {
-      // Though MockBackendContext handles global messages, 
-      // we refresh here to ensure local component state is perfectly in sync
       if (msg.requestId === id) {
         console.log(`📩 [Workspace] Real-time message received in room ${id}`);
         refreshData();
@@ -90,19 +91,22 @@ const Workspace = () => {
     };
   }, [socket, id, isLoading, refreshData]);
 
-
   if (isLoading || !request || !currentUser) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background">
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50 dark:bg-background">
         <div className="animate-pulse flex flex-col items-center">
-          <Shield className="w-16 h-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold">Loading Secure Workspace...</h2>
+          <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center mb-6">
+            <Shield className="w-10 h-10 text-primary animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+            Establishing Secure Connection...
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm">Validating workspace credentials</p>
         </div>
       </div>
     );
   }
 
-  // Double check status after loading
   if (!["active", "completed", "ready_for_payout", "payout_completed"].includes(request.status)) return null;
 
   const handleSendMessage = async () => {
@@ -119,7 +123,6 @@ const Workspace = () => {
     const file = e.target.files?.[0];
     if (file) {
       toast.info(`Uploading ${file.name}... (Simulated)`);
-      // In a real app, you'd upload to S3/Cloudinary and then call sendMessageWrapper with fileUrl
       setTimeout(() => {
         sendMessageWrapper(id!, `Shared a file: ${file.name}`, currentUser.role, false, undefined, "https://example.com/file", file.name);
         toast.success("File shared successfully");
@@ -128,108 +131,175 @@ const Workspace = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#f0f2f5] dark:bg-background overflow-hidden font-sans">
-      {/* Top Header */}
-      <header className="border-b bg-card py-3 px-6 flex items-center justify-between shadow-sm z-20">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+    <div className="flex flex-col h-screen bg-slate-50/50 dark:bg-[#09090b] overflow-hidden font-sans selection:bg-primary/20">
+      {/* Premium Header */}
+      <header className="border-b border-slate-200/60 dark:border-white/5 bg-white/70 dark:bg-black/40 backdrop-blur-xl py-3 px-6 flex items-center justify-between shadow-sm z-30 sticky top-0">
+        <div className="flex items-center gap-5">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-md">
-              <Shield className="w-6 h-6" />
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white shadow-lg shadow-primary/20">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-heading text-base font-bold leading-tight">
+              <h1 className="font-heading text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
                 {request.serviceName}
               </h1>
-              <p className="text-[10px] text-success font-bold flex items-center gap-1 uppercase tracking-widest">
-                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                Active • End-to-End Encrypted
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  E2E Encrypted
+                </span>
+                <span className="text-slate-300 dark:text-slate-700 mx-1">•</span>
+                <span className="text-[12px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> {request.status === 'active' ? 'In Progress' : 'Completed'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex flex-col items-end mr-4">
-            <span className="text-[10px] text-muted-foreground uppercase font-bold">Project ID</span>
-            <span className="text-xs font-mono">{id?.substring(0, 12)}</span>
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3 mr-2 bg-slate-100/50 dark:bg-white/5 px-4 py-1.5 rounded-xl border border-slate-200/50 dark:border-white/5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Client</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {request.clientName || 'Loading...'}
+              </span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-primary/70 font-bold uppercase tracking-wider">Expert</span>
+              {request.caName ? (
+                <span className="text-xs font-semibold text-primary truncate max-w-[150px]">
+                  {request.caName}
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200/50 uppercase">
+                  Assigning...
+                </span>
+              )}
+            </div>
           </div>
-          <Button variant="outline" size="sm" className="hidden sm:flex gap-2 rounded-full border-primary/20 hover:bg-primary/5">
-            <Users className="w-4 h-4" />
+          
+          {request.status === 'searching' && currentUser.role === 'admin' && (
+            <Badge variant="outline" className="animate-pulse bg-amber-50 text-amber-600 border-amber-200">
+              <Clock className="w-3.5 h-3.5 mr-1" />
+              Waiting for Expert
+            </Badge>
+          )}
+
+          <Button variant="outline" size="sm" className="hidden sm:flex gap-2 rounded-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm font-medium">
+            <Users className="w-4 h-4 text-primary" />
             Participants
           </Button>
-          <Separator orientation="vertical" className="h-8 mx-2" />
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Separator orientation="vertical" className="h-6 opacity-30 mx-1" />
+          <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100 dark:hover:bg-white/10">
             <MoreVertical className="w-5 h-5" />
           </Button>
         </div>
       </header>
 
       <main className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Project Context */}
-        <aside className="hidden lg:flex w-80 border-r bg-white dark:bg-card flex-col overflow-hidden z-10 shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
+        {/* Sleek Left Sidebar */}
+        <aside className="hidden lg:flex w-[340px] border-r border-slate-200/60 dark:border-white/5 bg-white/50 dark:bg-[#09090b]/80 backdrop-blur-md flex-col overflow-hidden z-20 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
           <ScrollArea className="flex-1">
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">
-                  Project Details
-                </h3>
-                <Card className="border-none bg-muted/30 shadow-none rounded-2xl overflow-hidden">
-                  <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-xs font-bold uppercase text-primary">Requirement</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <p className="text-sm text-foreground/80 leading-relaxed italic">
-                      "{request.description}"
-                    </p>
-                    <div className="mt-4 pt-4 border-t border-dashed space-y-3">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Budget</span>
-                        <Badge variant="secondary" className="font-bold bg-primary/10 text-primary">₹{request.budget.toLocaleString()}</Badge>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Expert</span>
-                        <span className="font-bold">{request.caName || "Analyzing..."}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="p-6 space-y-8">
+              {/* Project Brief */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-primary" />
+                  <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest">
+                    Project Brief
+                  </h3>
+                </div>
+                
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200/60 dark:border-white/5 shadow-sm">
+                  <div className="flex justify-between items-center text-[15px]">
+                    <span className="text-muted-foreground font-medium">Budget</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100">
+                      ₹{request.budget.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 flex items-center justify-between">
-                  Secure Documents
-                  <Search className="w-3.5 h-3.5 text-muted-foreground cursor-pointer hover:text-primary transition-colors" />
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { name: "Requirement_Brief.pdf", size: "1.2 MB" },
-                    { name: "Tax_Docs_2025.zip", size: "4.5 MB" },
-                    { name: "Aadhar_PAN.pdf", size: "850 KB" },
-                  ].map((file, i) => (
-                    <div
-                      key={i}
-                      className="group flex items-center gap-3 p-3 rounded-xl bg-muted/20 hover:bg-primary/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer"
-                    >
-                      <div className="w-9 h-9 rounded-lg bg-white dark:bg-background flex items-center justify-center shadow-sm">
-                        <FileText className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium truncate">{file.name}</div>
-                        <div className="text-[10px] text-muted-foreground">{file.size} • Finalised</div>
-                      </div>
-                      <Download className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Secure Vault */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileArchive className="w-4 h-4 text-primary" />
+                    <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest">
+                      Secure Vault
+                    </h3>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={`w-6 h-6 rounded-full transition-colors ${isSearchOpen ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+
+                {isSearchOpen && (
+                  <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Search workspace..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="h-9 pl-9 bg-white dark:bg-[#121214] border-slate-200/60 dark:border-white/5 rounded-xl text-sm"
+                        autoFocus
+                      />
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                <div className="space-y-2.5">
+                  {messages.filter(m => m.fileUrl).length === 0 ? (
+                    <div className="text-center p-4 rounded-2xl border border-dashed border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-muted-foreground text-[13px]">
+                      No documents securely vaulted yet.
+                    </div>
+                  ) : (
+                    messages.filter(m => m.fileUrl).map((msg, i) => (
+                      <div
+                        key={i}
+                        className="group flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200/60 dark:border-white/5 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => {
+                          if (msg.fileUrl && msg.fileUrl !== 'https://example.com/file') {
+                            window.open(msg.fileUrl, '_blank');
+                          } else {
+                            toast.info("This is a simulated file and cannot be downloaded.");
+                          }
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-bold text-slate-800 dark:text-slate-200 truncate">{msg.fileName || "Secure_Document"}</div>
+                          <div className="text-[11px] font-medium text-muted-foreground mt-0.5">
+                            {msg.timestamp.toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 dark:bg-white/5 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+                          <Download className="w-4 h-4 text-primary" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  
                   <Button 
                     variant="outline" 
-                    className="w-full mt-3 border-dashed border-2 rounded-xl py-6 flex flex-col gap-1 hover:bg-primary/5 hover:border-primary transition-all"
+                    className="w-full mt-2 h-auto py-4 border-dashed border-2 rounded-2xl border-slate-300 dark:border-slate-800 hover:border-primary hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary gap-2"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Paperclip className="w-5 h-5 mb-1" />
-                    <span className="text-xs font-bold uppercase tracking-tighter">Share New Document</span>
+                    <Paperclip className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Upload Document</span>
                   </Button>
                   <input 
                     type="file" 
@@ -240,101 +310,143 @@ const Workspace = () => {
                 </div>
               </div>
 
-              <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-900/30">
-                <div className="flex items-center gap-2 mb-2 text-yellow-700 dark:text-yellow-500">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span className="text-[10px] font-bold uppercase">Compliance Alert</span>
+              {/* Security Shield */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/50 dark:border-amber-900/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-500">
+                    Trust & Safety
+                  </span>
                 </div>
-                <p className="text-[11px] text-yellow-800/80 dark:text-yellow-400/80 leading-snug">
-                  To ensure payment security, never share bank details directly. All transactions are protected via TCG Escrow.
+                <p className="text-[12px] text-amber-900/70 dark:text-amber-400/80 leading-relaxed font-medium">
+                  Never share sensitive credentials or bank details. All transactions are protected via the platform escrow system.
                 </p>
               </div>
             </div>
           </ScrollArea>
         </aside>
 
-        {/* Right Area - Chat */}
-        <div className="flex-1 flex flex-col relative bg-[#e5ddd5] dark:bg-[#0b141a]">
-          {/* WhatsApp Style Wallpaper Overlay */}
-          <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.03] pointer-events-none" 
-               style={{ backgroundImage: "url('https://w0.peakpx.com/wallpaper/580/543/HD-wallpaper-whatsapp-background-whatsapp-texture.jpg')", backgroundSize: "400px" }} />
+        {/* Right Area - Modern Chat Interface */}
+        <div className="flex-1 flex flex-col relative bg-slate-50 dark:bg-[#0a0a0c]">
+          {/* Subtle Pattern Background Instead of WhatsApp */}
+          <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.02] pointer-events-none" 
+               />
+
+          {/* Soft Gradient Orbs */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
           
-          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 relative scroll-smooth" ref={scrollRef}>
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-8 relative scroll-smooth z-10" ref={scrollRef}>
             <div className="max-w-3xl mx-auto space-y-6">
-              {/* Security Header */}
-              <div className="flex justify-center mb-8">
-                <div className="bg-[#fff9c4] dark:bg-[#182229] border border-yellow-200/50 dark:border-none rounded-lg px-4 py-2 flex items-center gap-2 shadow-sm max-w-sm">
-                  <Shield className="w-3 h-3 text-yellow-700 dark:text-yellow-500" />
-                  <span className="text-[11px] text-yellow-800 dark:text-yellow-500/80 text-center font-medium">
+              
+              <div className="flex justify-center mb-10">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 rounded-full px-5 py-2.5 flex items-center gap-2.5 shadow-sm">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <span className="text-[12px] text-slate-600 dark:text-slate-300 font-medium">
                     {currentUser.role === 'admin' 
                       ? "Admin Overwatch Mode: Viewing session for quality assurance. Reply disabled." 
-                      : "Messages are end-to-end encrypted. No one outside of this chat, not even TCG, can read them."
+                      : "Messages are end-to-end encrypted. TCG cannot read or listen to them."
                     }
                   </span>
                 </div>
               </div>
 
               {messages.length === 0 ? (
-                <div className="text-center py-20 opacity-30 flex flex-col items-center">
-                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
-                    <MessageSquare className="w-10 h-10" />
+                <div className="text-center py-32 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div className="w-24 h-24 rounded-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 shadow-xl flex items-center justify-center mb-6 relative">
+                    <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-20" />
+                    <MessageSquare className="w-10 h-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Secure Workspace Active</h3>
-                  <p className="text-sm max-w-xs mx-auto">Collaboration is ready. Start the conversation with your tax expert below.</p>
+                  <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3">
+                    Secure Workspace Initiated
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                    This channel is strictly for project communication. Any files shared here are securely vaulted.
+                  </p>
                 </div>
               ) : (
-                messages.map((msg, idx) => {
-                  const isMe = msg.senderId === currentUser.id;
-                  const showDate = idx === 0 || messages[idx-1].timestamp.toDateString() !== msg.timestamp.toDateString();
+                messages
+                  .filter((msg) => !searchQuery || msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((msg, idx, filteredArr) => {
+                  // `msg.senderId` is safely normalized to string by `MockBackendContext`'s `formatMessage`.
+                  let isMe = false;
+                  let isRightAligned = false;
                   
+                  if (currentUser.role === 'admin') {
+                    // Admin view: Client on the Right, CA on the Left. 
+                    // Admin's own messages (if they somehow sent one) would be right aligned too.
+                    isRightAligned = (msg.senderRole === 'client' || msg.senderRole === 'admin');
+                  } else {
+                    // Normal view: Own messages on the Right.
+                    isMe = msg.senderId === currentUser.id;
+                    isRightAligned = isMe;
+                  }
+
+                  const showDate = idx === 0 || filteredArr[idx-1].timestamp.toDateString() !== msg.timestamp.toDateString();
+                  
+                  // Grouping logic: only show name if it's the first message from this sender in a sequence
+                  const showSenderLabel = (!isMe || currentUser.role === 'admin') && (idx === 0 || filteredArr[idx-1].senderId !== msg.senderId || showDate);
+
                   return (
                     <React.Fragment key={msg.id}>
                       {showDate && (
-                        <div className="flex justify-center my-6">
-                          <Badge variant="secondary" className="bg-white/80 dark:bg-[#182229] dark:text-white/60 text-[10px] font-bold py-1 px-3 shadow-sm rounded-lg uppercase tracking-widest border-none">
+                        <div className="flex justify-center my-8">
+                          <span className="bg-slate-100/80 dark:bg-white/5 backdrop-blur-sm text-slate-500 dark:text-slate-400 text-[11px] font-bold py-1.5 px-4 rounded-full uppercase tracking-widest border border-slate-200/50 dark:border-white/5">
                             {msg.timestamp.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-                          </Badge>
+                          </span>
                         </div>
                       )}
-                      <div className={`flex ${isMe ? "justify-end" : "justify-start"} mb-1`}>
-                        <div className={`relative max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-xl shadow-sm ${
-                          isMe 
-                            ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none" 
-                            : "bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none"
+                      
+                      <div className={`flex flex-col ${isRightAligned ? "items-end" : "items-start"} mb-4 group`}>
+                        {showSenderLabel && (
+                           <div className="text-xs text-gray-400 font-medium pb-1 ml-1 flex items-center gap-1">
+                             {msg.senderRole === "ca" ? "CA" : msg.senderRole === "client" ? "Client" : "Admin"} - {msg.senderName}
+                           </div>
+                        )}
+                        <div className={`relative max-w-[85%] md:max-w-[70%] px-4 py-3 transition-all ${
+                          isRightAligned 
+                            ? "bg-blue-500 text-white rounded-2xl rounded-tr-sm"
+                            : "bg-white border border-slate-100 text-slate-800 rounded-2xl rounded-tl-sm dark:bg-[#1a1c23] dark:border-white/5 dark:text-slate-200"
                         }`}>
-                          {!isMe && (
-                            <div className="text-[11px] font-bold text-primary mb-0.5">{msg.senderName}</div>
-                          )}
-                          <div className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">
+                          <div className="text-[14.5px] leading-relaxed break-words whitespace-pre-wrap">
                             {msg.text}
                           </div>
                           
                           {msg.fileUrl && (
-                            <div className={`mt-2 p-2 rounded-lg flex items-center gap-3 border ${
-                              isMe ? "bg-black/5 dark:bg-black/20 border-black/5" : "bg-muted dark:bg-black/10 border-transparent"
+                            <div className={`mt-3 p-3 rounded-xl flex items-center gap-3 border ${
+                              isRightAligned ? "bg-white/10 border-white/5" : "bg-slate-50 dark:bg-black/20 border-slate-100 dark:border-white/5"
                             }`}>
-                              <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
-                                <FileArchive className="w-6 h-6" />
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                isRightAligned ? "bg-white/20 text-white" : "bg-blue-50 text-blue-500 dark:bg-blue-500/10 dark:text-blue-400"
+                              }`}>
+                                <FileArchive className="w-5 h-5" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-[12px] font-bold truncate">{msg.fileName || "Shared Document"}</div>
-                                <div className="text-[10px] opacity-60 uppercase font-bold tracking-tighter">SECURE FILE</div>
+                                <div className="text-[13px] font-bold truncate">{msg.fileName || "Shared Document"}</div>
+                                <div className={`text-[10px] uppercase font-bold tracking-wider mt-0.5 ${
+                                  isRightAligned ? "text-white/70" : "text-slate-500"
+                                }`}>
+                                  FILE
+                                </div>
                               </div>
                               {currentUser.role === 'admin' ? (
-                                <div className="text-[10px] text-muted-foreground bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-dashed italic">
-                                  [Document Shared: {msg.fileName}]
+                                <div className="text-[10px] bg-black/5 px-2 py-1 rounded border border-dashed italic opacity-70">
+                                  Logged
                                 </div>
                               ) : (
-                                <Download className="w-4 h-4 cursor-pointer hover:text-primary transition-colors" />
+                                <Button size="icon" variant={isRightAligned ? "ghost" : "outline"} className={`w-8 h-8 rounded-full ${
+                                  isRightAligned ? "hover:bg-white/20 text-white" : "hover:text-blue-500"
+                                }`}>
+                                  <Download className="w-3.5 h-3.5" />
+                                </Button>
                               )}
                             </div>
                           )}
                           
-                          <div className="flex justify-end items-center gap-1 mt-1 -mr-1">
-                            <span className="text-[10px] opacity-50 font-medium lowercase">
-                              {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                            {isMe && <Shield className="w-2.5 h-2.5 text-primary opacity-60" />}
+                          <div className={`text-[10px] font-medium mt-1.5 flex justify-end items-center gap-1.5 ${
+                            isRightAligned ? "text-blue-100" : "text-slate-400"
+                          }`}>
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
                       </div>
@@ -345,90 +457,95 @@ const Workspace = () => {
             </div>
           </div>
 
-          {/* CA 'Mark as Completed' Button */}
+          {/* Action Modals - CA Completions */}
           {currentUser.role === 'ca' && request.status === 'active' && (
-            <div className="p-4 bg-primary/5 border-t border-primary/10 text-center">
-              <Button 
-                className="bg-primary hover:bg-primary/90 text-white font-bold px-8 rounded-full shadow-lg"
-                onClick={() => {
-                  if(confirm("Are you sure you have completed the work? This will notify the client for approval.")) {
-                    completeRequest(id!);
-                  }
-                }}
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Mark as Completed
-              </Button>
+            <div className="p-5 bg-white/80 dark:bg-black/50 backdrop-blur-md border-t border-slate-200/60 dark:border-white/5 z-20">
+              <div className="max-w-3xl mx-auto flex items-center justify-between bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <div>
+                  <h4 className="font-bold text-blue-800 text-sm">Have you finished the deliverables?</h4>
+                  <p className="text-xs text-blue-600/80 mt-0.5">Marking as completed will send the project for client approval.</p>
+                </div>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-full shadow-sm transition-colors"
+                  onClick={() => {
+                    if(confirm("Are you sure you have completed the work? This will notify the client for approval.")) {
+                      completeRequest(id!);
+                    }
+                  }}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Mark as Completed
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Client 'Approve Work' Button */}
+          {/* Action Modals - Client Approval */}
           {currentUser.role === 'client' && request.status === 'completed' && (
-            <div className="p-8 bg-indigo-50 dark:bg-indigo-950/20 border-t border-indigo-100 dark:border-indigo-900/30 text-center flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <CheckCircle className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-100">Work Submitted for Approval</h3>
-                <p className="text-sm text-indigo-700/70 dark:text-indigo-400/70 max-w-md mx-auto">
-                  The expert has marked the work as finished. Please review the documents and messages. 
-                  Once satisfied, click the button below to release the payment.
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Button 
-                  size="lg"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-12 h-14 rounded-xl shadow-xl hover:scale-105 transition-all text-base"
-                  onClick={() => {
-                    if(confirm("By approving this work, you confirm satisfaction with the expert's output. The project will move to the payout stage.")) {
-                      approveWork(id!);
-                    }
-                  }}
-                >
-                   Approve Work & Prepare Payout
-                </Button>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="border-destructive text-destructive hover:bg-destructive/5 font-bold px-8 h-14 rounded-xl shadow-md transition-all text-base"
-                  onClick={() => {
-                    if(confirm("Are you sure you want to request changes? This will move the project back to 'Active' status and notify the expert.")) {
-                      rejectWork(id!);
-                    }
-                  }}
-                >
-                   Request Changes
-                </Button>
+            <div className="p-6 bg-white/80 dark:bg-black/50 backdrop-blur-md border-t border-slate-200/60 dark:border-white/5 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+              <div className="max-w-3xl mx-auto bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-3xl p-6 text-center flex flex-col items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <CheckCircle className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">Work Ready for Review</h3>
+                  <p className="text-sm text-blue-700/80 dark:text-blue-300/80 max-w-md mx-auto mt-1">
+                    Please review the documents and correspondence. Once satisfied, approve the work to release the payment.
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-3 mt-2">
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 h-12 rounded-full shadow-md transition-all"
+                    onClick={() => {
+                      if(confirm("By approving this work, you confirm satisfaction. The project will move to the payout stage.")) {
+                        approveWork(id!);
+                      }
+                    }}
+                  >
+                     Approve & Release Payment
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="border-gray-200 text-gray-700 hover:bg-gray-50 font-bold px-6 h-12 rounded-full transition-all bg-white shadow-sm"
+                    onClick={() => {
+                      if(confirm("Are you sure you want to request changes? This will move the project back to 'Active' status.")) {
+                        rejectWork(id!);
+                      }
+                    }}
+                  >
+                     Request Changes
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Chat Input - HIDDEN FOR ADMIN & HIDDEN FOR CLIENT IF COMPLETED */}
+          {/* Input Area */}
           {(currentUser.role !== 'admin' && !(currentUser.role === 'client' && request.status === 'completed')) && (
-            <div className="p-4 bg-[#f0f2f5] dark:bg-[#202c33] border-t dark:border-white/5 relative z-20">
-              <div className="max-w-4xl mx-auto flex flex-col gap-2">
-                {/* Proactive Anti-Bypass Alert */}
+            <div className="p-4 md:p-6 bg-slate-50 dark:bg-[#121214]/80 backdrop-blur-xl border-t border-slate-200/60 dark:border-white/5 z-20">
+              <div className="max-w-4xl mx-auto flex flex-col gap-3">
+                
                 {isBlocked && (
-                  <div className="flex items-center gap-2 text-destructive text-[11px] font-bold bg-destructive/10 p-2 rounded-lg border border-destructive/20 animate-in fade-in slide-in-from-bottom-2">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    Contact details are not allowed. Please remove them to send your message.
+                  <div className="flex items-center gap-2 text-destructive text-[12px] font-bold bg-destructive/10 px-3 py-2 rounded-xl border border-destructive/20 animate-in slide-in-from-bottom-2">
+                    <AlertTriangle className="w-4 h-4 ml-1" />
+                    Security Policy: Please remove direct contact details to send your message.
                   </div>
                 )}
                 
-                <div className="flex items-center gap-4">
+                <div className="flex items-end gap-3">
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="icon" 
-                    className="rounded-full text-muted-foreground hover:text-primary transition-colors"
+                    className="h-12 w-12 rounded-full shrink-0 border-gray-200 bg-white hover:bg-gray-50 text-gray-500 shadow-sm transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Paperclip className="w-5 h-5 -rotate-45" />
+                    <Paperclip className="w-5 h-5" />
                   </Button>
                   
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative flex items-center">
                     <Input
-                      className="rounded-xl border-none bg-white dark:bg-[#2a3942] focus-visible:ring-0 h-11 px-4 shadow-sm text-sm"
-                      placeholder="Type a secure message..."
+                      className="rounded-full bg-white border-gray-200 px-6 h-12 shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 text-[15px] w-full transition-all"
+                      placeholder="Type your message securely..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -437,10 +554,10 @@ const Workspace = () => {
                   
                   <Button 
                     size="icon" 
-                    className={`rounded-full shadow-lg transition-all h-11 w-11 shrink-0 ${
+                    className={`h-12 w-12 rounded-full shrink-0 transition-colors p-3 ${
                       isBlocked || !newMessage.trim() 
-                        ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" 
-                        : "bg-primary hover:bg-primary/90 text-white"
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-200 shadow-sm" 
+                        : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                     }`}
                     onClick={handleSendMessage}
                     disabled={isBlocked || !newMessage.trim()}
@@ -448,16 +565,22 @@ const Workspace = () => {
                     <Send className="w-5 h-5 ml-0.5" />
                   </Button>
                 </div>
+                
+                <div className="text-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex justify-center items-center gap-1.5 opacity-70">
+                    <Shield className="w-3 h-3" /> Encrypted Transmission
+                  </span>
+                </div>
               </div>
             </div>
           )}
 
           {/* Admin Read-Only Notice */}
           {currentUser.role === 'admin' && (
-            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/20 border-t border-indigo-100 dark:border-indigo-900/30 text-center">
-              <p className="text-xs font-bold text-indigo-700 dark:text-indigo-400 flex items-center justify-center gap-2">
+            <div className="p-4 bg-slate-100/50 dark:bg-white/5 backdrop-blur-md border-t border-slate-200 dark:border-white/10 text-center">
+              <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
                 <Shield className="w-4 h-4" />
-                ADMIN OVERWATCH: READ-ONLY ACCESS
+                ADMIN OVERWATCH • READ-ONLY ACCESS
               </p>
             </div>
           )}
@@ -468,3 +591,4 @@ const Workspace = () => {
 };
 
 export default Workspace;
+

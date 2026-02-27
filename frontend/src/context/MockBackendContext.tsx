@@ -246,12 +246,23 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     updatedAt: new Date(r.updatedAt || r.createdAt),
   });
 
-  const formatMessage = (m: any): ChatMessage => ({
-    ...m,
-    id: m.id || m._id,
-    text: m.text || m.content || "",
-    timestamp: new Date(m.createdAt || m.timestamp),
-  });
+  const formatMessage = (m: any): ChatMessage => {
+    // Unify sender string ID for both socket payloads and API populated responses
+    let unifiedSenderId = m.senderId;
+    if (m.sender && typeof m.sender === 'object') {
+      unifiedSenderId = m.sender._id || m.sender.id;
+    } else if (m.senderId && typeof m.senderId === 'object') {
+      unifiedSenderId = m.senderId._id || m.senderId.id;
+    }
+
+    return {
+      ...m,
+      id: m.id || m._id,
+      senderId: unifiedSenderId,
+      text: m.text || m.content || "",
+      timestamp: new Date(m.createdAt || m.timestamp),
+    };
+  };
 
   const refreshData = useCallback(async () => {
     try {
