@@ -10,7 +10,6 @@ const Footer = ({ onLogoClick }: FooterProps) => {
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
-            {/* FIX: Removed 'gap-3' and wrapped parts in spans to stick them perfectly together */}
             <div
               className="flex items-center mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white"
               onClick={onLogoClick}
@@ -30,6 +29,14 @@ const Footer = ({ onLogoClick }: FooterProps) => {
             <ul className="space-y-4 text-sm text-slate-400">
               <li>
                 <a
+                  href="/about" // <--- Updated link
+                  className="hover:text-indigo-400 cursor-pointer transition-colors block"
+                >
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a
                   href="#"
                   className="hover:text-indigo-400 cursor-pointer transition-colors block"
                 >
@@ -38,18 +45,10 @@ const Footer = ({ onLogoClick }: FooterProps) => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/#services-section"
                   className="hover:text-indigo-400 cursor-pointer transition-colors block"
                 >
                   Browse Services
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-indigo-400 cursor-pointer transition-colors block"
-                >
-                  Register
                 </a>
               </li>
             </ul>

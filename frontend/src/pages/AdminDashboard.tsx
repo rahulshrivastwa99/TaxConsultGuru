@@ -1658,6 +1658,12 @@ const AdminDashboard = () => {
               </p>
               <div className="flex gap-6">
                 <a
+                  href="/about"
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  About Us
+                </a>
+                <a
                   href="/privacy"
                   className="hover:text-indigo-600 transition-colors"
                 >
