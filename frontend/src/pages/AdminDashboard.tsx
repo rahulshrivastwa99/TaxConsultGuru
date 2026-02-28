@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Shield,
   LogOut,
@@ -22,6 +22,7 @@ import {
   Wallet,
   Eye,
   Activity,
+  User as UserIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +52,10 @@ import {
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
 import { PremiumAlert } from "@/components/ui/PremiumAlert";
-import { PremiumConfirmDialog, ConfirmType } from "@/components/ui/PremiumConfirmDialog";
+import {
+  PremiumConfirmDialog,
+  ConfirmType,
+} from "@/components/ui/PremiumConfirmDialog";
 
 // --- MOVED OUTSIDE TO FIX THE "BLINKING" AND CLICK ISSUES ---
 const SidebarItem = ({
@@ -487,7 +491,15 @@ const AdminDashboard = () => {
         </ScrollArea>
 
         {/* Footer / Logout Section */}
-        <div className="p-4 border-t border-slate-100 bg-white flex flex-col gap-4">
+        <div className="p-4 border-t border-slate-100 bg-white flex flex-col gap-3">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-slate-700 hover:bg-slate-50 hover:text-indigo-600 h-11 font-semibold"
+            onClick={() => navigate("/profile")}
+          >
+            <UserIcon className="w-4 h-4 mr-3 text-slate-400" />
+            Admin Profile
+          </Button>
           <div
             className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity text-sm font-extrabold tracking-tight text-slate-900"
             onClick={() => navigate("/")}
@@ -1146,12 +1158,14 @@ const AdminDashboard = () => {
                                 triggerConfirm({
                                   type: "danger",
                                   title: "Reject Job Request?",
-                                  description: "Are you sure you want to reject this job? This action will permanently delete the request.",
+                                  description:
+                                    "Are you sure you want to reject this job? This action will permanently delete the request.",
                                   onConfirm: () => {
                                     rejectJob(job.id);
                                     setConfirmOpen(false);
                                     toast.error("Job Rejected", {
-                                      description: "The job request has been removed from the platform.",
+                                      description:
+                                        "The job request has been removed from the platform.",
                                     });
                                   },
                                 });
@@ -1296,7 +1310,8 @@ const AdminDashboard = () => {
                                           unlockWorkspace(req.id);
                                           setConfirmOpen(false);
                                           toast.success("Workspace Unlocked", {
-                                            description: "Client and Expert can now collaborate in the secure workspace.",
+                                            description:
+                                              "Client and Expert can now collaborate in the secure workspace.",
                                           });
                                         },
                                       });
@@ -1435,12 +1450,15 @@ const AdminDashboard = () => {
                                       triggerConfirm({
                                         type: "warning",
                                         title: "Confirm Payout?",
-                                        description: `Confirm manual payout of ₹${finalPayout.toLocaleString()} to ${req.caName}? This will archive the project.`,
+                                        description: `Confirm manual payout of ₹${finalPayout.toLocaleString()} to ${
+                                          req.caName
+                                        }? This will archive the project.`,
                                         onConfirm: () => {
                                           archiveProject(req.id);
                                           setConfirmOpen(false);
                                           toast.success("Payout Released", {
-                                            description: "The expert has been paid and the project is now archived.",
+                                            description:
+                                              "The expert has been paid and the project is now archived.",
                                           });
                                         },
                                       });
@@ -1699,30 +1717,30 @@ const AdminDashboard = () => {
                 reserved.
               </p>
               <div className="flex gap-6">
-                <a
-                  href="/about"
+                <Link
+                  to="/about"
                   className="hover:text-indigo-600 transition-colors"
                 >
                   About Us
-                </a>
-                <a
-                  href="/privacy"
+                </Link>
+                <Link
+                  to="/privacy"
                   className="hover:text-indigo-600 transition-colors"
                 >
                   Privacy Policy
-                </a>
-                <a
-                  href="/terms"
+                </Link>
+                <Link
+                  to="/terms"
                   className="hover:text-indigo-600 transition-colors"
                 >
                   Terms of Service
-                </a>
-                <a
-                  href="/contact"
+                </Link>
+                <Link
+                  to="/contact"
                   className="hover:text-indigo-600 transition-colors"
                 >
                   Support
-                </a>
+                </Link>
               </div>
             </div>
           </footer>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   FileText,
   Calculator,
@@ -18,6 +18,12 @@ import {
   Activity,
   Flame,
   Rocket,
+  PlusCircle,
+  TrendingUp,
+  ShieldCheck,
+  Users as UsersIcon,
+  Globe,
+  Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,16 +48,94 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMockBackend, SERVICES } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
-import { PremiumAlert } from "@/components/ui/PremiumAlert";
 
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+const iconMap: Record<string, React.ComponentType<any>> = {
   FileText,
   Calculator,
   ClipboardCheck,
   Building2,
   Receipt,
   BookOpen,
+  ShieldCheck,
+  Users: UsersIcon,
+  Globe,
+  Scale,
 };
+
+const NEW_COMPLIANCES = [
+  {
+    id: "roc-filing",
+    name: "Annual ROC Filing",
+    description:
+      "Filing of Financial Statements (Form AOC-4) and Annual Returns (MGT-7/7A) with MCA.",
+    defaultBudget: 4500,
+    icon: "Building2",
+  },
+  {
+    id: "tax-audit",
+    name: "Tax Audit (Sec 44AB)",
+    description:
+      "Mandatory income tax audits for businesses exceeding turnover thresholds.",
+    defaultBudget: 15000,
+    icon: "Calculator",
+  },
+  {
+    id: "epf-esi",
+    name: "EPF & ESI Compliance",
+    description:
+      "Monthly return filing for Employees’ Provident Fund (EPF) and State Insurance (ESI).",
+    defaultBudget: 3000,
+    icon: "Users",
+  },
+  {
+    id: "trademark-ipr",
+    name: "Trademark & IPR",
+    description:
+      "Registration and renewal of Trademarks, Copyrights, and Patents to protect intellectual property.",
+    defaultBudget: 7500,
+    icon: "ShieldCheck",
+  },
+  {
+    id: "contract-drafting",
+    name: "Contract Drafting",
+    description:
+      "Drafting MOUs, vendor agreements, employment contracts, and shareholder agreements.",
+    defaultBudget: 5000,
+    icon: "FileText",
+  },
+  {
+    id: "licensing",
+    name: "Regulatory Licensing",
+    description:
+      "Obtaining FSSAI, Shops & Establishment, Drug Licenses, or Import-Export Code (IEC).",
+    defaultBudget: 4000,
+    icon: "Receipt",
+  },
+  {
+    id: "payroll-pt",
+    name: "Payroll & Prof. Tax",
+    description:
+      "Managing salary structures, PT registration, and minimum wage compliance.",
+    defaultBudget: 3500,
+    icon: "ClipboardCheck",
+  },
+  {
+    id: "fdi-odi",
+    name: "FDI/ODI Returns",
+    description:
+      "Filing Foreign Liability and Assets (FLA) return with RBI for international transactions.",
+    defaultBudget: 12000,
+    icon: "Globe",
+  },
+  {
+    id: "msme-1",
+    name: "MSME-1 Filing",
+    description:
+      "Half-yearly return for outstanding payments to Micro or Small Enterprises.",
+    defaultBudget: 1500,
+    icon: "Scale",
+  },
+];
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
@@ -69,9 +153,9 @@ const ClientDashboard = () => {
   } = useMockBackend();
   const { socket } = useSocket();
 
-  const [selectedService, setSelectedService] = useState<
-    (typeof SERVICES)[0] | null
-  >(null);
+  const ALL_SERVICES = [...SERVICES, ...NEW_COMPLIANCES];
+
+  const [selectedService, setSelectedService] = useState<any | null>(null);
   const [description, setDescription] = useState("");
   const [expectedBudget, setExpectedBudget] = useState<number | "">("");
   const [isRequesting, setIsRequesting] = useState(false);
@@ -101,8 +185,8 @@ const ClientDashboard = () => {
     if (!socket || currentUser?.role !== "client") return;
 
     const handleNewBid = (data: any) => {
-      toast.success("New Bid Received!", {
-        description: "An expert has submitted a proposal for your project.",
+      toast.success("New Proposal Received!", {
+        description: "An expert has bid on your project.",
       });
       refreshData();
     };
@@ -135,26 +219,17 @@ const ClientDashboard = () => {
   if (!currentUser) return null;
 
   const myRequests = requests.filter((r) => r.clientId === currentUser.id);
-  
-  const searchingRequests = myRequests.filter((r) => r.status === "searching");
-  
-  const workspaceJobs = myRequests.filter(
-    (r) => r.isWorkspaceUnlocked === true && !r.isArchived,
-  );
-
   const activeRequests = myRequests.filter(
     (r) =>
-      !r.isWorkspaceUnlocked &&
-      !r.isArchived &&
-      r.status !== "searching" &&
-      (r.status === "active" ||
-        r.status === "pending_approval" ||
-        r.status === "awaiting_payment" ||
-        r.status === "live" ||
-        r.status === "completed" ||
-        r.status === "ready_for_payout"),
+      r.status === "active" ||
+      r.status === "pending_approval" ||
+      r.status === "awaiting_payment" ||
+      r.status === "live",
   );
-  
+  const searchingRequests = myRequests.filter((r) => r.status === "searching");
+  const workspaceJobs = myRequests.filter(
+    (r) => r.status === "active" && r.isWorkspaceUnlocked === true,
+  );
   const pastProjects = myRequests.filter((r) => r.isArchived === true);
 
   // Stats Calculations
@@ -181,7 +256,7 @@ const ClientDashboard = () => {
       selectedService.defaultBudget,
       Number(expectedBudget) || selectedService.defaultBudget,
     );
-    toast.success("Request submitted! Matching with expert...");
+    toast.success("Request submitted! Connecting to expert...");
     setSelectedService(null);
     setDescription("");
     setExpectedBudget("");
@@ -262,7 +337,11 @@ const ClientDashboard = () => {
             </Badge>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-3 mr-2 text-sm bg-slate-50 px-4 py-2 rounded-full border border-slate-200 shadow-sm transition-shadow hover:bg-white hover:shadow-md">
+            {/* CLICKABLE PROFILE BADGE */}
+            <div
+              onClick={() => navigate("/profile")}
+              className="hidden md:flex items-center gap-3 bg-white/50 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:bg-white cursor-pointer"
+            >
               <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
                 <User className="w-3.5 h-3.5 text-indigo-700" />
               </div>
@@ -320,7 +399,7 @@ const ClientDashboard = () => {
         </div>
 
         {/* --- 2. QUICK INSIGHTS ROW --- */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <Card className="bg-white border-slate-200 shadow-sm rounded-2xl hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shrink-0">
@@ -428,7 +507,7 @@ const ClientDashboard = () => {
                   {workspaceJobs.map((req) => (
                     <Card
                       key={req.id}
-                      className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-none shadow-xl shadow-emerald-900/20 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 flex flex-col min-h-[320px]"
+                      className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-none shadow-xl shadow-emerald-900/20 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300"
                     >
                       <div className="absolute -right-6 -top-6 opacity-[0.07] group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                         <Shield className="w-40 h-40 text-white" />
@@ -498,26 +577,20 @@ const ClientDashboard = () => {
                                 ? "bg-amber-50 text-amber-700 border-amber-200"
                                 : req.status === "awaiting_payment"
                                   ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : (req.status === "active" && !req.isWorkspaceUnlocked)
-                                    ? "bg-orange-50 text-orange-700 border-orange-200"
-                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
                             }`}
                           >
                             {req.status === "pending_approval"
                               ? "Processing"
                               : req.status === "awaiting_payment"
                                 ? "Payment Due"
-                                : (req.status === "active" && !req.isWorkspaceUnlocked)
-                                  ? "Awaiting Unlock"
-                                  : "Active"}
+                                : "Active"}
                           </Badge>
                         </div>
                         <CardDescription className="text-xs font-semibold text-slate-500">
                           {req.status === "awaiting_payment"
                             ? "Expert selected. Awaiting manual payment."
-                            : (req.status === "active" && !req.isWorkspaceUnlocked)
-                              ? "Payment received. Awaiting admin verification."
-                              : "Expert team assigned"}
+                            : "Expert team assigned"}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-6 pt-4 mt-auto flex flex-col bg-slate-50/30">
@@ -580,7 +653,7 @@ const ClientDashboard = () => {
 
             {/* Service Catalog */}
             <section id="services-grid">
-              <div className="flex items-center justify-between mb-8 border-t border-slate-200 pt-10">
+              <div className="flex items-center justify-between mb-8 pt-6 border-t border-slate-200">
                 <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                   Request New Service
                 </h2>
@@ -590,7 +663,7 @@ const ClientDashboard = () => {
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {SERVICES.map((service, index) => {
+                {ALL_SERVICES.map((service, index) => {
                   const IconComponent = iconMap[service.icon] || FileText;
                   // Add a "Popular" badge to the first two services to make it dynamic
                   const isPopular = index === 0 || index === 1;
@@ -737,30 +810,30 @@ const ClientDashboard = () => {
             © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm font-semibold text-slate-500">
-            <a
-              href="/about"
+            <Link
+              to="/about"
               className="hover:text-indigo-600 transition-colors"
             >
               About Us
-            </a>
-            <a
-              href="/privacy"
+            </Link>
+            <Link
+              to="/privacy"
               className="hover:text-indigo-600 transition-colors"
             >
               Privacy Policy
-            </a>
-            <a
-              href="/terms"
+            </Link>
+            <Link
+              to="/terms"
               className="hover:text-indigo-600 transition-colors"
             >
               Terms of Service
-            </a>
-            <a
-              href="/contact"
+            </Link>
+            <Link
+              to="/contact"
               className="hover:text-indigo-600 transition-colors"
             >
               Support
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
@@ -895,7 +968,7 @@ const ClientDashboard = () => {
                 {bids.map((bid) => (
                   <Card
                     key={bid.id}
-                    className="bg-white border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-lg transition-all duration-300 rounded-3xl overflow-hidden group"
+                    className="bg-white border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-lg transition-all duration-300 rounded-[2rem] overflow-hidden group"
                   >
                     <CardHeader className="p-6 border-b border-slate-50 bg-slate-50/50">
                       <div className="flex justify-between items-start">
@@ -999,12 +1072,16 @@ const ClientDashboard = () => {
           <ScrollArea className="flex-1 p-6 bg-slate-50/50">
             <div className="space-y-5">
               {messages.length === 0 ? (
-                <div className="py-10">
-                  <PremiumAlert
-                    type="info"
-                    title="Start a conversation"
-                    description="Our expert support team is here to help you coordinate safely. Feel free to ask any questions or share concerns."
-                  />
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-white border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
+                    <Headphones className="w-10 h-10 text-slate-300" />
+                  </div>
+                  <p className="text-slate-800 font-extrabold text-lg mb-1">
+                    Start a conversation.
+                  </p>
+                  <p className="text-sm font-medium text-slate-500">
+                    We're here to help coordinate with your expert safely.
+                  </p>
                 </div>
               ) : (
                 messages.map((msg) => (

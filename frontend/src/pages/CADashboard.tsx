@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Briefcase,
   LogOut,
@@ -156,7 +156,7 @@ const CADashboard = () => {
       r.isWorkspaceUnlocked === true &&
       !r.isArchived,
   );
-  
+
   const pastJobs = requests.filter(
     (r) => r.caId === currentUser.id && r.isArchived === true,
   );
@@ -260,7 +260,11 @@ const CADashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-3 mr-2 text-sm bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
+            {/* CLICKABLE PROFILE BADGE */}
+            <div
+              onClick={() => navigate("/profile")}
+              className="hidden md:flex items-center gap-3 bg-white/50 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:bg-white cursor-pointer"
+            >
               <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm">
                 <User className="w-3.5 h-3.5 text-indigo-600" />
               </div>
@@ -444,15 +448,15 @@ const CADashboard = () => {
               <h2 className="text-xl font-extrabold text-slate-900 mb-5">
                 My Pipeline ({myJobs.length})
               </h2>
-                {myJobs.length === 0 ? (
-                  <div className="py-20">
-                    <PremiumAlert
-                      type="info"
-                      title="No active jobs"
-                      description="Your project pipeline is currently quiet. Stay online to be notified of new opportunities."
-                    />
-                  </div>
-                ) : (
+              {myJobs.length === 0 ? (
+                <div className="py-20">
+                  <PremiumAlert
+                    type="info"
+                    title="No active jobs"
+                    description="Your project pipeline is currently quiet. Stay online to be notified of new opportunities."
+                  />
+                </div>
+              ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {myJobs.map((job) => (
                     <Card
@@ -687,30 +691,30 @@ const CADashboard = () => {
             © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm font-semibold text-slate-500">
-            <a
-              href="/about"
+            <Link
+              to="/about"
               className="hover:text-indigo-600 transition-colors"
             >
               About Us
-            </a>
-            <a
-              href="/privacy"
+            </Link>
+            <Link
+              to="/privacy"
               className="hover:text-indigo-600 transition-colors"
             >
               Privacy Policy
-            </a>
-            <a
-              href="/terms"
+            </Link>
+            <Link
+              to="/terms"
               className="hover:text-indigo-600 transition-colors"
             >
               Terms of Service
-            </a>
-            <a
-              href="/contact"
+            </Link>
+            <Link
+              to="/contact"
               className="hover:text-indigo-600 transition-colors"
             >
               Support
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
