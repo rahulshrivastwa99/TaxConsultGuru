@@ -421,7 +421,6 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
     const handleSetup = () => {
       socket.emit("setup", userId);
-      console.log(`📡 [MockBackendContext] Emitted setup for user: ${userId}`);
     };
 
     // Emit immediately if connected

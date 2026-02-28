@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useMockBackend } from "@/context/MockBackendContext";
 import { toast } from "sonner";
@@ -169,12 +170,41 @@ const Profile = () => {
                     <Shield className="w-3.5 h-3.5" /> Account Role
                   </label>
                   <div className="h-12 flex items-center">
-                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none font-black text-xs uppercase tracking-widest px-3 py-1">
-                      {currentUser.role}
+                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-none font-black text-xs uppercase tracking-widest px-3 py-1 rounded-lg">
+                      {currentUser.role.toUpperCase()}
                     </Badge>
                   </div>
                 </div>
               </div>
+
+              {currentUser.role === "ca" && (
+                <div className="space-y-6 pt-4 border-t border-slate-100 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+                      Professional Experience (Years)
+                    </label>
+                    <Input
+                      type="number"
+                      value={currentUser.experience || 0}
+                      className="h-12 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-xl font-medium"
+                      disabled
+                    />
+                    <p className="text-[10px] text-slate-400 font-semibold">
+                      To update verified experience, please contact admin support.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+                      Certification & Credentials
+                    </label>
+                    <Textarea
+                      value={currentUser.certificationDetails || "Verified ICAI Member"}
+                      className="bg-slate-50 border-slate-200 rounded-2xl font-medium resize-none min-h-[100px]"
+                      disabled
+                    />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

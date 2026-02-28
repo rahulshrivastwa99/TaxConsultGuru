@@ -13,6 +13,8 @@ import {
   Shield,
   Loader2,
   BookOpen,
+  TrendingUp,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -236,273 +238,357 @@ const CADashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col overflow-x-hidden">
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 h-16 md:h-20 flex items-center shadow-sm">
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50 h-20 md:h-24 flex items-center shadow-sm">
+        <div className="container mx-auto px-4 md:px-8 flex items-center justify-between gap-4">
           <div
-            className="flex items-center gap-2 md:gap-3 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            <div className="hidden md:flex w-10 h-10 rounded-xl bg-indigo-600 items-center justify-center shadow-md shadow-indigo-200">
-              <Briefcase className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-xl shadow-indigo-600/20 group-hover:rotate-3 transition-transform">
+              <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="font-extrabold text-xl md:text-2xl tracking-tight text-slate-900 leading-none">
+            <div className="min-w-0">
+              <h1 className="font-black text-xl md:text-2xl tracking-tight text-slate-900 leading-none">
                 {"Tax"}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
-                  Consult
-                </span>
+                <span className="text-indigo-600">Consult</span>
                 {"Guru"}
               </h1>
-              <p className="text-[9px] md:text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-1 hidden sm:block">
-                Expert Portal
-              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Badge className="bg-indigo-50 text-indigo-700 border-none font-black text-[9px] tracking-widest uppercase px-1.5 py-0">
+                  EXPERT
+                </Badge>
+                <div className="w-1 h-1 rounded-full bg-slate-300" />
+                <span className="text-[10px] font-bold text-slate-400 tracking-tighter uppercase whitespace-nowrap">
+                  Premium Dashboard
+                </span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
+
+          <div className="flex items-center gap-3 md:gap-6">
+            {/* Compact Listening Toggle */}
             <div
-              onClick={() => navigate("/profile")}
-              className="flex items-center gap-2 bg-slate-100 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors"
+              className={`hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                isListening
+                  ? "bg-emerald-50 border-emerald-100 shadow-inner"
+                  : "bg-slate-50 border-slate-200"
+              }`}
+              onClick={() => setIsListening(!isListening)}
             >
-              <User className="w-3.5 h-3.5 text-indigo-600" />
-              <span className="font-semibold text-xs md:text-sm text-slate-700">
-                {currentUser.name.split(" ")[0]}
+              <div className="relative">
+                <Radio
+                  className={`w-4 h-4 ${isListening ? "text-emerald-500" : "text-slate-400"}`}
+                />
+                {isListening && (
+                  <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/50" />
+                )}
+              </div>
+              <span
+                className={`text-xs font-black uppercase tracking-widest ${
+                  isListening ? "text-emerald-700" : "text-slate-500"
+                }`}
+              >
+                {isListening ? "Listening" : "Offline"}
               </span>
+              <div
+                className={`w-8 h-4 rounded-full relative transition-colors ${
+                  isListening ? "bg-emerald-500" : "bg-slate-300"
+                }`}
+              >
+                <div
+                  className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${
+                    isListening ? "left-4.5" : "left-0.5"
+                  }`}
+                  style={{ left: isListening ? "18px" : "2px" }}
+                />
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="text-slate-600 border-slate-300 hover:bg-slate-100 hover:text-slate-900 h-9 md:h-10 rounded-lg font-medium px-3 md:px-4"
-            >
-              <LogOut className="w-4 h-4 md:mr-2" />
-              <span className="hidden md:inline">Logout</span>
-            </Button>
+
+            <div className="h-10 w-px bg-slate-200 hidden md:block" />
+
+            <div className="flex items-center gap-3">
+              <div
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-3 bg-slate-50 px-3 md:px-5 py-2 md:py-2.5 rounded-2xl border border-slate-200 cursor-pointer hover:bg-white hover:border-indigo-300 hover:shadow-lg transition-all"
+              >
+                <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-indigo-100 flex items-center justify-center border-2 border-white shadow-sm">
+                  <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-700" />
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                    Verified Pro
+                  </p>
+                  <p className="font-bold text-sm text-slate-900 leading-none">
+                    {currentUser.name.split(" ")[0]}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl md:w-11 md:h-11 border border-transparent hover:border-red-100 transition-all"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 md:px-6 py-6 md:py-8 max-w-6xl pb-24">
+      <main className="flex-1 container mx-auto px-4 md:px-8 py-8 md:py-12 max-w-7xl pb-32">
+        {/* Statistics Bar - Premium Style */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
+          <Card className="bg-white border-none shadow-xl shadow-slate-200/50 rounded-[2rem] overflow-hidden p-6 hover:shadow-2xl transition-all border-b-4 border-b-indigo-500">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+              Pipeline Jobs
+            </p>
+            <div className="flex items-end justify-between">
+              <h3 className="text-3xl font-black text-slate-900 leading-none">{myJobs.length}</h3>
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <Clock className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
+          <Card className="bg-white border-none shadow-xl shadow-slate-200/50 rounded-[2rem] overflow-hidden p-6 hover:shadow-2xl transition-all border-b-4 border-b-emerald-500">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+              Live Workspaces
+            </p>
+            <div className="flex items-end justify-between">
+              <h3 className="text-3xl font-black text-slate-900 leading-none">{workspaceJobs.length}</h3>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <Shield className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
+          <Card className="bg-white border-none shadow-xl shadow-slate-200/50 rounded-[2rem] overflow-hidden p-6 hover:shadow-2xl transition-all border-b-4 border-b-amber-500">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+              Total Earnings
+            </p>
+            <div className="flex items-end justify-between">
+              <h3 className="text-3xl font-black text-slate-900 leading-none">
+                ₹{pastJobs.reduce((acc, job) => acc + (job.budget || 0) * 0.9, 0).toLocaleString()}
+              </h3>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
+          <Card className="bg-slate-900 border-none shadow-xl shadow-slate-950/20 rounded-[2rem] overflow-hidden p-6 relative group">
+            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+              <Radio className="w-24 h-24 text-white" />
+            </div>
+            <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-3">
+              Network Status
+            </p>
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${isListening ? "bg-emerald-400 animate-pulse" : "bg-slate-600"}`} />
+              <h3 className="text-xl font-black text-white leading-none">
+                {isListening ? "ACTIVE MONITORING" : "OFFLINE"}
+              </h3>
+            </div>
+          </Card>
+        </div>
+
         <Tabs defaultValue="jobs" className="w-full">
-          <TabsList className="mb-6 md:mb-8 bg-slate-200/60 p-1.5 rounded-xl grid grid-cols-2 sm:inline-flex h-auto sm:h-14 border border-slate-200 w-full sm:w-auto">
+          <TabsList className="mb-8 md:mb-12 bg-white/50 backdrop-blur-sm p-2 rounded-[2rem] border border-slate-200/80 inline-flex md:h-16 shadow-lg shadow-slate-200/30">
             <TabsTrigger
               value="jobs"
-              className="px-4 sm:px-6 py-2.5 sm:py-0 h-full rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 font-bold text-sm sm:text-base text-slate-600"
+              className="px-8 md:px-10 h-full rounded-[1.5rem] data-[state=active]:bg-slate-900 data-[state=active]:text-white font-black text-sm uppercase tracking-widest transition-all"
             >
-              <Briefcase className="w-4 h-4 mr-2 hidden sm:inline-block" />
-              My Work
+              My Projects
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="px-4 sm:px-6 py-2.5 sm:py-0 h-full rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 font-bold text-sm sm:text-base text-slate-600"
+              className="px-8 md:px-10 h-full rounded-[1.5rem] data-[state=active]:bg-slate-900 data-[state=active]:text-white font-black text-sm uppercase tracking-widest transition-all"
             >
-              <BookOpen className="w-4 h-4 mr-2 hidden sm:inline-block" />
-              Job History
+              Archives
             </TabsTrigger>
           </TabsList>
 
           <TabsContent
             value="jobs"
-            className="space-y-8 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out"
           >
-            {/* Unverified Warning */}
+            {/* Unverified Warning - Premium Remake */}
             {!currentUser.isVerified && (
-              <Card className="border border-amber-200 bg-amber-50 shadow-sm rounded-2xl mx-1 md:mx-0">
-                <CardContent className="py-4 md:py-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0 border border-amber-200 hidden sm:flex">
-                    <Shield className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
+              <div className="relative group overflow-hidden rounded-[2.5rem] bg-amber-50 border border-amber-200/50 p-8 md:p-10 shadow-xl shadow-amber-200/20">
+                <div className="absolute -right-10 -top-10 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
+                  <Shield className="w-48 h-48 text-amber-900" />
+                </div>
+                <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                  <div className="w-20 h-20 rounded-[2rem] bg-white text-amber-600 flex items-center justify-center shadow-lg border border-amber-100">
+                    <ShieldCheck className="w-10 h-10" strokeWidth={2.5} />
                   </div>
-                  <div className="flex-1 text-center sm:text-left">
-                    <p className="text-sm md:text-base font-bold text-amber-900">
-                      Your account is pending verification
-                    </p>
-                    <p className="text-xs md:text-sm text-amber-700 font-medium mt-0.5">
-                      You can view available jobs below, but you will not be
-                      able to place bids until the Admin approves your account.
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-2xl font-black text-amber-900 tracking-tight mb-2">
+                      Verification in Process
+                    </h3>
+                    <p className="text-amber-800/80 font-bold max-w-2xl text-lg leading-relaxed">
+                      Our compliance team is currently reviewing your credentials. Bidding will be
+                      enabled automatically once verified.
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            {/* Listening Toggle */}
-            <Card
-              className={`rounded-2xl transition-all duration-300 shadow-sm border mx-1 md:mx-0 ${
-                isListening
-                  ? "border-emerald-200 bg-emerald-50/30"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <CardContent className="py-5 md:py-6 px-5 md:px-8">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
-                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 text-center sm:text-left">
-                    <div className="relative">
-                      <div
-                        className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-colors ${
-                          isListening
-                            ? "bg-emerald-500 shadow-lg shadow-emerald-200"
-                            : "bg-slate-100 border border-slate-200"
-                        }`}
-                      >
-                        {isListening ? (
-                          <Radio className="w-6 h-6 md:w-7 md:h-7 text-white" />
-                        ) : (
-                          <WifiOff className="w-6 h-6 md:w-7 md:h-7 text-slate-400" />
-                        )}
-                      </div>
-                      {isListening && (
-                        <div className="absolute inset-0 rounded-full border-[3px] border-emerald-500 animate-ping opacity-75" />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-extrabold text-slate-900">
-                        {isListening
-                          ? "Listening for Jobs"
-                          : "Currently Offline"}
-                      </h3>
-                      <p className="text-xs md:text-sm font-medium text-slate-500 mt-1">
-                        {isListening
-                          ? "You are receiving new job opportunities in real-time."
-                          : "Toggle to start receiving new job requests."}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant={isListening ? "outline" : "default"}
-                    size="lg"
-                    className={`w-full sm:w-auto h-11 md:h-12 px-6 md:px-8 font-bold rounded-xl shadow-sm transition-all ${
-                      isListening
-                        ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                        : "bg-slate-900 text-white hover:bg-slate-800 hover:shadow-md"
-                    }`}
-                    onClick={() => setIsListening(!isListening)}
-                  >
-                    {isListening ? "Go Offline" : "Go Online"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Active Workspaces (Unlocked) */}
+            {/* Active Workspaces - High Premium Remake */}
             {workspaceJobs.length > 0 && (
-              <section className="mx-1 md:mx-0">
-                <h2 className="text-lg md:text-xl font-extrabold text-slate-900 mb-4 md:mb-5 flex items-center gap-2">
-                  <Shield className="w-5 h-5 md:w-6 md:h-6 text-indigo-600" />
-                  Unlocked Client Workspaces
-                </h2>
-                <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <section>
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-1.5 h-10 bg-indigo-600 rounded-full" />
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                      Active High-Priority Workspaces
+                    </h2>
+                  </div>
+                  <Badge className="bg-indigo-600 text-white border-none font-black px-4 py-1.5 rounded-full shadow-lg shadow-indigo-600/20">
+                    {workspaceJobs.length} LIVE
+                  </Badge>
+                </div>
+
+                <div className="grid gap-6 md:gap-10 grid-cols-1 lg:grid-cols-2">
                   {workspaceJobs.map((job) => (
                     <Card
                       key={job.id}
-                      className="bg-indigo-600 border-indigo-700 shadow-xl shadow-indigo-200/50 rounded-2xl relative overflow-hidden group"
+                      className="bg-[#0f172a] border border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[3rem] p-8 md:p-12 relative overflow-hidden group hover:shadow-indigo-500/10 transition-all duration-500 border-t-8 border-t-indigo-500"
                     >
-                      <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
-                        <Shield className="w-32 h-32 text-white" />
+                      <div className="absolute right-0 top-0 p-12 opacity-5 pointer-events-none group-hover:scale-125 transition-transform duration-1000">
+                        <Shield className="w-64 h-64 text-white" />
                       </div>
-                      <CardHeader className="p-5 md:p-6 pb-3 relative z-10">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
-                          <CardTitle className="text-base md:text-lg font-bold text-white leading-tight">
-                            {job.serviceName}
-                          </CardTitle>
-                          <Badge className="bg-white/20 text-white border-none font-bold text-[9px] md:text-[10px] tracking-wider uppercase shrink-0 w-fit">
-                            UNLOCKED
+                      <div className="relative z-10 flex flex-col h-full">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+                          <div className="max-w-md">
+                            <p className="text-indigo-400 font-black text-[10px] uppercase tracking-widest mb-2">
+                              Secure Environment
+                            </p>
+                            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
+                              {job.serviceName}
+                            </h3>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                                <User className="w-3.5 h-3.5 text-slate-400" />
+                              </div>
+                              <span className="text-slate-400 font-bold text-sm">
+                                Client: <span className="text-white">{job.clientName}</span>
+                              </span>
+                            </div>
+                          </div>
+                          <Badge className="bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 font-black text-[10px] px-4 py-1.5 rounded-full tracking-tighter">
+                            WORK IN PROGRESS
                           </Badge>
                         </div>
-                        <CardDescription className="text-indigo-200 font-medium text-xs md:text-sm">
-                          Client:{" "}
-                          <span className="text-white font-semibold">
-                            {job.clientName}
-                          </span>
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-5 md:p-6 pt-0 relative z-10 flex flex-col h-full">
-                        <p className="text-[11px] md:text-xs text-indigo-100/90 mb-4 md:mb-5 font-medium leading-relaxed">
-                          The client has completed payment. You can now
-                          communicate directly and share files.
-                        </p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-10">
+                          <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
+                            <p className="text-[9px] font-black text-slate-500 uppercase mb-1">
+                              Project Value
+                            </p>
+                            <p className="text-2xl font-black text-white">
+                              ₹{job.budget.toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
+                            <p className="text-[9px] font-black text-slate-500 uppercase mb-1">
+                              Started On
+                            </p>
+                            <p className="text-lg font-black text-white">
+                              {new Date(job.updatedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+
                         <Button
-                          className="w-full bg-white hover:bg-slate-50 text-indigo-700 font-bold h-10 md:h-11 rounded-xl shadow-sm group-hover:shadow-md transition-all mt-auto"
+                          className="w-full bg-white hover:bg-slate-100 text-slate-900 font-black h-16 md:h-20 rounded-[2rem] text-lg shadow-2xl transition-all hover:-translate-y-1 active:scale-95"
                           onClick={() => {
-                            toast.success(
-                              "Entering Secure Client Workspace...",
-                            );
+                            toast.success("Entering Military-Grade Secure Workspace...");
                             navigate(`/workspace/${job.id}`);
                           }}
                         >
-                          <Shield className="w-4 h-4 mr-2" />
-                          Enter Secure Workspace
+                          <Shield className="w-6 h-6 mr-3" strokeWidth={3} />
+                          Resume Advanced Workspace
                         </Button>
-                      </CardContent>
+                      </div>
                     </Card>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* My Jobs (Pending / Active but locked) */}
-            <section className="mx-1 md:mx-0">
-              <h2 className="text-lg md:text-xl font-extrabold text-slate-900 mb-4 md:mb-5">
-                My Pipeline ({myJobs.length})
-              </h2>
+            {/* My Jobs (Pipeline) - Premium Card Remake */}
+            <section>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-1.5 h-10 bg-slate-900 rounded-full" />
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                    Project Pipeline
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                    Awaiting Action
+                  </span>
+                </div>
+              </div>
+
               {myJobs.length === 0 ? (
-                <div className="py-12 md:py-20">
-                  <PremiumAlert
-                    type="info"
-                    title="No active jobs"
-                    description="Your project pipeline is currently quiet. Stay online to be notified of new opportunities."
-                  />
+                <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-[3rem] py-24 text-center">
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <Briefcase className="w-8 h-8 text-slate-200" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-900 mb-2">No projects in pipeline</h3>
+                  <p className="text-slate-500 font-bold max-w-sm mx-auto">
+                    Your current pipeline is quiet. Check the marketplace below for new
+                    opportunities.
+                  </p>
                 </div>
               ) : (
-                <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                   {myJobs.map((job) => (
                     <Card
                       key={job.id}
-                      className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow rounded-2xl flex flex-col"
+                      className="group bg-white border border-slate-200 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col"
                     >
-                      <CardHeader className="p-5 md:p-6 pb-4 border-b border-slate-100">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
-                          <CardTitle className="text-sm md:text-base font-bold text-slate-900 leading-tight pr-2">
+                      <div className="h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <CardHeader className="p-8 pb-5">
+                        <div className="flex justify-between items-start gap-4 mb-4">
+                          <h3 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">
                             {job.serviceName}
-                          </CardTitle>
+                          </h3>
                           <Badge
-                            variant="secondary"
-                            className={`text-[9px] md:text-[10px] px-2 py-0.5 uppercase tracking-wider font-bold shrink-0 w-fit ${
+                            className={`text-[9px] font-black tracking-widest uppercase px-3 py-1 rounded-full border shadow-sm ${
                               job.status === "pending_approval"
-                                ? "bg-amber-100 text-amber-700"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
                                 : job.status === "awaiting_payment"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-emerald-100 text-emerald-700"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : "bg-indigo-50 text-indigo-700 border-indigo-200"
                             }`}
                           >
-                            {job.status === "pending_approval"
-                              ? "Admin Review"
-                              : job.status === "awaiting_payment"
-                                ? "Awaiting Payment"
-                                : "Active"}
+                            {job.status === "pending_approval" ? "Review" : "Escrow"}
                           </Badge>
                         </div>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center">
-                          <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Agreed Budget
-                          </span>
-                          <span className="font-extrabold text-emerald-600 text-base md:text-lg">
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 flex justify-between items-center group-hover:bg-indigo-50 transition-colors">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Agreed Fee
+                          </p>
+                          <p className="text-2xl font-black text-indigo-600">
                             ₹{job.budget.toLocaleString()}
-                          </span>
+                          </p>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-5 md:p-6 pt-4 mt-auto flex flex-col">
-                        <p className="text-xs md:text-sm text-slate-600 mb-4 md:mb-5 line-clamp-3 leading-relaxed">
-                          {job.description}
+                      <CardContent className="px-8 pb-8 flex-1 flex flex-col">
+                        <p className="text-slate-500 font-medium text-sm leading-relaxed mb-8 italic line-clamp-3">
+                          "{job.description}"
                         </p>
                         <Button
-                          className="w-full h-10 md:h-11 font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm mt-auto"
+                          className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 disabled:opacity-50"
                           onClick={() => openChat(job.id)}
-                          disabled={
-                            job.status === "pending_approval" ||
-                            !currentUser.isVerified
-                          }
+                          disabled={job.status === "pending_approval" || !currentUser.isVerified}
                         >
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Chat with Admin
+                          <MessageCircle className="w-5 h-5 mr-3" />
+                          Coordinate with Administration
                         </Button>
                       </CardContent>
                     </Card>
@@ -511,60 +597,78 @@ const CADashboard = () => {
               )}
             </section>
 
-            {/* Find New Jobs Section */}
-            <section className="mx-1 md:mx-0">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 md:mb-5">
-                <h2 className="text-lg md:text-xl font-extrabold text-slate-900">
-                  Find New Jobs
-                </h2>
-                <Badge className="bg-indigo-100 text-indigo-700 border-none font-bold px-2 py-0.5 w-fit">
-                  {availableJobs.length} Live Opportunities
-                </Badge>
+            {/* Find New Jobs (Marketplace) - Modern Grid */}
+            <section id="marketplace">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-10 pt-16 border-t border-slate-200 px-4">
+                <div>
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tighter">
+                    Global Marketplace
+                  </h2>
+                  <p className="text-slate-500 font-bold mt-1 text-lg">
+                    Premium opportunities for top-tier experts.
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-lg border border-slate-100">
+                  <Badge className="bg-indigo-600 text-white border-none font-black text-sm px-5 py-2 rounded-xl">
+                    {availableJobs.length} Live Postings
+                  </Badge>
+                </div>
               </div>
 
               {availableJobs.length === 0 ? (
-                <Card className="border-dashed border-2 border-slate-200 bg-white rounded-2xl shadow-sm">
-                  <CardContent className="py-12 md:py-16 text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3 md:mb-4 border border-slate-100">
-                      <Briefcase className="w-6 h-6 md:w-8 md:h-8 text-slate-400" />
-                    </div>
-                    <p className="text-slate-600 font-bold text-base md:text-lg">
-                      No new requests available right now.
-                    </p>
-                    <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
-                      Keep your status "Online" to be notified immediately.
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="bg-white border border-slate-200 shadow-2xl rounded-[3rem] p-16 md:p-24 text-center">
+                  <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                    <div className="absolute inset-0 border-4 border-dashed border-slate-200 rounded-full animate-[spin_20s_linear_infinite]" />
+                    <Radio className="w-10 h-10 text-slate-300" />
+                  </div>
+                  <h3 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">
+                    Marketplace Scanning...
+                  </h3>
+                  <p className="text-slate-500 font-extrabold text-xl mb-10 max-w-sm mx-auto leading-relaxed">
+                    No new requests satisfy your criteria at this moment. Stay tuned.
+                  </p>
+                  <Button
+                    onClick={() => setIsListening(true)}
+                    disabled={isListening}
+                    className="h-16 px-12 rounded-3xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-2xl shadow-indigo-600/30 transition-all hover:-translate-y-1"
+                  >
+                    {isListening ? "Smart Monitoring Live" : "Enable Live Monitoring"}
+                  </Button>
+                </div>
               ) : (
-                <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {availableJobs.map((job) => (
                     <Card
                       key={job.id}
-                      className="bg-white border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all rounded-2xl flex flex-col"
+                      className="bg-white border border-slate-100 shadow-xl shadow-slate-200/20 hover:shadow-2xl hover:border-indigo-400/50 transition-all duration-300 rounded-[2rem] flex flex-col group p-1"
                     >
-                      <CardHeader className="p-5 md:p-6 pb-3 md:pb-4 border-b border-slate-50">
-                        <div className="flex justify-between items-start mb-2 md:mb-3">
-                          <CardTitle className="text-sm md:text-base font-bold text-slate-900 leading-tight">
+                      <div className="p-6 pb-2">
+                        <div className="flex justify-between items-start gap-4 mb-4">
+                          <h3 className="text-lg font-black text-slate-900 leading-tight pr-4 group-hover:text-indigo-600 transition-colors line-clamp-2">
                             {job.serviceName}
-                          </CardTitle>
-                          <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 shrink-0 ml-2">
-                            ₹{(job.budget || 0).toLocaleString()}
-                          </span>
+                          </h3>
                         </div>
-                        <CardDescription className="text-xs md:text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                        <div className="flex items-center gap-2 mb-6">
+                          <div className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl border border-emerald-100 text-lg font-black">
+                            ₹{(job.budget || 0).toLocaleString()}
+                          </div>
+                          <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[8px] uppercase tracking-widest py-1.5">
+                            Standard
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-bold text-slate-500 leading-relaxed mb-6 line-clamp-3">
                           {job.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-5 md:p-6 pt-4 mt-auto">
+                        </p>
+                      </div>
+                      <div className="mt-auto p-2">
                         <Button
-                          className="w-full text-xs md:text-sm h-10 md:h-11 font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors rounded-xl shadow-sm"
+                          className="w-full h-14 font-black transition-all rounded-[1.5rem] bg-indigo-50 text-indigo-700 hover:bg-slate-900 hover:text-white border border-indigo-100 hover:border-slate-900 text-sm shadow-sm hover:shadow-lg active:scale-95"
                           onClick={() => handleOpenBidDialog(job)}
                           disabled={!currentUser.isVerified}
                         >
-                          Review & Place Bid
+                          Submit Expert Proposal
                         </Button>
-                      </CardContent>
+                      </div>
                     </Card>
                   ))}
                 </div>

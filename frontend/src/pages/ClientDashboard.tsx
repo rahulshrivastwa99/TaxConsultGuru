@@ -153,7 +153,11 @@ const ClientDashboard = () => {
   } = useMockBackend();
   const { socket } = useSocket();
 
-  const ALL_SERVICES = [...SERVICES, ...NEW_COMPLIANCES];
+  // Deduplicate services, prioritizing NEW_COMPLIANCES for descriptions
+  const ALL_SERVICES = [
+    ...NEW_COMPLIANCES,
+    ...SERVICES.filter((s) => !NEW_COMPLIANCES.find((nc) => nc.id === s.id)),
+  ];
 
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [description, setDescription] = useState("");
@@ -221,7 +225,7 @@ const ClientDashboard = () => {
   const myRequests = requests.filter((r) => r.clientId === currentUser.id);
   const activeRequests = myRequests.filter(
     (r) =>
-      r.status === "active" ||
+      (r.status === "active" && r.isWorkspaceUnlocked !== true) ||
       r.status === "pending_approval" ||
       r.status === "awaiting_payment" ||
       r.status === "live",
@@ -254,7 +258,7 @@ const ClientDashboard = () => {
       selectedService.name,
       description,
       selectedService.defaultBudget,
-      Number(expectedBudget) || selectedService.defaultBudget,
+      expectedBudget === "" ? selectedService.defaultBudget : Number(expectedBudget),
     );
     toast.success("Request submitted! Connecting to expert...");
     setSelectedService(null);

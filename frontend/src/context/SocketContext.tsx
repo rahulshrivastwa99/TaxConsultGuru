@@ -32,11 +32,11 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
 
     const onConnect = () => {
-      console.log("🟢 Socket Connected:", socket.id);
+      // socket.id available here
     };
 
     const onDisconnect = (reason: string) => {
-      console.log("🔴 Socket Disconnected:", reason);
+      // reason available here
     };
 
     socket.on("connect", onConnect);

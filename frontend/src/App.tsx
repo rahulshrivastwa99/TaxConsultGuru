@@ -24,7 +24,7 @@ const App = () => (
       <MockBackendProvider>
         <TooltipProvider>
           <Sonner position="top-right" expand={false} richColors />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/client/dashboard" element={<ClientDashboard />} />
