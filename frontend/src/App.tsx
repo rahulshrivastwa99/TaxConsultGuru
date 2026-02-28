@@ -14,6 +14,7 @@ import Workspace from "./pages/Workspace";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactSupport from "./pages/ContactSupport";
+import Profile from "./pages/Profile";
 import AboutUs from "./pages/AboutUs";
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/ca/dashboard" element={<CADashboard />} />
               <Route path="/workspace/:id" element={<Workspace />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/contact" element={<ContactSupport />} />
               <Route path="/about" element={<AboutUs />} />

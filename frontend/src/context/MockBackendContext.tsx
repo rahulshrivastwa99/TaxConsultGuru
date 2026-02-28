@@ -42,7 +42,16 @@ export interface ServiceRequest {
   description: string;
   budget: number;
   expectedBudget?: number;
-  status: "searching" | "pending_approval" | "live" | "active" | "completed" | "cancelled" | "awaiting_payment" | "ready_for_payout" | "payout_completed";
+  status:
+    | "searching"
+    | "pending_approval"
+    | "live"
+    | "active"
+    | "completed"
+    | "cancelled"
+    | "awaiting_payment"
+    | "ready_for_payout"
+    | "payout_completed";
   createdAt: Date;
   updatedAt: Date;
   hiredCA?: string;
@@ -91,6 +100,7 @@ export interface Service {
 }
 
 export const SERVICES: Service[] = [
+  // Original Services
   {
     id: "gst-filing",
     name: "GST Filing",
@@ -133,8 +143,79 @@ export const SERVICES: Service[] = [
     icon: "BookOpen",
     defaultBudget: 5000,
   },
+  // New Compliance Services
+  {
+    id: "roc-filing",
+    name: "Annual ROC Filing",
+    description:
+      "Filing of Financial Statements (Form AOC-4) and Annual Returns (MGT-7/7A) with MCA.",
+    defaultBudget: 4500,
+    icon: "Building2",
+  },
+  {
+    id: "tax-audit",
+    name: "Tax Audit (Sec 44AB)",
+    description:
+      "Mandatory income tax audits for businesses exceeding turnover thresholds.",
+    defaultBudget: 15000,
+    icon: "Calculator",
+  },
+  {
+    id: "epf-esi",
+    name: "EPF & ESI Compliance",
+    description:
+      "Monthly return filing for Employees’ Provident Fund (EPF) and State Insurance (ESI).",
+    defaultBudget: 3000,
+    icon: "Users",
+  },
+  {
+    id: "trademark-ipr",
+    name: "Trademark & IPR",
+    description:
+      "Registration and renewal of Trademarks, Copyrights, and Patents.",
+    defaultBudget: 7500,
+    icon: "ShieldCheck",
+  },
+  {
+    id: "contract-drafting",
+    name: "Contract Drafting",
+    description:
+      "Drafting MOUs, vendor agreements, employment contracts, and shareholder agreements.",
+    defaultBudget: 5000,
+    icon: "FileText",
+  },
+  {
+    id: "licensing",
+    name: "Regulatory Licensing",
+    description:
+      "Obtaining FSSAI, Shops & Establishment, Drug Licenses, or IEC.",
+    defaultBudget: 4000,
+    icon: "Receipt",
+  },
+  {
+    id: "payroll-pt",
+    name: "Payroll & Prof. Tax",
+    description:
+      "Managing salary structures, PT registration, and minimum wage compliance.",
+    defaultBudget: 3500,
+    icon: "ClipboardCheck",
+  },
+  {
+    id: "fdi-odi",
+    name: "FDI/ODI Returns",
+    description: "Filing Foreign Liability and Assets (FLA) return with RBI.",
+    defaultBudget: 12000,
+    icon: "Globe",
+  },
+  {
+    id: "msme-1",
+    name: "MSME-1 Filing",
+    description:
+      "Half-yearly return for outstanding payments to Micro or Small Enterprises.",
+    defaultBudget: 1500,
+    icon: "Scale",
+  },
 ];
-// (Services Constant same rahega, no change needed here)
 
 // --- CONTEXT INTERFACE ---
 interface BackendContextType {
@@ -143,7 +224,11 @@ interface BackendContextType {
   requests: ServiceRequest[];
   users: User[];
   logs: ActivityLog[];
-  login: (email: string, password: string, role: UserRole) => Promise<User | null>;
+  login: (
+    email: string,
+    password: string,
+    role: UserRole,
+  ) => Promise<User | null>;
   logout: () => void;
   registerUser: (
     name: string,
@@ -214,9 +299,14 @@ interface BackendContextType {
     fileName?: string | null,
   ) => Promise<void>;
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
-  forwardToCA: (requestId: string, messageId: string) => Promise<void>; 
+  forwardToCA: (requestId: string, messageId: string) => Promise<void>;
   addAdmin: (name: string, email: string, password: string) => void;
   refreshData: () => Promise<void>;
+  updateProfile: (
+    name: string,
+    currentPassword?: string,
+    newPassword?: string,
+  ) => Promise<void>;
 }
 
 const MockBackendContext = createContext<BackendContextType | undefined>(
@@ -249,9 +339,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   const formatMessage = (m: any): ChatMessage => {
     // Unify sender string ID for both socket payloads and API populated responses
     let unifiedSenderId = m.senderId;
-    if (m.sender && typeof m.sender === 'object') {
+    if (m.sender && typeof m.sender === "object") {
       unifiedSenderId = m.sender._id || m.sender.id;
-    } else if (m.senderId && typeof m.senderId === 'object') {
+    } else if (m.senderId && typeof m.senderId === "object") {
       unifiedSenderId = m.senderId._id || m.senderId.id;
     }
 
@@ -375,7 +465,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
     socket.on("account_verified", (data: any) => {
       toast.success(data.message);
-      setCurrentUser((prev: any) => prev ? { ...prev, isVerified: true } : prev);
+      setCurrentUser((prev: any) =>
+        prev ? { ...prev, isVerified: true } : prev,
+      );
     });
 
     socket.on("request_alert", (updatedRequest: any) => {
@@ -397,8 +489,12 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
     socket.on("request_update", (updatedRequest: any) => {
       const formatted = formatRequest(updatedRequest);
-      setRequests((prev) => prev.map(r => r.id === formatted.id ? formatted : r));
-      toast.success(`Request Updated: ${formatted.serviceName} status is now ${formatted.status}`);
+      setRequests((prev) =>
+        prev.map((r) => (r.id === formatted.id ? formatted : r)),
+      );
+      toast.success(
+        `Request Updated: ${formatted.serviceName} status is now ${formatted.status}`,
+      );
     });
 
     socket.on("new_bid_received", (data: any) => {
@@ -409,7 +505,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
     socket.on("new_pending_payment", (data: any) => {
       if (currentUser?.role === "admin") {
-        toast.info(`New Hire! Pending Payment for: ${data.request.serviceName}`);
+        toast.info(
+          `New Hire! Pending Payment for: ${data.request.serviceName}`,
+        );
         refreshData();
       }
     });
@@ -432,8 +530,8 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       });
     });
 
-    socket.on("message_alert", (data: { requestId: string, message: any }) => {
-       // Optional: Notify user of new message if not in the chat room
+    socket.on("message_alert", (data: { requestId: string; message: any }) => {
+      // Optional: Notify user of new message if not in the chat room
     });
 
     return () => {
@@ -618,7 +716,6 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-
   const sendMessageWrapper = async (
     requestId: string,
     text: string,
@@ -636,10 +733,14 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     if (fileUrl) msgData.fileUrl = fileUrl;
     if (fileName) msgData.fileName = fileName;
     if (intendedFor) msgData.intendedFor = intendedFor;
-    
+
     try {
       console.debug("[sendMessageWrapper] sending:", msgData);
-      const savedMsg = await api.sendMessageAPI(requestId, msgData, currentUser.token);
+      const savedMsg = await api.sendMessageAPI(
+        requestId,
+        msgData,
+        currentUser.token,
+      );
       const formatted = formatMessage(savedMsg);
       // Preserve intendedFor locally if backend doesn't persist it
       if (intendedFor && !(formatted as any).intendedFor) {
@@ -722,6 +823,27 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       toast.success("New Admin added successfully");
     } catch (error: any) {
       toast.error(error.message || "Failed to add admin");
+    }
+  };
+
+  // --- ADD THIS FUNCTION FOR PROFILE UPDATES ---
+  const updateProfile = async (
+    name: string,
+    currentPassword?: string,
+    newPassword?: string,
+  ) => {
+    if (!currentUser) return;
+    try {
+      // For a real backend, you would call your API here:
+      // await api.updateProfile(name, currentPassword, newPassword, currentUser.token);
+
+      const updatedUser = { ...currentUser, name };
+      setCurrentUser(updatedUser);
+      localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+      throw error;
     }
   };
 
@@ -811,8 +933,15 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     pendingJobs,
     addAdmin,
     getLiveJobs: () => requests.filter((r) => (r.status as string) === "live"),
-    getActiveRequests: () => requests.filter((r) => r.status === "active" || (r.status as string) === "live" || r.status === "completed"),
-    getPendingApprovalRequests: () => requests.filter((r) => r.status === "pending_approval"),
+    getActiveRequests: () =>
+      requests.filter(
+        (r) =>
+          r.status === "active" ||
+          (r.status as string) === "live" ||
+          r.status === "completed",
+      ),
+    getPendingApprovalRequests: () =>
+      requests.filter((r) => r.status === "pending_approval"),
     completeRequest: async (id: string) => {
       try {
         const token = currentUser?.token;
@@ -869,6 +998,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       }
     },
     refreshData,
+    updateProfile, // <-- Exported here
   };
 
   return (
