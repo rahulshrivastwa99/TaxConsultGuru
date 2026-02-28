@@ -25,18 +25,20 @@ const Header = ({
   const [isContactOpen, setIsContactOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 w-full z-50 transition-all duration-300 py-4 px-6 mt-2">
+    <header className="fixed top-0 w-full z-50 transition-all duration-300 py-4 px-2 sm:px-6 mt-2">
       <div className="container mx-auto">
-        <div className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-2xl h-20 px-6 flex items-center justify-between">
-          {/* Logo */}
+        <div className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-2xl h-16 sm:h-20 px-3 sm:px-6 flex items-center justify-between">
+          
+          {/* Logo - Added min-w-0 to allow child text to truncate if needed on tiny screens */}
           <div
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0 mr-2"
             onClick={onLogoClick}
           >
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-600/20 group-hover:rotate-6 transition-transform">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-black text-base sm:text-xl shadow-lg shadow-indigo-600/20 group-hover:rotate-6 transition-transform shrink-0">
               T
             </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+            {/* Added truncate so it doesn't push the menu out on very small mobiles */}
+            <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
               TaxConsult<span className="text-indigo-600">Guru</span>
             </span>
           </div>
@@ -57,8 +59,9 @@ const Header = ({
             </button>
           </nav>
 
-          {/* Contacts & Actions */}
-          <div className="flex items-center gap-4">
+          {/* Contacts & Actions - Changed gap-4 to gap-2 for mobile to save space */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            
             {/* Contact Pill with Dropdown */}
             <div 
               className="hidden lg:block relative"
@@ -131,10 +134,10 @@ const Header = ({
 
             {/* Mobile Toggle */}
             <button
-              className="lg:hidden w-12 h-12 flex items-center justify-center bg-slate-50 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+              className="lg:hidden w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-slate-50 rounded-lg sm:rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>

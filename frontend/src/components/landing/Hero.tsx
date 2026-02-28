@@ -130,7 +130,7 @@ const Hero = ({ onLearnMoreClick, onServiceClick }: HeroProps) => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Column: Text, Search & CTA */}
             <div className="text-left animate-in fade-in slide-in-from-left-8 duration-700">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0a2540] mb-6 leading-[1.15]">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0a2540] mb-6 leading-[1.15]">
                 Premium Business Management Platform
               </h1>
 
@@ -142,15 +142,15 @@ const Hero = ({ onLearnMoreClick, onServiceClick }: HeroProps) => {
               </p>
 
               {/* Auto-Typing Search Bar */}
-              <div className="flex w-full max-w-md items-center space-x-2 border border-slate-200 bg-white rounded-xl p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300 mb-8">
+              <div className="flex w-full max-w-md items-center space-x-2 border border-slate-200 bg-white rounded-xl p-1 sm:p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300 mb-8">
                 <Input
                   type="text"
                   placeholder={`${placeholderText}|`}
-                  className="border-0 focus-visible:ring-0 shadow-none text-base bg-transparent font-medium placeholder:text-slate-400"
+                  className="border-0 focus-visible:ring-0 shadow-none text-sm sm:text-base bg-transparent font-medium placeholder:text-slate-400"
                 />
                 <Button
                   onClick={() => onServiceClick("Search")}
-                  className="bg-[#0a2540] hover:bg-slate-800 text-white px-8 h-12 rounded-lg font-semibold transition-colors"
+                  className="bg-[#0a2540] hover:bg-slate-800 text-white px-4 sm:px-8 h-10 sm:h-12 rounded-lg font-semibold transition-colors text-sm sm:text-base"
                 >
                   Search
                 </Button>

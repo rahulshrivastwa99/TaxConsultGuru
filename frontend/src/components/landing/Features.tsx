@@ -26,8 +26,8 @@ const Features = () => {
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Column: Visuals (Masonry-style) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 bg-slate-900 rounded-3xl p-10 text-white flex flex-col justify-between h-64 shadow-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2 bg-slate-900 rounded-3xl p-6 sm:p-10 text-white flex flex-col justify-between h-auto sm:h-64 shadow-xl">
               <div>
                 <h3 className="text-3xl font-extrabold mb-4">Why TaxConsultGuru?</h3>
                 <p className="text-slate-400 leading-relaxed">
