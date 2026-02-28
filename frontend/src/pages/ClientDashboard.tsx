@@ -499,39 +499,44 @@ const ClientDashboard = () => {
                   {workspaceJobs.map((req) => (
                     <Card
                       key={req.id}
-                      className="bg-gradient-to-br from-indigo-700 to-indigo-900 border-none shadow-xl md:shadow-2xl shadow-indigo-900/20 rounded-3xl md:rounded-[2rem] relative overflow-hidden group hover:-translate-y-1 transition-all duration-300"
+                      className="bg-white border-2 border-indigo-50 shadow-2xl shadow-indigo-100/30 rounded-[2.5rem] relative overflow-hidden group hover:shadow-indigo-200/50 transition-all duration-300 hover:-translate-y-1"
                     >
-                      <div className="absolute -right-6 -top-6 opacity-[0.08] group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                        <Shield className="w-32 h-32 md:w-40 md:h-40 text-white" />
+                      <div className="absolute -right-6 -top-6 opacity-[0.05] group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                        <Shield className="w-32 h-32 md:w-40 md:h-40 text-indigo-600" />
                       </div>
-                      <CardHeader className="p-5 md:p-7 pb-4 relative z-10">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-3 md:mb-4">
-                          <CardTitle className="text-lg md:text-xl font-bold text-white leading-tight pr-4">
+                      <CardHeader className="p-6 md:p-8 pb-4 relative z-10">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start gap-3 mb-4 md:mb-6">
+                          <CardTitle className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight pr-4">
                             {req.serviceName}
                           </CardTitle>
-                          <Badge className="bg-emerald-400 text-emerald-950 font-black text-[9px] tracking-widest uppercase shrink-0 border-none w-fit">
-                            UNLOCKED
+                          <Badge className="bg-emerald-50 text-emerald-700 font-black text-[9px] tracking-widest uppercase shrink-0 border border-emerald-100 w-fit px-3 py-1 rounded-full">
+                            SECURE HUB
                           </Badge>
                         </div>
-                        <div className="bg-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/10 backdrop-blur-sm">
-                          <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-widest mb-1">
-                            Expert in Charge
+                        <div className="bg-slate-50 rounded-2xl p-4 md:p-5 border border-slate-100">
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">
+                            Allocated Expert
                           </p>
-                          <p className="text-sm md:text-base text-white font-extrabold truncate">
-                            {req.caName || "Pro Verified Expert"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                             <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                               <User className="w-3 h-3 text-indigo-600" />
+                             </div>
+                             <p className="text-base text-slate-900 font-black truncate">
+                               {req.caName || "Pro Verified Expert"}
+                             </p>
+                          </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-5 md:p-7 pt-0 relative z-10">
+                      <CardContent className="p-6 md:p-8 pt-0 relative z-10">
                         <Button
-                          className="w-full bg-white hover:bg-slate-50 text-indigo-900 font-black h-11 md:h-12 rounded-xl shadow-lg transition-all"
+                          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black h-14 md:h-16 rounded-[1.5rem] shadow-xl transition-all active:scale-95"
                           onClick={() => {
-                            toast.success("Entering Secure Workspace...");
+                            toast.success("Entering Secure Hub...");
                             navigate(`/workspace/${req.id}`);
                           }}
                         >
-                          <Shield className="w-4 h-4 mr-2" />
-                          Enter Secure Workspace
+                          <Shield className="w-5 h-5 mr-3" />
+                          Enter Premium Workspace
                         </Button>
                       </CardContent>
                     </Card>

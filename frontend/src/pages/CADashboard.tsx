@@ -173,44 +173,58 @@ const CADashboard = () => {
     navigate("/");
   };
 
-  const handleOpenBidDialog = (job: ServiceRequest) => {
-    setSelectedJob(job);
-    setBidPrice((job.budget || 0).toString());
+  const handleOpenBidDialog = (job: any) => {
+    // Normalize job object for consistency (handle both id and _id from socket/db)
+    const normalizedJob = {
+      ...job,
+      id: job.id || job._id,
+    };
+    setSelectedJob(normalizedJob);
+    setBidPrice((normalizedJob.budget || 0).toString());
+    setBidProposal(""); // Reset proposal for each new bid attempt
     setIsBidModalOpen(true);
   };
 
   const handleSubmitBid = async () => {
-    if (!selectedJob || !currentUser || !bidPrice || !bidProposal) {
-      toast.error("Please fill all fields");
+    if (!selectedJob || !currentUser) {
+      toast.error("Invalid session or request. Please refresh.");
+      return;
+    }
+    
+    if (!bidPrice || Number(bidPrice) <= 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+    
+    if (!bidProposal || bidProposal.trim().length < 10) {
+      toast.error("Please provide a proposal (min. 10 chars)");
       return;
     }
 
     setIsSubmittingBid(true);
     try {
       await placeBid({
-        requestId: selectedJob?.id || "",
+        requestId: selectedJob.id as string,
         price: Number(bidPrice),
         proposalText: bidProposal,
       });
 
-      // Show success toast
       toast.success("Bid submitted successfully!");
 
-      // Optional: Emit socket event so client gets it instantly
       if (socket) {
         socket.emit("new_bid", { requestId: selectedJob.id });
       }
 
-      // Mark as seen so it doesn't pop up again
-      setSeenJobIds((prev) => new Set(prev).add(selectedJob.id));
+      setSeenJobIds((prev) => new Set(prev).add(selectedJob.id as string));
 
-      // Close modal and clear inputs
       setIsBidModalOpen(false);
       setSelectedJob(null);
       setBidPrice("");
       setBidProposal("");
-    } catch (e) {
-      // Error handled by context toast or API layer
+      refreshData();
+    } catch (e: any) {
+      console.error("Bid submission failed:", e);
+      // Backend error toast handled by context usually
     } finally {
       setIsSubmittingBid(false);
     }
@@ -452,62 +466,65 @@ const CADashboard = () => {
                   {workspaceJobs.map((job) => (
                     <Card
                       key={job.id}
-                      className="bg-[#0f172a] border border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[3rem] p-8 md:p-12 relative overflow-hidden group hover:shadow-indigo-500/10 transition-all duration-500 border-t-8 border-t-indigo-500"
+                      className="bg-white border-2 border-indigo-50 shadow-2xl shadow-indigo-100/30 rounded-[3rem] p-8 md:p-12 relative overflow-hidden group hover:shadow-indigo-200/50 transition-all duration-500 hover:-translate-y-1"
                     >
                       <div className="absolute right-0 top-0 p-12 opacity-5 pointer-events-none group-hover:scale-125 transition-transform duration-1000">
-                        <Shield className="w-64 h-64 text-white" />
+                        <Shield className="w-64 h-64 text-indigo-600" />
                       </div>
                       <div className="relative z-10 flex flex-col h-full">
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
                           <div className="max-w-md">
-                            <p className="text-indigo-400 font-black text-[10px] uppercase tracking-widest mb-2">
-                              Secure Environment
-                            </p>
-                            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              <p className="text-emerald-600 font-black text-[10px] uppercase tracking-widest">
+                                Live Workspace
+                              </p>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight mb-3">
                               {job.serviceName}
                             </h3>
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
-                                <User className="w-3.5 h-3.5 text-slate-400" />
+                              <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                                <User className="w-3.5 h-3.5 text-indigo-600" />
                               </div>
-                              <span className="text-slate-400 font-bold text-sm">
-                                Client: <span className="text-white">{job.clientName}</span>
+                              <span className="text-slate-500 font-bold text-sm">
+                                Client: <span className="text-slate-900 font-black">{job.clientName}</span>
                               </span>
                             </div>
                           </div>
-                          <Badge className="bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 font-black text-[10px] px-4 py-1.5 rounded-full tracking-tighter">
-                            WORK IN PROGRESS
+                          <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-100 font-black text-[10px] px-4 py-1.5 rounded-full tracking-widest uppercase">
+                            ACTIVE HUB
                           </Badge>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 mb-10">
-                          <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
-                            <p className="text-[9px] font-black text-slate-500 uppercase mb-1">
-                              Project Value
+                          <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">
+                              Contract Value
                             </p>
-                            <p className="text-2xl font-black text-white">
+                            <p className="text-2xl font-black text-indigo-600">
                               ₹{job.budget.toLocaleString()}
                             </p>
                           </div>
-                          <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
-                            <p className="text-[9px] font-black text-slate-500 uppercase mb-1">
-                              Started On
+                          <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">
+                              Commenced On
                             </p>
-                            <p className="text-lg font-black text-white">
+                            <p className="text-lg font-black text-slate-700">
                               {new Date(job.updatedAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
 
                         <Button
-                          className="w-full bg-white hover:bg-slate-100 text-slate-900 font-black h-16 md:h-20 rounded-[2rem] text-lg shadow-2xl transition-all hover:-translate-y-1 active:scale-95"
+                          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black h-16 md:h-20 rounded-[2rem] text-lg shadow-xl shadow-slate-900/10 transition-all hover:shadow-2xl active:scale-95"
                           onClick={() => {
-                            toast.success("Entering Military-Grade Secure Workspace...");
+                            toast.success("Entering Secure Expert Hub...");
                             navigate(`/workspace/${job.id}`);
                           }}
                         >
                           <Shield className="w-6 h-6 mr-3" strokeWidth={3} />
-                          Resume Advanced Workspace
+                          Enter Expert Workspace
                         </Button>
                       </div>
                     </Card>
