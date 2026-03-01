@@ -183,4 +183,15 @@ router.patch("/requests/:id/force-approve", async (req, res) => {
   }
 });
 
+// @desc    Get all users (for Admin Overwatch)
+// @route   GET /api/admin/users
+router.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({ role: { $ne: "admin" } }).select("-password");
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

@@ -59,9 +59,18 @@ io.on("connection", (socket) => {
     if (existingSocketId !== socket.id) {
       onlineUsers.set(userId, socket.id);
       console.log(`User ${userId} registered with socket ${socket.id}`);
+      
+      // Broadcast to all that this user is online
+      io.emit("user_online", userId);
     }
     
     socket.emit("connected");
+  });
+
+  // Initial Sync for online users
+  socket.on("get_online_users", () => {
+    const onlineIds = Array.from(onlineUsers.keys());
+    socket.emit("online_users_list", onlineIds);
   });
 
   socket.on("join_chat", (requestId) => {
@@ -89,6 +98,9 @@ io.on("connection", (socket) => {
       if (socketId === socket.id) {
         onlineUsers.delete(userId);
         console.log(`User ${userId} offline`);
+        
+        // Broadcast to all that this user is offline
+        io.emit("user_offline", userId);
         break;
       }
     }

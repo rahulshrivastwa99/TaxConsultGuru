@@ -5,7 +5,6 @@ import {
   LogOut,
   Users,
   Briefcase,
-  Terminal,
   MessageCircle,
   Send,
   UserPlus,
@@ -21,7 +20,6 @@ import {
   CreditCard,
   Wallet,
   Eye,
-  Activity,
   Menu,
   X,
   User as UserIcon, // Icon imported securely as UserIcon
@@ -48,7 +46,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   useMockBackend,
-  ActivityLog,
   ServiceRequest,
 } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
@@ -120,7 +117,6 @@ const AdminDashboard = () => {
     logout,
     users,
     requests,
-    logs,
     clientMessages,
     caMessages,
     addClientMessage,
@@ -142,7 +138,6 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<
     | "bridge"
     | "team"
-    | "feed"
     | "verification"
     | "moderation"
     | "payments"
@@ -282,22 +277,7 @@ const AdminDashboard = () => {
   const onlineCAs = users.filter((u) => u.role === "ca" && u.isOnline);
   const adminUsers = users.filter((u) => u.role === "admin");
 
-  const getLogColor = (type: ActivityLog["type"]) => {
-    switch (type) {
-      case "request":
-        return "text-amber-400";
-      case "accept":
-        return "text-blue-400";
-      case "approve":
-        return "text-emerald-400";
-      case "forward":
-        return "text-purple-400";
-      case "admin_added":
-        return "text-pink-400";
-      default:
-        return "text-slate-400";
-    }
-  };
+
 
   const highlightSpam = (text: string) => {
     // Simplified highlight for brevity, actual function works fine
@@ -419,14 +399,7 @@ const AdminDashboard = () => {
               setActiveTab={setActiveTab}
               onClickMobile={() => setIsSidebarOpen(false)}
             />
-            <SidebarItem
-              id="feed"
-              label="Live Feed"
-              icon={Activity}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              onClickMobile={() => setIsSidebarOpen(false)}
-            />
+
             <SidebarItem
               id="overwatch"
               label="Overwatch"
@@ -1064,34 +1037,7 @@ const AdminDashboard = () => {
               </Card>
             )}
 
-            {/* Live Feed Tab */}
-            {activeTab === "feed" && (
-              <Card className="bg-white shadow-sm animate-in fade-in">
-                <CardHeader className="bg-slate-50 border-b p-4 md:p-6">
-                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                    <Terminal className="w-5 h-5 text-slate-700" /> Live Feed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 md:p-6">
-                  <div className="bg-slate-900 rounded-xl p-4 h-[400px] md:h-[500px]">
-                    <ScrollArea className="h-full">
-                      <div className="font-mono text-xs md:text-sm space-y-2">
-                        {logs.map((log) => (
-                          <div key={log.id} className="flex gap-2 items-start">
-                            <span className="text-slate-500 shrink-0">
-                              [{formatTime(log.timestamp)}]
-                            </span>
-                            <span className={getLogColor(log.type)}>
-                              {log.message}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
 
             {/* History Tab */}
             {activeTab === "history" && (
@@ -1201,56 +1147,122 @@ const AdminDashboard = () => {
 
             {/* Overwatch Tab */}
             {activeTab === "overwatch" && (
-              <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in">
-                {requests.filter(
-                  (r) => r.status === "active" || r.status === "completed",
-                ).length === 0 ? (
-                  <div className="col-span-full py-20 text-center">
-                    <Eye className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">No active workspaces.</p>
-                  </div>
-                ) : (
-                  requests
-                    .filter(
-                      (r) => r.status === "active" || r.status === "completed",
-                    )
-                    .map((req) => (
-                      <Card
-                        key={req.id}
-                        className="bg-white shadow-sm border-slate-200"
-                      >
-                        <CardHeader className="p-5 border-b bg-indigo-50/30">
-                          <CardTitle className="text-base font-bold truncate">
-                            {req.serviceName}
-                          </CardTitle>
-                          <Badge className="w-fit text-[9px] mt-2">
-                            {req.status.toUpperCase()}
-                          </Badge>
-                        </CardHeader>
-                        <CardContent className="p-5">
-                          <p className="text-xs text-slate-500 mb-1">
-                            Client:{" "}
-                            <span className="font-bold text-slate-800">
-                              {req.clientName}
-                            </span>
-                          </p>
-                          <p className="text-xs text-slate-500 mb-4">
-                            Expert:{" "}
-                            <span className="font-bold text-slate-800">
-                              {req.caName}
-                            </span>
-                          </p>
-                          <Button
-                            className="w-full bg-slate-900"
-                            size="sm"
-                            onClick={() => navigate(`/workspace/${req.id}`)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" /> Overwatch
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))
-                )}
+              <div className="space-y-6 animate-in fade-in">
+                {/* Live Stats Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Card className="bg-white shadow-sm border-slate-200">
+                    <CardContent className="p-4 md:p-6 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                          <Users className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 font-medium">Online Clients</p>
+                          <h3 className="text-2xl font-black text-slate-900">{onlineClients.length}</h3>
+                        </div>
+                      </div>
+                      <div className="flex -space-x-2">
+                        {onlineClients.slice(0, 3).map((u) => (
+                          <div key={u.id} className="w-8 h-8 rounded-full border-2 border-white bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                            {u.name.substring(0, 1)}
+                          </div>
+                        ))}
+                        {onlineClients.length > 3 && (
+                          <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            +{onlineClients.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white shadow-sm border-slate-200">
+                    <CardContent className="p-4 md:p-6 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
+                          <Briefcase className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 font-medium">Online Experts (CAs)</p>
+                          <h3 className="text-2xl font-black text-slate-900">{onlineCAs.length}</h3>
+                        </div>
+                      </div>
+                      <div className="flex -space-x-2">
+                        {onlineCAs.slice(0, 3).map((u) => (
+                          <div key={u.id} className="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-600">
+                            {u.name.substring(0, 1)}
+                          </div>
+                        ))}
+                        {onlineCAs.length > 3 && (
+                          <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            +{onlineCAs.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="border-b pb-2 flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-indigo-600" /> Active Workspaces
+                  </h2>
+                  <Badge variant="outline" className="bg-indigo-50 text-indigo-700">
+                    {requests.filter((r) => r.status === "active" || r.status === "completed").length} Live
+                  </Badge>
+                </div>
+
+                <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {requests.filter(
+                    (r) => r.status === "active" || r.status === "completed",
+                  ).length === 0 ? (
+                    <div className="col-span-full py-20 text-center">
+                      <Eye className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <p className="text-slate-500">No active workspaces.</p>
+                    </div>
+                  ) : (
+                    requests
+                      .filter(
+                        (r) => r.status === "active" || r.status === "completed",
+                      )
+                      .map((req) => (
+                        <Card
+                          key={req.id}
+                          className="bg-white shadow-sm border-slate-200"
+                        >
+                          <CardHeader className="p-5 border-b bg-indigo-50/30">
+                            <CardTitle className="text-base font-bold truncate">
+                              {req.serviceName}
+                            </CardTitle>
+                            <Badge className="w-fit text-[9px] mt-2">
+                              {req.status.toUpperCase()}
+                            </Badge>
+                          </CardHeader>
+                          <CardContent className="p-5">
+                            <p className="text-xs text-slate-500 mb-1">
+                              Client:{" "}
+                              <span className="font-bold text-slate-800">
+                                {req.clientName}
+                              </span>
+                            </p>
+                            <p className="text-xs text-slate-500 mb-4">
+                              Expert:{" "}
+                              <span className="font-bold text-slate-800">
+                                {req.caName}
+                              </span>
+                            </p>
+                            <Button
+                              className="w-full bg-slate-900"
+                              size="sm"
+                              onClick={() => navigate(`/workspace/${req.id}`)}
+                            >
+                              <Eye className="w-4 h-4 mr-2" /> Overwatch
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))
+                  )}
+                </div>
               </div>
             )}
           </div>

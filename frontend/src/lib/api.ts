@@ -147,6 +147,13 @@ export const fetchPendingJobs = async (token: string) => {
   return (await response.json()).map(normalize);
 };
 
+export const fetchAllUsers = async (token: string) => {
+  const response = await fetch(`${API_URL}/admin/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return (await response.json()).map(normalize);
+};
+
 export const approveJob = async (id: string, token: string) => {
   const response = await fetch(`${API_URL}/admin/approve-job/${id}`, {
     method: "PATCH",
