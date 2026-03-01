@@ -40,76 +40,151 @@ const TermsOfService = () => {
             <FileText className="w-8 h-8 text-indigo-600" />
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
-            Terms of Service
+            Terms & Conditions
           </h1>
           <p className="text-slate-500 font-medium">
-            Please read these terms carefully before using our platform.
+            By accessing or using the website of TCG – TaxConsultGuru, you agree
+            to be bound by these Terms & Conditions.
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-12 space-y-8 text-slate-700 leading-relaxed">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-12 space-y-10 text-slate-700 leading-relaxed">
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              1. Acceptance of Terms
+              1. Nature of the Platform & Services
             </h2>
-            <p>
-              By accessing and using TaxConsultGuru, you accept and agree to be
-              bound by the terms and provision of this agreement. If you do not
-              agree to abide by these terms, please do not use this service.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              2. Description of Service
-            </h2>
-            <p>
-              TaxConsultGuru provides a managed marketplace that connects
-              businesses and individuals ("Clients") with verified Chartered
-              Accountants ("Experts") for tax compliance, company registration,
-              and financial services. We act as an intermediary to facilitate
-              communication, secure file sharing, and payment processing.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              3. User Conduct & Anti-Spam Policy
-            </h2>
-            <p className="mb-3">
-              Users agree to use the platform strictly for professional
-              purposes. The following behaviors are strictly prohibited:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
+            <ul className="list-disc pl-6 space-y-2 text-slate-600">
               <li>
-                Sharing direct contact information (phone numbers, personal
-                emails) in job descriptions or bridge chats before a workspace
-                is officially unlocked.
+                TCG – TaxConsultGuru is a professional consulting platform
+                providing taxation, compliance, incorporation, regulatory, and
+                advisory services.
               </li>
               <li>
-                Bypassing the platform's payment system to conduct transactions
-                directly with an expert.
+                We operate through a network of independent professionals
+                including Chartered Accountants, Company Secretaries, Tax
+                Consultants, and Legal Advisors.
               </li>
               <li>
-                Posting fraudulent, misleading, or illegal service requests.
+                TCG does not act as a government authority or regulatory body.
+              </li>
+              <li>
+                Engagement with TCG does not automatically create a partnership,
+                employment, or agency relationship between the user and TCG or
+                any associated professional unless expressly agreed in writing.
               </li>
             </ul>
-            <p className="mt-3 text-red-600 font-medium">
-              Violation of these terms may result in immediate account
-              suspension by the Admin team.
-            </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              4. Payments and Payouts
+              2. Terms for Clients / Users
             </h2>
-            <p>
-              Clients agree to pay the agreed-upon budget before a secure
-              workspace is unlocked. Experts agree that TaxConsultGuru will
-              deduct a standard platform fee (e.g., 10%) from the gross budget
-              before releasing the final net payout upon project completion.
-            </p>
+            <ul className="list-disc pl-6 space-y-2 text-slate-600">
+              <li>
+                All information and documents provided must be true, accurate,
+                and complete.
+              </li>
+              <li>
+                You are responsible for timely submission of required documents
+                and information.
+              </li>
+              <li>
+                You understand that approvals from government authorities are
+                subject to their discretion.
+              </li>
+              <li>
+                TCG shall not be responsible for delays caused due to incomplete
+                or incorrect information provided by the user.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+              3. Terms for Associated Professionals
+            </h2>
+            <ul className="list-disc pl-6 space-y-2 text-slate-600">
+              <li>
+                The Professional shall act as an independent service provider
+                and not as an employee, partner, or agent of TCG.
+              </li>
+              <li>
+                Upon receiving a lead notification, the Professional must submit
+                a detailed quotation including scope, timelines, and
+                professional fees. Direct quotation submission to the client
+                without TCG’s authorization is strictly prohibited.
+              </li>
+              <li>
+                25% of the approved professional fee shall be payable to TCG as
+                commission, while 75% of the approved professional fee shall be
+                payable to the Professional.
+              </li>
+              <li>
+                After successful completion of the first project, the
+                Professional agrees to subscribe to the platform (Monthly Plan –
+                ₹199, Quarterly Plan – ₹1,099, Yearly Plan – ₹2,099).
+              </li>
+              <li>
+                The Professional agrees not to bypass TCG by directly engaging,
+                soliciting, or accepting assignments from any client introduced
+                through the TCG platform. This non-circumvention obligation
+                remains in effect during the association and for a period of 24
+                months after termination.
+              </li>
+              <li>
+                Breach of these terms may result in immediate termination,
+                cancellation of ongoing assignments, and withholding of unpaid
+                commissions.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+              4. Refund & Cancellation Policy
+            </h2>
+            <ul className="list-disc pl-6 space-y-2 text-slate-600">
+              <li>Once work has commenced, fees are non-refundable.</li>
+              <li>
+                Government fees, statutory fees, and third-party charges are
+                strictly non-refundable.
+              </li>
+              <li>
+                If cancellation is requested before work initiation, refund may
+                be processed after deducting administrative charges.
+              </li>
+              <li>
+                Clients may request cancellation by sending written
+                communication to: info@taxconsultguru.com.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+              5. Limitation of Liability & Legal
+            </h2>
+            <ul className="list-disc pl-6 space-y-2 text-slate-600">
+              <li>
+                Our liability, if any, shall be limited to the amount of
+                professional fees paid for the specific service.
+              </li>
+              <li>
+                TCG shall not be liable for indirect, incidental, or
+                consequential damages.
+              </li>
+              <li>
+                All content on the Platform including text, logos, graphics, and
+                design elements are the property of TCG – TaxConsultGuru and may
+                not be reproduced without written permission.
+              </li>
+              <li>
+                These Terms shall be governed by the laws of India. Any disputes
+                shall be referred to arbitration under the Arbitration and
+                Conciliation Act, 1996, with the seat of arbitration at Delhi,
+                India.
+              </li>
+            </ul>
           </section>
         </div>
       </main>
@@ -120,6 +195,12 @@ const TermsOfService = () => {
           <div className="flex items-center justify-center gap-2 text-2xl font-black tracking-tight text-white mb-4">
             TaxConsult<span className="text-indigo-400">Guru</span>
           </div>
+          <p className="text-slate-400 text-sm max-w-2xl mx-auto mb-4">
+            TCG – TaxConsultGuru is a professional consulting platform providing
+            taxation, compliance, and advisory services. We are not a government
+            authority. [cite_start]All approvals are subject to respective
+            government departments[cite: 49, 50].
+          </p>
           <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
           </p>

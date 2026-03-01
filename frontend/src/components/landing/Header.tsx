@@ -41,7 +41,10 @@ const Header = ({
 
             {/* Added truncate so it doesn't push the menu out on very small mobiles */}
             <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-              TaxConsult<span className="text-indigo-600">Guru</span>
+              TaxConsult
+              <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-indigo-600 group-hover:text-black transition-colors truncate">
+                Guru
+              </span>
             </span>
           </div>
 
@@ -75,7 +78,7 @@ const Header = ({
                 <img
                   src="/Picsart_26-02-26_20-21-22-387.png"
                   alt="WhatsApp"
-                  className="w-4 h-4 object-contain brightness-0 opacity-50"
+                  className="w-4 h-4 object-contain brightness-0 opacity-700"
                   style={{
                     filter:
                       "invert(16%) sepia(89%) saturate(6054%) hue-rotate(152deg) brightness(96%) contrast(101%)",
@@ -100,10 +103,10 @@ const Header = ({
                           Connect with us for legal assistance
                         </p>
                         <a
-                          href="tel:+919113311333"
+                          href="tel:+91 85957 51626"
                           className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
                         >
-                          +91-9315871626 <ArrowRight size={12} />
+                          +91 85957 51626 <ArrowRight size={12} />
                         </a>
                       </div>
 
@@ -134,11 +137,11 @@ const Header = ({
                         <h4 className="text-sm font-bold text-slate-900 mb-0.5">
                           Whatsapp
                         </h4>
-                        <p className="text-[10px] text-slate-500 mb-4 leading-tight">
+                        <p className="text-[10px] text-slate-700 mb-4 leading-tight">
                           Need a quick help? Leave us a message
                         </p>
                         <a
-                          href="https://wa.me/9315871626"
+                          href="https://wa.me/8595751626"
                           target="_blank"
                           rel="noreferrer"
                           className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
