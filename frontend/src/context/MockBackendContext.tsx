@@ -381,16 +381,21 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   const fetchAdminData = useCallback(async () => {
     if (!currentUser?.token) return;
     try {
-      const [pCAs, pJobs] = await Promise.all([
+      const [pCAs, pJobs, allUsers] = await Promise.all([
         api.fetchPendingCAs(currentUser.token),
         api.fetchPendingJobs(currentUser.token),
+        api.fetchAllUsers(currentUser.token),
       ]);
       setPendingCAs(pCAs);
       setPendingJobs(pJobs);
+      setUsers(allUsers);
+      
+      // Request initial online users list
+      socket.emit("get_online_users");
     } catch (e) {
       console.error("Failed to fetch admin data", e);
     }
-  }, [currentUser?.token]);
+  }, [currentUser?.token, socket]);
 
   // 1. INITIALIZE APP
   useEffect(() => {
@@ -529,6 +534,27 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       });
     });
 
+    socket.on("user_online", (userId: string) => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, isOnline: true } : u)),
+      );
+    });
+
+    socket.on("user_offline", (userId: string) => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, isOnline: false } : u)),
+      );
+    });
+
+    socket.on("online_users_list", (onlineIds: string[]) => {
+      setUsers((prev) =>
+        prev.map((u) => ({
+          ...u,
+          isOnline: onlineIds.includes(u.id),
+        })),
+      );
+    });
+
     socket.on("message_alert", (data: { requestId: string; message: any }) => {
       // Optional: Notify user of new message if not in the chat room
     });
@@ -545,6 +571,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       socket.off("job_status_updated");
       socket.off("receive_message");
       socket.off("message_alert");
+      socket.off("user_online");
+      socket.off("user_offline");
+      socket.off("online_users_list");
     };
   }, [socket, currentUser?.role, refreshData]);
 
