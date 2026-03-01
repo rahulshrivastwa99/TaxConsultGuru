@@ -255,17 +255,17 @@ const CADashboard = () => {
       <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50 h-20 md:h-24 flex items-center shadow-sm">
         <div className="container mx-auto px-4 md:px-8 flex items-center justify-between gap-4">
           <div
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
             onClick={() => navigate("/")}
           >
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-xl shadow-indigo-600/20 group-hover:rotate-3 transition-transform">
-              <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
-            </div>
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-10 h-10 md:w-12 md:h-12 object-contain"
+            />
             <div className="min-w-0">
-              <h1 className="font-black text-xl md:text-2xl tracking-tight text-slate-900 leading-none">
-                {"Tax"}
-                <span className="text-indigo-600">Consult</span>
-                {"Guru"}
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate leading-none">
+                TaxConsult<span className="text-indigo-600">Guru</span>
               </h1>
               <div className="flex items-center gap-1.5 mt-1">
                 <Badge className="bg-indigo-50 text-indigo-700 border-none font-black text-[9px] tracking-widest uppercase px-1.5 py-0">
