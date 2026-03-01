@@ -33,21 +33,33 @@ const normalize = (data: any) => {
 export const registerUser = async (userData: any) => {
   const response = await fetch(`${API_URL}/auth/register`, getFetchOptions("POST", userData));
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Registration failed");
+  if (!response.ok) {
+    const error: any = new Error(data.message || "Registration failed");
+    error.status = response.status;
+    throw error;
+  }
   return normalize(data);
 };
 
 export const loginUser = async (userData: { email: string; password: string; role: string }) => {
   const response = await fetch(`${API_URL}/auth/login`, getFetchOptions("POST", userData));
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Login failed");
+  if (!response.ok) {
+    const error: any = new Error(data.message || "Login failed");
+    error.status = response.status;
+    throw error;
+  }
   return normalize(data);
 };
 
 export const verifyOtp = async (otpData: { email: string; otp: string }) => {
   const response = await fetch(`${API_URL}/auth/verify-otp`, getFetchOptions("POST", otpData));
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Failed to verify OTP");
+  if (!response.ok) {
+    const error: any = new Error(data.message || "Failed to verify OTP");
+    error.status = response.status;
+    throw error;
+  }
   return normalize(data);
 };
 

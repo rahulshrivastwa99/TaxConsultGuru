@@ -94,14 +94,48 @@ router.post("/login", async (req, res) => {
     // 1. Check if user exists and password is correct
     if (user && (await bcrypt.compare(password, user.password))) {
       
-      // 2. Role Verification: Ensure user is logging into the correct portal
+      // 2. Role Verification
       if (role && user.role !== role) {
         return res.status(401).json({ 
           message: `Access denied. This account is registered as a ${user.role}, but you are trying to log in to the ${role} portal.` 
         });
       }
 
-      // Direct login: Return token and user data
+      // 3. Status Verification: BLOCK login if NOT verified
+      if (!user.isVerified) {
+        // Generate NEW OTP
+        const newOtp = generateOTP();
+        user.otp = newOtp;
+        user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
+        await user.save();
+
+        // Send Email
+        const html = `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 8px;">
+            <h2 style="color: #4f46e5;">Verify Your Account</h2>
+            <p>Hi ${user.name},</p>
+            <p>It seems you haven't verified your email yet. Your new OTP for account verification is: <strong style="font-size: 24px; color: #4f46e5;">${newOtp}</strong></p>
+            <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
+          </div>
+        `;
+        const text = `Verify Your Account \n\nHi ${user.name}, \n\nYour new OTP for account verification is: ${newOtp} \n\nThis OTP is valid for 10 minutes.`;
+
+        await sendEmail({
+          email: user.email,
+          subject: "TaxConsultGuru - Verify Your Account",
+          html,
+          text
+        });
+
+        return res.status(403).json({ 
+          message: "Email not verified. Please verify your OTP to continue.",
+          email: user.email 
+        });
+      }
+
+      // 4. Direct login: Return token and user data
       res.json({
         _id: user.id,
         name: user.name,

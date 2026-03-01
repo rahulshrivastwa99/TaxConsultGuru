@@ -113,7 +113,14 @@ const AuthModal = ({
       }
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Authentication failed");
+      
+      // CRITICAL FIX: Handle unverified user (403 Forbidden)
+      if (error.status === 403) {
+        toast.warning(error.message || "Email not verified. Redirecting to OTP...");
+        setAuthStep("otp");
+      } else {
+        toast.error(error.message || "Authentication failed");
+      }
     } finally {
       setIsLoading(false);
     }

@@ -21,12 +21,15 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
+  "http://localhost:8080",
+  "http://127.0.0.1:8080",
   "https://tcgfrontend.vercel.app"
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("Incoming Request Origin:", origin);
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
