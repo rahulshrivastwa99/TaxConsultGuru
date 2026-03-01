@@ -11,15 +11,16 @@ const AboutUs = () => {
       <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
             onClick={() => navigate("/")}
           >
-            <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-              Tax
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
-                Consult
-              </span>
-              Guru
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-10 h-10 object-contain"
+            />
+            <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+              TaxConsult<span className="text-indigo-600">Guru</span>
             </span>
           </div>
 
@@ -113,18 +114,11 @@ const AboutUs = () => {
         </div>
       </main>
 
-      {/* --- FOOTER --- */}
-      <footer className="mt-auto py-12 bg-[#0a1120] text-slate-300">
-        <div className="container mx-auto px-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <img
-              src="/Picsart_26-03-01_10-01-28-347.png"
-              alt="TaxConsultGuru Logo"
-              className="w-14 h-12 object-contain"
-            />
-            <div className="text-2xl font-extrabold tracking-tight text-white">
-              Tax<span className="text-indigo-400">Consult</span>Guru
-            </div>
+      {/* --- MINIMAL FOOTER (MATCHING IMAGE_D5297C) --- */}
+      <footer className="bg-[#0a1120] py-12 text-center">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-center gap-2 text-2xl font-black tracking-tight text-white mb-4">
+            TaxConsult<span className="text-indigo-400">Guru</span>
           </div>
           <p className="text-slate-500 text-sm font-medium">
             © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.

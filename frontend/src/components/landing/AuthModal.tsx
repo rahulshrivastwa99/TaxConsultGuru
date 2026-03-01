@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +55,7 @@ const AuthModal = ({
   const [name, setName] = useState("");
   const [experience, setExperience] = useState<number | "">("");
   const [certifications, setCertifications] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const resetForm = () => {
     setEmail("");
@@ -61,6 +64,7 @@ const AuthModal = ({
     setExperience("");
     setCertifications("");
     setOtp("");
+    setAgreedToTerms(false);
     setAuthStep("form"); // Always reset to form
   };
 
@@ -71,6 +75,11 @@ const AuthModal = ({
 
     try {
       if (isRegister) {
+        if (!agreedToTerms) {
+          toast.error("Please agree to the Terms and Service to continue.");
+          setIsLoading(false);
+          return;
+        }
         await registerUser({
           name,
           email,
@@ -325,6 +334,32 @@ const AuthModal = ({
                         className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-emerald-500 rounded-lg text-xs shadow-sm"
                       />
                     </div>
+                  </div>
+                )}
+
+                {isRegister && (
+                  <div className="flex items-center space-x-2 py-2">
+                    <Checkbox 
+                      id="terms" 
+                      checked={agreedToTerms} 
+                      onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                      className={activeTab === 'ca' ? 'data-[state=checked]:bg-emerald-600 border-slate-300' : 'data-[state=checked]:bg-indigo-600 border-slate-300'}
+                    />
+                    <Label 
+                      htmlFor="terms" 
+                      className="text-[11px] font-medium text-slate-600 cursor-pointer leading-none"
+                    >
+                      I agree to the{" "}
+                      <a 
+                        href="/terms" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`font-bold hover:underline ${activeTab === 'ca' ? 'text-emerald-600' : 'text-indigo-600'}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Terms and Service
+                      </a>
+                    </Label>
                   </div>
                 )}
 

@@ -147,6 +147,13 @@ export const fetchPendingJobs = async (token: string) => {
   return (await response.json()).map(normalize);
 };
 
+export const fetchAllUsers = async (token: string) => {
+  const response = await fetch(`${API_URL}/admin/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return (await response.json()).map(normalize);
+};
+
 export const approveJob = async (id: string, token: string) => {
   const response = await fetch(`${API_URL}/admin/approve-job/${id}`, {
     method: "PATCH",
@@ -280,5 +287,19 @@ export const forceApproveAPI = async (id: string, token: string) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Failed to force approve");
+  return normalize(data);
+};
+
+export const updateRequestDescription = async (id: string, description: string, token: string) => {
+  const response = await fetch(`${API_URL}/admin/requests/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ description }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to update description");
   return normalize(data);
 };

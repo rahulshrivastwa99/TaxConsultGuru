@@ -5,7 +5,6 @@ import {
   LogOut,
   Users,
   Briefcase,
-  Terminal,
   MessageCircle,
   Send,
   UserPlus,
@@ -21,7 +20,6 @@ import {
   CreditCard,
   Wallet,
   Eye,
-  Activity,
   Menu,
   X,
   User as UserIcon, // Icon imported securely as UserIcon
@@ -48,7 +46,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   useMockBackend,
-  ActivityLog,
   ServiceRequest,
 } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
@@ -120,7 +117,6 @@ const AdminDashboard = () => {
     logout,
     users,
     requests,
-    logs,
     clientMessages,
     caMessages,
     addClientMessage,
@@ -136,13 +132,13 @@ const AdminDashboard = () => {
     rejectJob,
     unlockWorkspace,
     archiveProject,
+    updateJobDescription,
   } = useMockBackend();
   const { socket } = useSocket();
 
   const [activeTab, setActiveTab] = useState<
     | "bridge"
     | "team"
-    | "feed"
     | "verification"
     | "moderation"
     | "payments"
@@ -165,6 +161,10 @@ const AdminDashboard = () => {
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+
+  // Editing moderation job
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState("");
 
   // Confirmation state
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -282,22 +282,7 @@ const AdminDashboard = () => {
   const onlineCAs = users.filter((u) => u.role === "ca" && u.isOnline);
   const adminUsers = users.filter((u) => u.role === "admin");
 
-  const getLogColor = (type: ActivityLog["type"]) => {
-    switch (type) {
-      case "request":
-        return "text-amber-400";
-      case "accept":
-        return "text-blue-400";
-      case "approve":
-        return "text-emerald-400";
-      case "forward":
-        return "text-purple-400";
-      case "admin_added":
-        return "text-pink-400";
-      default:
-        return "text-slate-400";
-    }
-  };
+
 
   const highlightSpam = (text: string) => {
     // Simplified highlight for brevity, actual function works fine
@@ -384,16 +369,19 @@ const AdminDashboard = () => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-5 md:p-6 pb-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-extrabold text-slate-900 leading-tight">
-                Command Center
-              </h1>
-            </div>
+        <div className="p-5 md:p-6 pb-4 flex justify-between items-center border-b border-slate-100">
+          <div 
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-10 h-10 object-contain"
+            />
+            <h1 className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </h1>
           </div>
           <button
             className="md:hidden text-slate-400 hover:text-slate-700"
@@ -416,14 +404,7 @@ const AdminDashboard = () => {
               setActiveTab={setActiveTab}
               onClickMobile={() => setIsSidebarOpen(false)}
             />
-            <SidebarItem
-              id="feed"
-              label="Live Feed"
-              icon={Activity}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              onClickMobile={() => setIsSidebarOpen(false)}
-            />
+
             <SidebarItem
               id="overwatch"
               label="Overwatch"
@@ -509,12 +490,17 @@ const AdminDashboard = () => {
             <UserIcon className="w-4 h-4 text-indigo-600" /> Admin Profile
           </div>
           <div
-            className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity text-sm font-extrabold tracking-tight text-slate-900 py-1"
+            className="flex items-center justify-center gap-2 cursor-pointer group py-1"
             onClick={() => navigate("/")}
           >
-            {"Tax"}
-            <span className="text-indigo-600">Consult</span>
-            {"Guru"}
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-6 h-6 object-contain"
+            />
+            <span className="text-xs font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </span>
           </div>
           <Button
             variant="outline"
@@ -530,8 +516,18 @@ const AdminDashboard = () => {
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Mobile Navbar for Hamburger Menu */}
         <header className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-slate-900">
-            <Shield className="w-5 h-5 text-indigo-600" /> Command Center
+          <div 
+            className="flex items-center gap-1.5 cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-8 h-8 object-contain"
+            />
+            <span className="text-base sm:text-xl font-black tracking-tight text-slate-900">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </span>
           </div>
           <button
             onClick={() => setIsSidebarOpen(true)}
@@ -942,56 +938,142 @@ const AdminDashboard = () => {
               </Card>
             )}
 
-            {/* Moderation Tab */}
             {activeTab === "moderation" && (
               <Card className="bg-white shadow-sm animate-in fade-in">
                 <CardHeader className="bg-amber-50 border-b p-4 md:p-6">
-                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                  <CardTitle className="text-lg md:text-xl flex items-center gap-2 font-black text-slate-900">
                     <AlertTriangle className="w-5 h-5 text-amber-600" /> Job
-                    Moderation
+                    Moderation Queue
                   </CardTitle>
+                  <CardDescription className="text-slate-500 font-medium">
+                    Review incoming job requests. Sanitize descriptions if contact info is found.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6">
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {pendingJobs.length === 0 ? (
-                      <p className="text-center text-slate-500 py-10">
-                        Queue is clear.
-                      </p>
+                      <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-slate-50/50">
+                        <CheckCircle className="w-12 h-12 text-emerald-300 mx-auto mb-3" />
+                        <p className="text-slate-500 font-bold">Queue is clear. No pending jobs.</p>
+                      </div>
                     ) : (
                       pendingJobs.map((job) => (
                         <div
                           key={job.id}
-                          className="border p-4 md:p-5 rounded-xl bg-slate-50"
+                          className={`relative border-2 p-4 md:p-6 rounded-[2rem] transition-all bg-white shadow-sm ${
+                            hasSpam(job.description)
+                              ? "border-amber-200 bg-amber-50/20"
+                              : "border-slate-100"
+                          }`}
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                            <h3 className="font-bold text-slate-800 text-base md:text-lg">
-                              {job.serviceName}{" "}
-                              <span className="text-xs font-normal text-slate-500 block sm:inline sm:ml-2">
-                                by {job.clientName}
-                              </span>
-                            </h3>
-                            <span className="font-black text-emerald-600">
-                              ₹{job.budget}
-                            </span>
+                          {hasSpam(job.description) && (
+                            <Badge className="absolute -top-3 left-6 bg-red-600 text-white font-black text-[10px] tracking-widest px-3 py-1 shadow-md animate-bounce">
+                              SPAM ALERT: REGEX FOUND
+                            </Badge>
+                          )}
+
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <div>
+                              <h3 className="font-black text-slate-900 text-lg md:text-xl">
+                                {job.serviceName}
+                              </h3>
+                              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                Client: <span className="text-indigo-600">{job.clientName}</span>
+                              </p>
+                            </div>
+                            <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
+                              <span className="text-[10px] font-black text-indigo-400 block uppercase tracking-widest">Budget</span>
+                              <span className="font-black text-indigo-700 text-lg">₹{job.budget?.toLocaleString()}</span>
+                            </div>
                           </div>
-                          <p className="text-sm text-slate-600 bg-white p-3 rounded-lg border mb-4">
-                            "{job.description}"
-                          </p>
-                          <div className="flex justify-end gap-3">
+
+                          <div className="space-y-3">
+                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">Job Description</label>
+                            {editingJobId === job.id ? (
+                              <div className="space-y-3">
+                                <textarea
+                                  className="w-full text-sm text-slate-700 bg-slate-50 p-4 rounded-2xl border-2 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[120px] font-medium shadow-inner"
+                                  value={editDescription}
+                                  onChange={(e) => setEditDescription(e.target.value)}
+                                  placeholder="Clean up the description here..."
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="font-bold text-slate-500"
+                                    onClick={() => setEditingJobId(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 px-6 rounded-lg shadow-md"
+                                    onClick={async () => {
+                                      await updateJobDescription(job.id, editDescription);
+                                      setEditingJobId(null);
+                                    }}
+                                  >
+                                    Save Update
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="group relative">
+                                <div className={`text-sm text-slate-600 bg-white p-4 md:p-5 rounded-2xl border flex flex-col gap-3 ${hasSpam(job.description) ? "border-amber-200" : "border-slate-100"}`}>
+                                  <p className="italic font-medium leading-relaxed">"{job.description}"</p>
+                                  {hasSpam(job.description) && (
+                                    <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                                      <Shield className="w-4 h-4 text-red-500" />
+                                      <p className="text-[10px] font-bold text-red-600">
+                                        Potential contact information detected. Click 'Edit' to sanitize before approval.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity border-indigo-200 text-indigo-600 hover:bg-indigo-50 font-bold bg-white/80 backdrop-blur-sm"
+                                  onClick={() => {
+                                    setEditingJobId(job.id);
+                                    setEditDescription(job.description);
+                                  }}
+                                >
+                                  Edit Description
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-slate-100/50">
                             <Button
                               variant="outline"
-                              size="sm"
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                              onClick={() => rejectJob(job.id)}
+                              className="text-red-600 border-red-200 hover:bg-red-50 h-11 px-8 rounded-xl font-bold"
+                              onClick={() => {
+                                triggerConfirm({
+                                  title: "Reject Job Request?",
+                                  description: `Are you sure you want to reject this request from ${job.clientName}?`,
+                                  type: "warning",
+                                  onConfirm: () => rejectJob(job.id)
+                                });
+                              }}
                             >
-                              Reject
+                              Reject Job
                             </Button>
                             <Button
-                              size="sm"
-                              className="bg-indigo-600 text-white"
-                              onClick={() => approveJob(job.id)}
+                              className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-10 rounded-xl font-bold shadow-lg transition-all active:scale-95"
+                              onClick={() => {
+                                if (hasSpam(job.description)) {
+                                  toast.error("Spam Detected!", {
+                                    description: "Please remove contact info before approving."
+                                  });
+                                  return;
+                                }
+                                handleApprove(job.id);
+                              }}
                             >
-                              Approve Job
+                              Approve & Go Live
                             </Button>
                           </div>
                         </div>
@@ -1046,34 +1128,7 @@ const AdminDashboard = () => {
               </Card>
             )}
 
-            {/* Live Feed Tab */}
-            {activeTab === "feed" && (
-              <Card className="bg-white shadow-sm animate-in fade-in">
-                <CardHeader className="bg-slate-50 border-b p-4 md:p-6">
-                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                    <Terminal className="w-5 h-5 text-slate-700" /> Live Feed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 md:p-6">
-                  <div className="bg-slate-900 rounded-xl p-4 h-[400px] md:h-[500px]">
-                    <ScrollArea className="h-full">
-                      <div className="font-mono text-xs md:text-sm space-y-2">
-                        {logs.map((log) => (
-                          <div key={log.id} className="flex gap-2 items-start">
-                            <span className="text-slate-500 shrink-0">
-                              [{formatTime(log.timestamp)}]
-                            </span>
-                            <span className={getLogColor(log.type)}>
-                              {log.message}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
 
             {/* History Tab */}
             {activeTab === "history" && (
@@ -1183,56 +1238,122 @@ const AdminDashboard = () => {
 
             {/* Overwatch Tab */}
             {activeTab === "overwatch" && (
-              <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in">
-                {requests.filter(
-                  (r) => r.status === "active" || r.status === "completed",
-                ).length === 0 ? (
-                  <div className="col-span-full py-20 text-center">
-                    <Eye className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">No active workspaces.</p>
-                  </div>
-                ) : (
-                  requests
-                    .filter(
-                      (r) => r.status === "active" || r.status === "completed",
-                    )
-                    .map((req) => (
-                      <Card
-                        key={req.id}
-                        className="bg-white shadow-sm border-slate-200"
-                      >
-                        <CardHeader className="p-5 border-b bg-indigo-50/30">
-                          <CardTitle className="text-base font-bold truncate">
-                            {req.serviceName}
-                          </CardTitle>
-                          <Badge className="w-fit text-[9px] mt-2">
-                            {req.status.toUpperCase()}
-                          </Badge>
-                        </CardHeader>
-                        <CardContent className="p-5">
-                          <p className="text-xs text-slate-500 mb-1">
-                            Client:{" "}
-                            <span className="font-bold text-slate-800">
-                              {req.clientName}
-                            </span>
-                          </p>
-                          <p className="text-xs text-slate-500 mb-4">
-                            Expert:{" "}
-                            <span className="font-bold text-slate-800">
-                              {req.caName}
-                            </span>
-                          </p>
-                          <Button
-                            className="w-full bg-slate-900"
-                            size="sm"
-                            onClick={() => navigate(`/workspace/${req.id}`)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" /> Overwatch
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))
-                )}
+              <div className="space-y-6 animate-in fade-in">
+                {/* Live Stats Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Card className="bg-white shadow-sm border-slate-200">
+                    <CardContent className="p-4 md:p-6 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                          <Users className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 font-medium">Online Clients</p>
+                          <h3 className="text-2xl font-black text-slate-900">{onlineClients.length}</h3>
+                        </div>
+                      </div>
+                      <div className="flex -space-x-2">
+                        {onlineClients.slice(0, 3).map((u) => (
+                          <div key={u.id} className="w-8 h-8 rounded-full border-2 border-white bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                            {u.name.substring(0, 1)}
+                          </div>
+                        ))}
+                        {onlineClients.length > 3 && (
+                          <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            +{onlineClients.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white shadow-sm border-slate-200">
+                    <CardContent className="p-4 md:p-6 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
+                          <Briefcase className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 font-medium">Online Experts (CAs)</p>
+                          <h3 className="text-2xl font-black text-slate-900">{onlineCAs.length}</h3>
+                        </div>
+                      </div>
+                      <div className="flex -space-x-2">
+                        {onlineCAs.slice(0, 3).map((u) => (
+                          <div key={u.id} className="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-600">
+                            {u.name.substring(0, 1)}
+                          </div>
+                        ))}
+                        {onlineCAs.length > 3 && (
+                          <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            +{onlineCAs.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="border-b pb-2 flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-indigo-600" /> Active Workspaces
+                  </h2>
+                  <Badge variant="outline" className="bg-indigo-50 text-indigo-700">
+                    {requests.filter((r) => r.status === "active" || r.status === "completed").length} Live
+                  </Badge>
+                </div>
+
+                <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {requests.filter(
+                    (r) => r.status === "active" || r.status === "completed",
+                  ).length === 0 ? (
+                    <div className="col-span-full py-20 text-center">
+                      <Eye className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <p className="text-slate-500">No active workspaces.</p>
+                    </div>
+                  ) : (
+                    requests
+                      .filter(
+                        (r) => r.status === "active" || r.status === "completed",
+                      )
+                      .map((req) => (
+                        <Card
+                          key={req.id}
+                          className="bg-white shadow-sm border-slate-200"
+                        >
+                          <CardHeader className="p-5 border-b bg-indigo-50/30">
+                            <CardTitle className="text-base font-bold truncate">
+                              {req.serviceName}
+                            </CardTitle>
+                            <Badge className="w-fit text-[9px] mt-2">
+                              {req.status.toUpperCase()}
+                            </Badge>
+                          </CardHeader>
+                          <CardContent className="p-5">
+                            <p className="text-xs text-slate-500 mb-1">
+                              Client:{" "}
+                              <span className="font-bold text-slate-800">
+                                {req.clientName}
+                              </span>
+                            </p>
+                            <p className="text-xs text-slate-500 mb-4">
+                              Expert:{" "}
+                              <span className="font-bold text-slate-800">
+                                {req.caName}
+                              </span>
+                            </p>
+                            <Button
+                              className="w-full bg-slate-900"
+                              size="sm"
+                              onClick={() => navigate(`/workspace/${req.id}`)}
+                            >
+                              <Eye className="w-4 h-4 mr-2" /> Overwatch
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))
+                  )}
+                </div>
               </div>
             )}
           </div>

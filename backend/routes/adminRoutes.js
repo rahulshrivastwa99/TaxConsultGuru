@@ -183,4 +183,32 @@ router.patch("/requests/:id/force-approve", async (req, res) => {
   }
 });
 
+// @desc    Get all users (for Admin Overwatch)
+// @route   GET /api/admin/users
+router.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({ role: { $ne: "admin" } }).select("-password");
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Update a job request's description (Admin Overwrite)
+// @route   PATCH /api/admin/requests/:id
+router.patch("/requests/:id", async (req, res) => {
+  try {
+    const { description } = req.body;
+    const request = await Request.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Job request not found" });
+
+    request.description = description;
+    await request.save();
+
+    res.json({ message: "Job description updated successfully", request });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
