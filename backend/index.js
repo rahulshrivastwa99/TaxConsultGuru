@@ -12,35 +12,57 @@ connectDB(); // Connect to MongoDB
 
 const app = express();
 
+// Trust proxy for Render/Vercel
+app.set("trust proxy", 1);
+
 app.use(express.json());
 
-// IMPORTANT: CORS configuration for deployment
-// Jab frontend deploy ho jaye, to "*" hata kar frontend ka URL daal dena security ke liye
+// Proper CORS for Production
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://tcgfrontend.vercel.app"
+];
+
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   }),
 );
 
-// --- FIX: Root Route for Health Check ---
+// --- Root Route for Health Check (JSON) ---
 app.get("/", (req, res) => {
-  res.send("TCG Server is Running Successfully 🚀");
+  res.json({ message: "TCG API Running Successfully 🚀", status: "online" });
 });
 
-// Routes
+// API Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/requests", require("./routes/requestRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/bids", require("./routes/bidRoutes"));
 
+// 404 Handler for API
+app.use("/api", (req, res) => {
+  res.status(404).json({ message: "API endpoint not found" });
+});
+
 // --- SOCKET.IO SETUP ---
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
