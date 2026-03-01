@@ -28,15 +28,17 @@ const Header = ({
     <header className="fixed top-0 w-full z-50 transition-all duration-300 py-4 px-2 sm:px-6 mt-2">
       <div className="container mx-auto">
         <div className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-2xl h-16 sm:h-20 px-3 sm:px-6 flex items-center justify-between">
-          
           {/* Logo - Added min-w-0 to allow child text to truncate if needed on tiny screens */}
           <div
             className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0 mr-2"
             onClick={onLogoClick}
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-black text-base sm:text-xl shadow-lg shadow-indigo-600/20 group-hover:rotate-6 transition-transform shrink-0">
-              T
-            </div>
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-12 h-12 object-contain"
+            />
+
             {/* Added truncate so it doesn't push the menu out on very small mobiles */}
             <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
               TaxConsult<span className="text-indigo-600">Guru</span>
@@ -61,9 +63,8 @@ const Header = ({
 
           {/* Contacts & Actions - Changed gap-4 to gap-2 for mobile to save space */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            
             {/* Contact Pill with Dropdown */}
-            <div 
+            <div
               className="hidden lg:block relative"
               onMouseEnter={() => setIsContactOpen(true)}
               onMouseLeave={() => setIsContactOpen(false)}
@@ -75,7 +76,10 @@ const Header = ({
                   src="/Picsart_26-02-26_20-21-22-387.png"
                   alt="WhatsApp"
                   className="w-4 h-4 object-contain brightness-0 opacity-50"
-                  style={{ filter: 'invert(16%) sepia(89%) saturate(6054%) hue-rotate(152deg) brightness(96%) contrast(101%)' }}
+                  style={{
+                    filter:
+                      "invert(16%) sepia(89%) saturate(6054%) hue-rotate(152deg) brightness(96%) contrast(101%)",
+                  }}
                 />
               </div>
 
@@ -84,41 +88,64 @@ const Header = ({
                 <div className="absolute top-full right-0 pt-4 w-[540px] animate-in fade-in zoom-in-95 duration-200 z-[60]">
                   <div className="bg-white border border-slate-100 shadow-2xl rounded-2xl p-1.5">
                     <div className="grid grid-cols-3 gap-1.5">
-                    {/* Call Column */}
-                    <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
-                      <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center mb-3 group-hover/item:bg-orange-600 group-hover/item:text-white transition-colors">
-                        <Phone size={20} />
+                      {/* Call Column */}
+                      <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
+                        <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center mb-3 group-hover/item:bg-orange-600 group-hover/item:text-white transition-colors">
+                          <Phone size={20} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-0.5">
+                          Call
+                        </h4>
+                        <p className="text-[10px] text-slate-500 mb-4 leading-tight">
+                          Connect with us for legal assistance
+                        </p>
+                        <a
+                          href="tel:+919113311333"
+                          className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
+                        >
+                          +91-9315871626 <ArrowRight size={12} />
+                        </a>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 mb-0.5">Call</h4>
-                      <p className="text-[10px] text-slate-500 mb-4 leading-tight">Connect with us for legal assistance</p>
-                      <a href="tel:+919113311333" className="text-[11px] font-black text-indigo-600 flex items-center gap-1">
-                        +91-9315871626 <ArrowRight size={12} />
-                      </a>
-                    </div>
 
-                    {/* Email Column */}
-                    <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
-                      <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-colors">
-                        <Mail size={20} />
+                      {/* Email Column */}
+                      <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
+                        <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-colors">
+                          <Mail size={20} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-0.5">
+                          Email
+                        </h4>
+                        <p className="text-[10px] text-slate-500 mb-4 leading-tight">
+                          Need help? Drop us an email
+                        </p>
+                        <a
+                          href="mailto:help@taxconsultguru.com"
+                          className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
+                        >
+                          Email Us <ArrowRight size={12} />
+                        </a>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 mb-0.5">Email</h4>
-                      <p className="text-[10px] text-slate-500 mb-4 leading-tight">Need help? Drop us an email</p>
-                      <a href="mailto:help@taxconsultguru.com" className="text-[11px] font-black text-indigo-600 flex items-center gap-1">
-                        Email Us <ArrowRight size={12} />
-                      </a>
-                    </div>
 
-                    {/* WhatsApp Column */}
-                    <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover/item:bg-emerald-600 group-hover/item:text-white transition-colors">
-                        <MessageSquare size={20} />
+                      {/* WhatsApp Column */}
+                      <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover/item:bg-emerald-600 group-hover/item:text-white transition-colors">
+                          <MessageSquare size={20} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-0.5">
+                          Whatsapp
+                        </h4>
+                        <p className="text-[10px] text-slate-500 mb-4 leading-tight">
+                          Need a quick help? Leave us a message
+                        </p>
+                        <a
+                          href="https://wa.me/9315871626"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
+                        >
+                          Text Us <ArrowRight size={12} />
+                        </a>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 mb-0.5">Whatsapp</h4>
-                      <p className="text-[10px] text-slate-500 mb-4 leading-tight">Need a quick help? Leave us a message</p>
-                      <a href="https://wa.me/9315871626" target="_blank" rel="noreferrer" className="text-[11px] font-black text-indigo-600 flex items-center gap-1">
-                        Text Us <ArrowRight size={12} />
-                      </a>
-                    </div>
                     </div>
                   </div>
                 </div>

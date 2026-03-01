@@ -10,18 +10,27 @@ const Footer = ({ onLogoClick }: FooterProps) => {
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
-            <div
+            <img
+              src="/logo-full.png"
+              alt="TaxConsultGuru Logo"
+              className="w-48 object-contain mb-6"
+            />
+
+            {/* <div
               className="flex items-center mb-6 cursor-pointer hover:opacity-80 transition-opacity text-2xl font-extrabold tracking-tight text-white"
               onClick={onLogoClick}
             >
               <span>Tax</span>
               <span className="text-indigo-400">Consult</span>
               <span>Guru</span>
-            </div>
+            </div> */}
 
             <p className="text-slate-400 max-w-sm leading-relaxed">
               India's most trusted managed marketplace connecting businesses
-              with top-tier Chartered Accountants. Fast, secure, and reliable.
+              with top-tier Chartered Accountants.{" "}
+              <span className="text-indigo-400">
+                Fast, secure, and reliable.
+              </span>
             </p>
           </div>
           <div>
