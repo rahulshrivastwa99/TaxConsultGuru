@@ -45,4 +45,18 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+// Auth Middleware for Verified Users Only
+const verifiedOnly = (req, res, next) => {
+  // Check if user exists and their isVerified flag in MongoDB is true
+  if (req.user && req.user.isVerified === true) {
+    return next();
+  } else {
+    return res.status(403).json({ 
+      success: false,
+      message: "Access Denied: Your email is not verified. Please verify your OTP.",
+      needsVerification: true // Frontend is flag ko use karke wapas OTP screen khol sakta hai
+    });
+  }
+};
+
+module.exports = { protect, admin, verifiedOnly };

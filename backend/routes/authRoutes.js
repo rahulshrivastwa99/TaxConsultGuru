@@ -4,15 +4,14 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const sendEmail = require("../utils/sendEmail"); // Make sure you created this file!
+const sendEmail = require("../utils/sendEmail"); 
 
 // Helper to generate a 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// Helper to generate JWT (Your original logic)
+// Helper to generate JWT
 const generateToken = (id) => {
   const secret = process.env.JWT_SECRET.trim();
-  console.log(`🎲 Generating token with secret length: ${secret.length}`);
   return jwt.sign({ id }, secret, { expiresIn: "30d" });
 };
 
@@ -49,8 +48,8 @@ router.post("/register", async (req, res) => {
       otpExpires
     });
 
-    // 5. Send OTP Email
-    if (user) {
+    // 5. Send OTP Email (NESTED TRY-CATCH FIX)
+    try {
       const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 8px;">
           <h2 style="color: #4f46e5;">Welcome to TaxConsultGuru!</h2>
@@ -61,8 +60,7 @@ router.post("/register", async (req, res) => {
           <p style="font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
         </div>
       `;
-
-      const text = `Welcome to TaxConsultGuru! \n\nHi ${user.name}, \n\nYour OTP for account verification is: ${otp} \n\nThis OTP is valid for 10 minutes. Please do not share it with anyone.`;
+      const text = `Welcome to TaxConsultGuru! \n\nHi ${user.name}, \n\nYour OTP for account verification is: ${otp} \n\nThis OTP is valid for 10 minutes.`;
 
       await sendEmail({
         email: user.email,
@@ -71,14 +69,19 @@ router.post("/register", async (req, res) => {
         text
       });
 
-      // NOTE: We do NOT send the token here anymore. 
-      // We just tell the frontend to move to the OTP screen.
       res.status(201).json({
         message: "Registration successful. Please check your email for the OTP.",
         email: user.email,
         role: user.role
       });
+    } catch (emailError) {
+      console.error("Gmail SMTP Error during registration:", emailError);
+      // Failsafe: Frontend processing ruk jayega aur error dikhega
+      return res.status(500).json({ 
+        message: "Account created but failed to send OTP email due to server error. Please try logging in to resend OTP." 
+      });
     }
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -103,39 +106,38 @@ router.post("/login", async (req, res) => {
 
       // 3. Status Verification: BLOCK login if NOT verified
       if (!user.isVerified) {
-        // Generate NEW OTP
         const newOtp = generateOTP();
         user.otp = newOtp;
-        user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
+        user.otpExpires = Date.now() + 10 * 60 * 1000; 
         await user.save();
 
-        // Send Email
-        const html = `
-          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 8px;">
-            <h2 style="color: #4f46e5;">Verify Your Account</h2>
-            <p>Hi ${user.name},</p>
-            <p>It seems you haven't verified your email yet. Your new OTP for account verification is: <strong style="font-size: 24px; color: #4f46e5;">${newOtp}</strong></p>
-            <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
-          </div>
-        `;
-        const text = `Verify Your Account \n\nHi ${user.name}, \n\nYour new OTP for account verification is: ${newOtp} \n\nThis OTP is valid for 10 minutes.`;
+        // Send Email (NESTED TRY-CATCH FIX)
+        try {
+          const html = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 8px;">
+              <h2 style="color: #4f46e5;">Verify Your Account</h2>
+              <p>Hi ${user.name},</p>
+              <p>It seems you haven't verified your email yet. Your new OTP for account verification is: <strong style="font-size: 24px; color: #4f46e5;">${newOtp}</strong></p>
+              <p>This OTP is valid for 10 minutes.</p>
+            </div>
+          `;
+          const text = `Verify Your Account \n\nHi ${user.name}, \n\nYour new OTP for account verification is: ${newOtp}`;
 
-        await sendEmail({
-          email: user.email,
-          subject: "TaxConsultGuru - Verify Your Account",
-          html,
-          text
-        });
+          await sendEmail({ email: user.email, subject: "TaxConsultGuru - Verify Your Account", html, text });
 
-        return res.status(403).json({ 
-          message: "Email not verified. Please verify your OTP to continue.",
-          email: user.email 
-        });
+          return res.status(403).json({ 
+            message: "Email not verified. A new OTP has been sent. Please verify your OTP to continue.",
+            email: user.email 
+          });
+        } catch (emailError) {
+          console.error("Gmail SMTP Error during login OTP resend:", emailError);
+          return res.status(500).json({ 
+            message: "Email not verified, and the server failed to send a new OTP. Please try again later." 
+          });
+        }
       }
 
-      // 4. Direct login: Return token and user data
+      // 4. Direct login
       res.json({
         _id: user.id,
         name: user.name,
@@ -153,7 +155,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// @desc    Verify OTP and issue JWT Token (For both Login & Register)
+// @desc    Verify OTP and issue JWT Token
 // @route   POST /api/auth/verify-otp
 router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
@@ -165,23 +167,18 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Check if OTP matches and hasn't expired
     if (user.otp !== otp || user.otpExpires < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
-    // OTP is valid - clear OTP fields
     user.otp = undefined;
     user.otpExpires = undefined;
 
-    // Only mark non-CAs as verified automatically.
-    // CAs must be manually verified by the Admin.
     if (user.role !== "ca") {
       user.isVerified = true;
     }
     await user.save();
 
-    // Now we finally send the token and user data to the frontend
     res.status(200).json({
       _id: user.id,
       name: user.name,
