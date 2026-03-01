@@ -50,8 +50,9 @@ const ContactSupport = () => {
             Get in Touch
           </h1>
           <p className="text-slate-500 font-medium text-lg max-w-2xl mx-auto">
-            Need help with a project, have a billing question, or want to report
-            an issue? Our expert support team is here for you.
+            At TCG – TaxConsultGuru, client service excellence is integral to
+            our professional commitment. Need help with service status,
+            documentation, or billing? Our support team is here for you.
           </p>
         </div>
 
@@ -63,12 +64,14 @@ const ContactSupport = () => {
                 <Mail className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Email Us</h3>
-              <p className="text-sm text-slate-500 mb-2">For general queries</p>
+              <p className="text-sm text-slate-500 mb-2">
+                For service-related queries
+              </p>
               <a
-                href="mailto:support@taxconsultguru.com"
+                href="mailto:info@taxconsultguru.com"
                 className="text-indigo-600 font-semibold hover:underline"
               >
-                support@taxconsultguru.com
+                info@taxconsultguru.com
               </a>
             </div>
 
@@ -78,13 +81,13 @@ const ContactSupport = () => {
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Call Us</h3>
               <p className="text-sm text-slate-500 mb-2">
-                Mon-Fri from 9am to 6pm
+                Mon-Sat, 10:00 AM – 6:30 PM (IST)
               </p>
               <a
-                href="tel:+911234567890"
+                href="tel:+918595751626"
                 className="text-cyan-600 font-semibold hover:underline"
               >
-                +91 123 456 7890
+                +91 85957 51626
               </a>
             </div>
 
@@ -93,11 +96,7 @@ const ContactSupport = () => {
                 <MapPin className="w-6 h-6 text-emerald-600" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Office</h3>
-              <p className="text-sm text-slate-500">
-                123 Financial Hub, Connaught Place
-                <br />
-                New Delhi, 110001
-              </p>
+              <p className="text-sm text-slate-500">Delhi, India</p>
             </div>
           </div>
 

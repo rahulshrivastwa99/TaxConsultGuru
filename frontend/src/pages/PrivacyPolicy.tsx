@@ -42,75 +42,92 @@ const PrivacyPolicy = () => {
             Privacy Policy
           </h1>
           <p className="text-slate-500 font-medium">
-            Last updated: October 2023
+            Information on our data collection, usage, and protection practices.
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-12 space-y-8 text-slate-700 leading-relaxed">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-12 space-y-10 text-slate-700 leading-relaxed">
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              1. Information We Collect
+              1. Legal Status & Scope
             </h2>
             <p className="mb-3">
-              When you use TaxConsultGuru, we collect the following types of
-              information:
+              This Privacy Policy is an electronic record in terms of the
+              Information Technology Act, 2000. By accessing or using the
+              website of TCG – TaxConsultGuru, you acknowledge that you have
+              read, understood, and agreed to this Privacy Policy. This policy
+              applies to visitors, clients, and users engaging our services.
             </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+              2. Information We Collect
+            </h2>
             <ul className="list-disc pl-6 space-y-2">
               <li>
-                <strong>Personal Information:</strong> Name, email address,
-                phone number, and billing details.
+                <strong>Personal Information:</strong> Name, Email Address,
+                Contact Number, Address, and regulatory identifiers like PAN,
+                Aadhaar, GSTIN, or CIN.
               </li>
               <li>
-                <strong>Business Information:</strong> Company name,
-                registration details, GST numbers, and financial documents
-                necessary for expert consultation.
+                <strong>Technical & Usage Information:</strong> IP address,
+                browser type, device details, and cookies.
               </li>
               <li>
-                <strong>Usage Data:</strong> Information about how you interact
-                with our platform, including IP addresses and browser types.
+                <strong>Professional Documents:</strong> Any documents shared
+                for incorporation, taxation, compliance, or advisory services.
               </li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              2. How We Use Your Information
+              3. Purpose & Cloud Storage
             </h2>
-            <p className="mb-3">We use the collected information to:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Provide, operate, and maintain our managed marketplace.</li>
-              <li>Connect you with verified Chartered Accountants.</li>
-              <li>
-                Process transactions and send related information, including
-                confirmations and invoices.
-              </li>
-              <li>Provide customer support and resolve disputes.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              3. Data Security & "Double-Blind" Protection
-            </h2>
+            <p className="mb-3">
+              Information is collected for providing requested services,
+              regulatory filings, client communication, and compliance with
+              applicable laws.
+            </p>
             <p>
-              We take security seriously. We use a "Double-Blind Privacy
-              Protection" system. This means your sensitive contact information
-              is hidden from the expert until a secure workspace is unlocked via
-              payment. All files shared within the workspace are encrypted and
-              only accessible to you, the assigned expert, and the platform
-              administrators.
+              To ensure secure handling, TCG may store client data and documents
+              on secure cloud-based platforms, including Cloudinary. By engaging
+              our services, you consent to the storage of data on cloud
+              infrastructure and access by authorized professionals strictly for
+              service delivery. TCG implements reasonable safeguards but shall
+              not be held liable for breaches caused by factors beyond our
+              reasonable control.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              4. Sharing Your Information
+              4. Information Sharing & Disclosure
             </h2>
+            <p className="mb-3">
+              We do not sell or rent personal information. Information may be
+              shared only:
+            </p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>With associated professionals for service execution.</li>
+              <li>With authorized third-party service providers.</li>
+              <li>When required under law or court order.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+              5. User Rights & Data Retention
+            </h2>
+            <p className="mb-3">
+              Client data is retained for the duration necessary to complete
+              services and as required under applicable legal obligations.
+            </p>
             <p>
-              We do not sell your personal information. We only share your
-              information with the specific Chartered Accountant assigned to
-              your job, and only the information strictly necessary to complete
-              the requested service.
+              Subject to applicable law, users may request access, correction,
+              or deletion of their personal data by submitting a request to:{" "}
+              <strong>info@taxconsultguru.com</strong>.
             </p>
           </section>
         </div>
@@ -122,6 +139,13 @@ const PrivacyPolicy = () => {
           <div className="text-2xl font-extrabold tracking-tight text-white mb-4">
             Tax<span className="text-indigo-400">Consult</span>Guru
           </div>
+          <p className="text-slate-400 text-sm max-w-2xl mx-auto mb-4">
+            TCG – TaxConsultGuru is a professional consulting platform and is
+            not a government authority or regulatory body. All registrations,
+            approvals, and certifications are subject to the discretion of the
+            respective government departments. TCG does not guarantee approval
+            from any statutory authority.
+          </p>
           <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.
           </p>
