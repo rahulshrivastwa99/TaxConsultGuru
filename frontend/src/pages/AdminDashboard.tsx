@@ -132,6 +132,7 @@ const AdminDashboard = () => {
     rejectJob,
     unlockWorkspace,
     archiveProject,
+    updateJobDescription,
   } = useMockBackend();
   const { socket } = useSocket();
 
@@ -160,6 +161,10 @@ const AdminDashboard = () => {
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+
+  // Editing moderation job
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState("");
 
   // Confirmation state
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -933,56 +938,142 @@ const AdminDashboard = () => {
               </Card>
             )}
 
-            {/* Moderation Tab */}
             {activeTab === "moderation" && (
               <Card className="bg-white shadow-sm animate-in fade-in">
                 <CardHeader className="bg-amber-50 border-b p-4 md:p-6">
-                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                  <CardTitle className="text-lg md:text-xl flex items-center gap-2 font-black text-slate-900">
                     <AlertTriangle className="w-5 h-5 text-amber-600" /> Job
-                    Moderation
+                    Moderation Queue
                   </CardTitle>
+                  <CardDescription className="text-slate-500 font-medium">
+                    Review incoming job requests. Sanitize descriptions if contact info is found.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6">
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {pendingJobs.length === 0 ? (
-                      <p className="text-center text-slate-500 py-10">
-                        Queue is clear.
-                      </p>
+                      <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-slate-50/50">
+                        <CheckCircle className="w-12 h-12 text-emerald-300 mx-auto mb-3" />
+                        <p className="text-slate-500 font-bold">Queue is clear. No pending jobs.</p>
+                      </div>
                     ) : (
                       pendingJobs.map((job) => (
                         <div
                           key={job.id}
-                          className="border p-4 md:p-5 rounded-xl bg-slate-50"
+                          className={`relative border-2 p-4 md:p-6 rounded-[2rem] transition-all bg-white shadow-sm ${
+                            hasSpam(job.description)
+                              ? "border-amber-200 bg-amber-50/20"
+                              : "border-slate-100"
+                          }`}
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                            <h3 className="font-bold text-slate-800 text-base md:text-lg">
-                              {job.serviceName}{" "}
-                              <span className="text-xs font-normal text-slate-500 block sm:inline sm:ml-2">
-                                by {job.clientName}
-                              </span>
-                            </h3>
-                            <span className="font-black text-emerald-600">
-                              ₹{job.budget}
-                            </span>
+                          {hasSpam(job.description) && (
+                            <Badge className="absolute -top-3 left-6 bg-red-600 text-white font-black text-[10px] tracking-widest px-3 py-1 shadow-md animate-bounce">
+                              SPAM ALERT: REGEX FOUND
+                            </Badge>
+                          )}
+
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <div>
+                              <h3 className="font-black text-slate-900 text-lg md:text-xl">
+                                {job.serviceName}
+                              </h3>
+                              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                Client: <span className="text-indigo-600">{job.clientName}</span>
+                              </p>
+                            </div>
+                            <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
+                              <span className="text-[10px] font-black text-indigo-400 block uppercase tracking-widest">Budget</span>
+                              <span className="font-black text-indigo-700 text-lg">₹{job.budget?.toLocaleString()}</span>
+                            </div>
                           </div>
-                          <p className="text-sm text-slate-600 bg-white p-3 rounded-lg border mb-4">
-                            "{job.description}"
-                          </p>
-                          <div className="flex justify-end gap-3">
+
+                          <div className="space-y-3">
+                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">Job Description</label>
+                            {editingJobId === job.id ? (
+                              <div className="space-y-3">
+                                <textarea
+                                  className="w-full text-sm text-slate-700 bg-slate-50 p-4 rounded-2xl border-2 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[120px] font-medium shadow-inner"
+                                  value={editDescription}
+                                  onChange={(e) => setEditDescription(e.target.value)}
+                                  placeholder="Clean up the description here..."
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="font-bold text-slate-500"
+                                    onClick={() => setEditingJobId(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 px-6 rounded-lg shadow-md"
+                                    onClick={async () => {
+                                      await updateJobDescription(job.id, editDescription);
+                                      setEditingJobId(null);
+                                    }}
+                                  >
+                                    Save Update
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="group relative">
+                                <div className={`text-sm text-slate-600 bg-white p-4 md:p-5 rounded-2xl border flex flex-col gap-3 ${hasSpam(job.description) ? "border-amber-200" : "border-slate-100"}`}>
+                                  <p className="italic font-medium leading-relaxed">"{job.description}"</p>
+                                  {hasSpam(job.description) && (
+                                    <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                                      <Shield className="w-4 h-4 text-red-500" />
+                                      <p className="text-[10px] font-bold text-red-600">
+                                        Potential contact information detected. Click 'Edit' to sanitize before approval.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity border-indigo-200 text-indigo-600 hover:bg-indigo-50 font-bold bg-white/80 backdrop-blur-sm"
+                                  onClick={() => {
+                                    setEditingJobId(job.id);
+                                    setEditDescription(job.description);
+                                  }}
+                                >
+                                  Edit Description
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-slate-100/50">
                             <Button
                               variant="outline"
-                              size="sm"
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                              onClick={() => rejectJob(job.id)}
+                              className="text-red-600 border-red-200 hover:bg-red-50 h-11 px-8 rounded-xl font-bold"
+                              onClick={() => {
+                                triggerConfirm({
+                                  title: "Reject Job Request?",
+                                  description: `Are you sure you want to reject this request from ${job.clientName}?`,
+                                  type: "warning",
+                                  onConfirm: () => rejectJob(job.id)
+                                });
+                              }}
                             >
-                              Reject
+                              Reject Job
                             </Button>
                             <Button
-                              size="sm"
-                              className="bg-indigo-600 text-white"
-                              onClick={() => approveJob(job.id)}
+                              className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-10 rounded-xl font-bold shadow-lg transition-all active:scale-95"
+                              onClick={() => {
+                                if (hasSpam(job.description)) {
+                                  toast.error("Spam Detected!", {
+                                    description: "Please remove contact info before approving."
+                                  });
+                                  return;
+                                }
+                                handleApprove(job.id);
+                              }}
                             >
-                              Approve Job
+                              Approve & Go Live
                             </Button>
                           </div>
                         </div>

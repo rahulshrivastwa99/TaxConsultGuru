@@ -289,3 +289,17 @@ export const forceApproveAPI = async (id: string, token: string) => {
   if (!response.ok) throw new Error(data.message || "Failed to force approve");
   return normalize(data);
 };
+
+export const updateRequestDescription = async (id: string, description: string, token: string) => {
+  const response = await fetch(`${API_URL}/admin/requests/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ description }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to update description");
+  return normalize(data);
+};

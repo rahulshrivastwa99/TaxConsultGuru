@@ -194,4 +194,21 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// @desc    Update a job request's description (Admin Overwrite)
+// @route   PATCH /api/admin/requests/:id
+router.patch("/requests/:id", async (req, res) => {
+  try {
+    const { description } = req.body;
+    const request = await Request.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Job request not found" });
+
+    request.description = description;
+    await request.save();
+
+    res.json({ message: "Job description updated successfully", request });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
