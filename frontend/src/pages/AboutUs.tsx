@@ -12,12 +12,17 @@ const AboutUs = () => {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div
-            className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity text-xl font-extrabold tracking-tight text-slate-900"
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
             onClick={() => navigate("/")}
           >
-            {"Tax"}
-            <span className="text-indigo-600">Consult</span>
-            {"Guru"}
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-10 h-10 object-contain"
+            />
+            <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </span>
           </div>
 
           <Button
@@ -123,10 +128,8 @@ const AboutUs = () => {
       {/* --- MINIMAL FOOTER (MATCHING IMAGE_D5297C) --- */}
       <footer className="bg-[#0a1120] py-12 text-center">
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-center gap-1 text-2xl font-extrabold tracking-tight text-white mb-4">
-            {"Tax"}
-            <span className="text-indigo-400">Consult</span>
-            {"Guru"}
+          <div className="flex items-center justify-center gap-2 text-2xl font-black tracking-tight text-white mb-4">
+            TaxConsult<span className="text-indigo-400">Guru</span>
           </div>
           <p className="text-slate-500 text-sm font-medium">
             © {new Date().getFullYear()} TaxConsultGuru. All rights reserved.

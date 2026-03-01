@@ -323,15 +323,16 @@ const ClientDashboard = () => {
       <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-40 transition-all shadow-sm">
         <div className="container mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
           <div
-            className="flex items-center gap-2 md:gap-3 cursor-pointer group"
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
             onClick={() => navigate("/")}
           >
-            <span className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">
-              {"Tax"}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
-                Consult
-              </span>
-              {"Guru"}
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-10 h-10 md:w-12 md:h-12 object-contain"
+            />
+            <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+              TaxConsult<span className="text-indigo-600">Guru</span>
             </span>
             <Badge
               variant="outline"

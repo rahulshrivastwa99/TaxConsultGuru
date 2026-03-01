@@ -384,16 +384,19 @@ const AdminDashboard = () => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-5 md:p-6 pb-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-extrabold text-slate-900 leading-tight">
-                Command Center
-              </h1>
-            </div>
+        <div className="p-5 md:p-6 pb-4 flex justify-between items-center border-b border-slate-100">
+          <div 
+            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-10 h-10 object-contain"
+            />
+            <h1 className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </h1>
           </div>
           <button
             className="md:hidden text-slate-400 hover:text-slate-700"
@@ -509,12 +512,17 @@ const AdminDashboard = () => {
             <UserIcon className="w-4 h-4 text-indigo-600" /> Admin Profile
           </div>
           <div
-            className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity text-sm font-extrabold tracking-tight text-slate-900 py-1"
+            className="flex items-center justify-center gap-2 cursor-pointer group py-1"
             onClick={() => navigate("/")}
           >
-            {"Tax"}
-            <span className="text-indigo-600">Consult</span>
-            {"Guru"}
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-6 h-6 object-contain"
+            />
+            <span className="text-xs font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </span>
           </div>
           <Button
             variant="outline"
@@ -530,8 +538,18 @@ const AdminDashboard = () => {
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Mobile Navbar for Hamburger Menu */}
         <header className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-slate-900">
-            <Shield className="w-5 h-5 text-indigo-600" /> Command Center
+          <div 
+            className="flex items-center gap-1.5 cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src="/Picsart_26-03-01_10-01-28-347.png"
+              alt="TaxConsultGuru Logo"
+              className="w-8 h-8 object-contain"
+            />
+            <span className="text-base sm:text-xl font-black tracking-tight text-slate-900">
+              TaxConsult<span className="text-indigo-600">Guru</span>
+            </span>
           </div>
           <button
             onClick={() => setIsSidebarOpen(true)}
