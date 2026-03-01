@@ -264,6 +264,7 @@ interface BackendContextType {
   rejectWork: (id: string) => Promise<void>;
   forceApprove: (id: string) => Promise<void>;
   archiveProject: (id: string) => Promise<void>;
+  updateJobDescription: (id: string, description: string) => Promise<void>;
   placeBid: (bidData: {
     requestId: string;
     price: number;
@@ -1023,6 +1024,17 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         await refreshData();
       } catch (error: any) {
         toast.error(error.message || "Failed to archive project");
+      }
+    },
+    updateJobDescription: async (id: string, description: string) => {
+      try {
+        const token = currentUser?.token;
+        if (!token) throw new Error("No token found");
+        await api.updateRequestDescription(id, description, token);
+        toast.success("Description updated!");
+        await refreshData();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to update description");
       }
     },
     refreshData,

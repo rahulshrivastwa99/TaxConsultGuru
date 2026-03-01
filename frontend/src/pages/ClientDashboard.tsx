@@ -267,6 +267,12 @@ const ClientDashboard = () => {
     setIsRequesting(false);
   };
 
+  const hasSpam = (text: string) => {
+    if (!text) return false;
+    const spamRegex = /(\d{10}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
+    return spamRegex.test(text);
+  };
+
   const openChat = (requestId: string) => {
     setChatRequestId(requestId);
     setChatOpen(true);
@@ -855,6 +861,11 @@ const ClientDashboard = () => {
                 rows={3}
                 className="bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl resize-none font-medium text-sm text-slate-700 min-h-[80px] sm:min-h-[100px] p-3 sm:p-4"
               />
+              {hasSpam(description) && (
+                <p className="text-[10px] font-bold text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 animate-pulse">
+                  ⚠️ WARNING: Please do not include phone numbers or emails. Admin will review and may reject your request.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2 sm:space-y-3">
