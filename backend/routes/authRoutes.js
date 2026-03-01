@@ -32,10 +32,27 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Generate OTP
+    // 3. Admin Direct Registration Bypass
+    if (role === "admin") {
+      const newUser = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        role,
+        isVerified: true // Admins are automatically verified
+      });
+
+      return res.status(201).json({
+        message: "Admin registration successful. You can now log in.",
+        email,
+        role
+      });
+    }
+
+    // 4. Generate OTP
     const otp = generateOTP();
 
-    // 4. Save to temporary Otp collection (TTL: 10 mins)
+    // 5. Save to temporary Otp collection (TTL: 10 mins)
     await Otp.findOneAndUpdate(
       { email },
       {
@@ -51,7 +68,7 @@ router.post("/register", async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // 5. Send OTP Email (NESTED TRY-CATCH FIX)
+    // 6. Send OTP Email (NESTED TRY-CATCH FIX)
     try {
       const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 8px;">
@@ -107,8 +124,8 @@ router.post("/login", async (req, res) => {
         });
       }
 
-      // 3. Status Verification: BLOCK login if NOT verified
-      if (!user.isVerified) {
+      // 3. Status Verification: BLOCK login if NOT verified and NOT an admin
+      if (user.role !== "admin" && !user.isVerified) {
         const newOtp = generateOTP();
         user.otp = newOtp;
         user.otpExpires = Date.now() + 10 * 60 * 1000; 
