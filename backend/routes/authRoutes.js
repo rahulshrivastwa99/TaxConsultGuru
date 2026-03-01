@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const Otp = require("../models/Otp");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail"); 
@@ -21,7 +22,7 @@ router.post("/register", async (req, res) => {
   const { name, email, password, role, experience, certificationDetails } = req.body;
 
   try {
-    // 1. Check if user exists
+    // 1. Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
@@ -31,39 +32,41 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Generate OTP & Expiry (10 minutes)
+    // 3. Generate OTP
     const otp = generateOTP();
-    const otpExpires = Date.now() + 10 * 60 * 1000;
 
-    // 4. Create User (Unverified by default)
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role, 
-      experience: role === "ca" ? experience : undefined,
-      certificationDetails: role === "ca" ? certificationDetails : undefined,
-      isVerified: false, 
-      otp,
-      otpExpires
-    });
+    // 4. Save to temporary Otp collection (TTL: 10 mins)
+    await Otp.findOneAndUpdate(
+      { email },
+      {
+        otp,
+        pendingData: {
+          name,
+          password: hashedPassword,
+          role,
+          experience: role === "ca" ? experience : undefined,
+          certificationDetails: role === "ca" ? certificationDetails : undefined
+        }
+      },
+      { upsert: true, new: true }
+    );
 
     // 5. Send OTP Email (NESTED TRY-CATCH FIX)
     try {
       const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 8px;">
           <h2 style="color: #4f46e5;">Welcome to TaxConsultGuru!</h2>
-          <p>Hi ${user.name},</p>
+          <p>Hi ${name},</p>
           <p>Your OTP for account verification is: <strong style="font-size: 24px; color: #4f46e5;">${otp}</strong></p>
           <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
           <p style="font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
         </div>
       `;
-      const text = `Welcome to TaxConsultGuru! \n\nHi ${user.name}, \n\nYour OTP for account verification is: ${otp} \n\nThis OTP is valid for 10 minutes.`;
+      const text = `Welcome to TaxConsultGuru! \n\nHi ${name}, \n\nYour OTP for account verification is: ${otp} \n\nThis OTP is valid for 10 minutes.`;
 
       await sendEmail({
-        email: user.email,
+        email,
         subject: "TaxConsultGuru - Verify Your Account",
         html,
         text
@@ -71,14 +74,14 @@ router.post("/register", async (req, res) => {
 
       res.status(201).json({
         message: "Registration successful. Please check your email for the OTP.",
-        email: user.email,
-        role: user.role
+        email,
+        role
       });
     } catch (emailError) {
       console.error("Gmail SMTP Error during registration:", emailError);
       // Failsafe: Frontend processing ruk jayega aur error dikhega
       return res.status(500).json({ 
-        message: "Account created but failed to send OTP email due to server error. Please try logging in to resend OTP." 
+        message: "Account details saved temporarily but failed to send OTP email due to server error. Please try registering again." 
       });
     }
 
@@ -161,24 +164,38 @@ router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    // 1. Find the OTP document in the Otp collection
+    const otpRecord = await Otp.findOne({ email });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
+    if (!otpRecord) {
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
-    user.otp = undefined;
-    user.otpExpires = undefined;
-
-    if (user.role !== "ca") {
-      user.isVerified = true;
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP." });
     }
-    await user.save();
 
+    // 2. Safely extract data
+    const { name, password, role, experience, certificationDetails } = otpRecord.pendingData;
+
+    // 3. Create real user in User collection
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        password,
+        role,
+        experience,
+        certificationDetails,
+        isVerified: role !== "ca" ? true : false,
+      });
+    }
+
+    // 4. Delete the OTP document
+    await Otp.deleteMany({ email });
+
+    // 5. Respond with Token
     res.status(200).json({
       _id: user.id,
       name: user.name,
