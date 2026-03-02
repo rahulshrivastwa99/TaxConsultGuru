@@ -308,6 +308,8 @@ interface BackendContextType {
     currentPassword?: string,
     newPassword?: string,
   ) => Promise<void>;
+  fetchMessagesForRequest: (requestId: string) => Promise<void>;
+  BACKEND_URL: string;
 }
 
 const MockBackendContext = createContext<BackendContextType | undefined>(
@@ -355,29 +357,49 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     };
   };
 
+  const fetchMessagesForRequest = useCallback(async (requestId: string) => {
+    if (!currentUser?.token || !requestId) return;
+    try {
+      const msgs = await api.fetchMessagesAPI(requestId, currentUser.token);
+      const formatted = msgs.map(formatMessage);
+      
+      setAllMessages((prev) => {
+        // Create a map of existing messages for efficiency
+        const messageMap = new Map(prev.map(m => [m.id, m]));
+        let hasNew = false;
+        
+        formatted.forEach(m => {
+          if (!messageMap.has(m.id)) {
+            messageMap.set(m.id, m);
+            hasNew = true;
+          }
+        });
+        
+        if (!hasNew) return prev;
+        
+        return Array.from(messageMap.values()).sort(
+          (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+        );
+      });
+    } catch (e) {
+      console.error(`Failed to fetch messages for request ${requestId}`, e);
+    }
+  }, [currentUser?.token]);
+
   const refreshData = useCallback(async () => {
     try {
-      // 1. Fetch Requests
+      // 1. Fetch Requests only (Granular message fetching handled by components)
       const reqs = await api.fetchRequests();
       const formattedReqs = reqs.map(formatRequest);
       setRequests(formattedReqs);
-
-      // 2. Fetch Chat History for all relevant requests
-      if (formattedReqs.length > 0 && currentUser?.token) {
-        const msgPromises = formattedReqs.map((r: any) =>
-          api.fetchMessagesAPI(r.id, currentUser.token!).catch(() => []),
-        );
-
-        const responses = await Promise.all(msgPromises);
-        const allMsgs = responses.flat().map(formatMessage);
-
-        allMsgs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-        setAllMessages(allMsgs);
-      }
+      
+      // OPTIONAL: If you still need initial messages for some reason, 
+      // do it only for the most recent or active ones, or not at all here.
+      // For now, let's keep it disabled to stop the 429 loop.
     } catch (e) {
       console.error("Failed to fetch data", e);
     }
-  }, [currentUser?.token]);
+  }, []);
 
   const fetchAdminData = useCallback(async () => {
     if (!currentUser?.token) return;
@@ -1037,8 +1059,10 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         toast.error(error.message || "Failed to update description");
       }
     },
+    fetchMessagesForRequest,
     refreshData,
     updateProfile, // <-- Exported here
+    BACKEND_URL, // Exported to be used in components if needed
   };
 
   return (

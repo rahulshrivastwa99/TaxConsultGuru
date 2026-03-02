@@ -33,13 +33,24 @@ import { PremiumConfirmDialog, ConfirmType } from "@/components/ui/PremiumConfir
 const Workspace = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentUser, requests, isLoading, allMessages, sendMessageWrapper, completeRequest, approveWork, rejectWork, refreshData } = useMockBackend();
+  const { 
+    currentUser, 
+    requests, 
+    isLoading, 
+    allMessages, 
+    sendMessageWrapper, 
+    completeRequest, 
+    approveWork, 
+    rejectWork, 
+    refreshData,
+    fetchMessagesForRequest
+  } = useMockBackend();
   const { socket } = useSocket();
   const [newMessage, setNewMessage] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // New Upload State
+  const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +80,14 @@ const Workspace = () => {
 
   const request = requests.find((r) => r.id === id);
   const messages = allMessages.filter((m) => m.requestId === id);
+
+  // Fetch messages once on mount or ID change
+  useEffect(() => {
+    if (id && currentUser?.token) {
+      console.log(`🔍 [Workspace] Fetching initial messages for: ${id}`);
+      fetchMessagesForRequest(id);
+    }
+  }, [id, currentUser?.token, fetchMessagesForRequest]);
 
   // Status-based Access Control
   useEffect(() => {
@@ -105,12 +124,13 @@ const Workspace = () => {
     if (!socket || !id || isLoading) return;
 
     socket.emit("join", id);
+    socket.emit("join_chat", id);
     console.log(`🏠 [Workspace] Joined room: ${id}`);
 
     const handleReceiveMessage = (msg: any) => {
       if (msg.requestId === id) {
         console.log(`📩 [Workspace] Real-time message received in room ${id}`);
-        refreshData();
+        // No need to refreshData() here! 
       }
     };
 
@@ -121,7 +141,7 @@ const Workspace = () => {
       socket.off("receive_message", handleReceiveMessage);
       console.log(`🚪 [Workspace] Left room: ${id}`);
     };
-  }, [socket, id, isLoading, refreshData]);
+  }, [socket, id, isLoading]);
 
   if (isLoading || !request || !currentUser) {
     return (

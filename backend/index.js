@@ -28,24 +28,7 @@ const app = express();
 // Trust proxy for Render/Vercel (Required for rate limiting behind load balancers)
 app.set("trust proxy", 1);
 
-// 3. Security Middleware
-app.use(helmet()); // Set security HTTP headers
-app.use(express.json({ limit: "10kb" })); // Body parser, limited to 10kb to prevent DDoS
-app.use(mongoSanitize()); // Prevent NoSQL query injection
-app.use(xss()); // Prevent Cross-Site Scripting (XSS)
-app.use(hpp()); // Prevent HTTP parameter pollution
-
-// Rate Limiting: 100 requests per 15 minutes
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { message: "Too many requests, please try again in 15 minutes" },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use("/api", limiter);
-
-// 4. CORS Configuration
+// 3. CORS Configuration (MOVE UP - MUST BE BEFORE RATE LIMITER)
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -69,12 +52,30 @@ app.use(
   }),
 );
 
-// 5. Health Check Route
+// 4. Security Middleware
+app.use(helmet()); // Set security HTTP headers
+app.use(express.json({ limit: "10kb" })); // Body parser, limited to 10kb to prevent DDoS
+app.use(mongoSanitize()); // Prevent NoSQL query injection
+app.use(xss()); // Prevent Cross-Site Scripting (XSS)
+app.use(hpp()); // Prevent HTTP parameter pollution
+
+// 5. Rate Limiting: 200 requests per 15 minutes (Increased)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200, // Increased from 100
+  message: { message: "Too many requests, please try again in 15 minutes" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.originalUrl.startsWith("/api/chat"), // Skip rate limit for chat routes
+});
+app.use("/api", limiter);
+
+// 6. Health Check Route
 app.get("/", (req, res) => {
   res.json({ message: "TCG API Running Successfully 🚀", status: "online" });
 });
 
-// 6. API Routes
+// 7. API Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/requests", require("./routes/requestRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
