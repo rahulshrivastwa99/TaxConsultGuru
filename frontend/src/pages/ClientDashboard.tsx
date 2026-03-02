@@ -45,7 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMockBackend, SERVICES } from "@/context/MockBackendContext";
+import { useMockBackend } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
 
@@ -62,12 +62,64 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Scale,
 };
 
-const NEW_COMPLIANCES = [
+// All 15 Services beautifully formatted with consistent taglines
+const FULL_SERVICES_LIST = [
+  // Row 1
+  {
+    id: "gst-filing",
+    name: "GST Filing",
+    description:
+      "Seamless monthly and quarterly GST return filings for total compliance.",
+    defaultBudget: 1500,
+    icon: "Receipt",
+  },
+  {
+    id: "itr",
+    name: "Income Tax Return",
+    description:
+      "Expert ITR filing tailored for individuals, founders, and growing businesses.",
+    defaultBudget: 2500,
+    icon: "Calculator",
+  },
+  {
+    id: "incorporation",
+    name: "Company Incorporation",
+    description:
+      "Fast-track your startup journey with seamless business registration and structuring.",
+    defaultBudget: 8000,
+    icon: "Building2",
+  },
+  // Row 2
+  {
+    id: "tds-return",
+    name: "TDS Return",
+    description:
+      "Accurate quarterly TDS calculations and error-free return filings by experts.",
+    defaultBudget: 2000,
+    icon: "Receipt",
+  },
+  {
+    id: "statutory-audit",
+    name: "Statutory Audit",
+    description:
+      "Comprehensive statutory audits to ensure absolute financial transparency and compliance.",
+    defaultBudget: 20000,
+    icon: "ClipboardCheck",
+  },
+  {
+    id: "bookkeeping",
+    name: "Bookkeeping",
+    description:
+      "Meticulous monthly accounting to keep your financials organized and audit-ready.",
+    defaultBudget: 5000,
+    icon: "BookOpen",
+  },
+  // Row 3
   {
     id: "roc-filing",
     name: "Annual ROC Filing",
     description:
-      "Filing of Financial Statements (Form AOC-4) and Annual Returns (MGT-7/7A) with MCA.",
+      "End-to-end management of your company’s annual MCA compliances and filings.",
     defaultBudget: 4500,
     icon: "Building2",
   },
@@ -75,7 +127,7 @@ const NEW_COMPLIANCES = [
     id: "tax-audit",
     name: "Tax Audit (Sec 44AB)",
     description:
-      "Mandatory income tax audits for businesses exceeding turnover thresholds.",
+      "Thorough tax audits and reporting by verified top-tier Chartered Accountants.",
     defaultBudget: 15000,
     icon: "Calculator",
   },
@@ -83,15 +135,16 @@ const NEW_COMPLIANCES = [
     id: "epf-esi",
     name: "EPF & ESI Compliance",
     description:
-      "Monthly return filing for Employees’ Provident Fund (EPF) and State Insurance (ESI).",
+      "Ensure seamless employee benefits compliance with timely statutory fund filings.",
     defaultBudget: 3000,
     icon: "Users",
   },
+  // Row 4
   {
     id: "trademark-ipr",
     name: "Trademark & IPR",
     description:
-      "Registration and renewal of Trademarks, Copyrights, and Patents to protect intellectual property.",
+      "Protect your unique brand identity with expert intellectual property registration.",
     defaultBudget: 7500,
     icon: "ShieldCheck",
   },
@@ -99,7 +152,7 @@ const NEW_COMPLIANCES = [
     id: "contract-drafting",
     name: "Contract Drafting",
     description:
-      "Drafting MOUs, vendor agreements, employment contracts, and shareholder agreements.",
+      "Ironclad legal agreements, MOUs, and employment contracts drafted by experts.",
     defaultBudget: 5000,
     icon: "FileText",
   },
@@ -107,15 +160,16 @@ const NEW_COMPLIANCES = [
     id: "licensing",
     name: "Regulatory Licensing",
     description:
-      "Obtaining FSSAI, Shops & Establishment, Drug Licenses, or Import-Export Code (IEC).",
+      "Hassle-free procurement of FSSAI, trade, and essential business regulatory licenses.",
     defaultBudget: 4000,
     icon: "Receipt",
   },
+  // Row 5
   {
     id: "payroll-pt",
     name: "Payroll & Prof. Tax",
     description:
-      "Managing salary structures, PT registration, and minimum wage compliance.",
+      "Optimized salary structuring and professional tax management for your team.",
     defaultBudget: 3500,
     icon: "ClipboardCheck",
   },
@@ -123,7 +177,7 @@ const NEW_COMPLIANCES = [
     id: "fdi-odi",
     name: "FDI/ODI Returns",
     description:
-      "Filing Foreign Liability and Assets (FLA) return with RBI for international transactions.",
+      "Expert handling of RBI compliances for your cross-border investments.",
     defaultBudget: 12000,
     icon: "Globe",
   },
@@ -131,7 +185,7 @@ const NEW_COMPLIANCES = [
     id: "msme-1",
     name: "MSME-1 Filing",
     description:
-      "Half-yearly return for outstanding payments to Micro or Small Enterprises.",
+      "Timely half-yearly reporting to maintain your business's MSME compliance status.",
     defaultBudget: 1500,
     icon: "Scale",
   },
@@ -153,11 +207,7 @@ const ClientDashboard = () => {
   } = useMockBackend();
   const { socket } = useSocket();
 
-  // Deduplicate services, prioritizing NEW_COMPLIANCES for descriptions
-  const ALL_SERVICES = [
-    ...NEW_COMPLIANCES,
-    ...SERVICES.filter((s) => !NEW_COMPLIANCES.find((nc) => nc.id === s.id)),
-  ];
+  const ALL_SERVICES = FULL_SERVICES_LIST;
 
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [description, setDescription] = useState("");
@@ -258,7 +308,9 @@ const ClientDashboard = () => {
       selectedService.name,
       description,
       selectedService.defaultBudget,
-      expectedBudget === "" ? selectedService.defaultBudget : Number(expectedBudget),
+      expectedBudget === ""
+        ? selectedService.defaultBudget
+        : Number(expectedBudget),
     );
     toast.success("Request submitted! Connecting to expert...");
     setSelectedService(null);
@@ -525,12 +577,12 @@ const ClientDashboard = () => {
                             Allocated Expert
                           </p>
                           <div className="flex items-center gap-2">
-                             <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-                               <User className="w-3 h-3 text-indigo-600" />
-                             </div>
-                             <p className="text-base text-slate-900 font-black truncate">
-                               {req.caName || "Pro Verified Expert"}
-                             </p>
+                            <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                              <User className="w-3 h-3 text-indigo-600" />
+                            </div>
+                            <p className="text-base text-slate-900 font-black truncate">
+                              {req.caName || "Pro Verified Expert"}
+                            </p>
                           </div>
                         </div>
                       </CardHeader>
@@ -611,7 +663,7 @@ const ClientDashboard = () => {
               </section>
             )}
 
-            {/* --- 4. ENHANCED EMPTY STATE (If no jobs at all) --- */}
+            {/* --- ENHANCED EMPTY STATE --- */}
             {activeRequests.length === 0 &&
               workspaceJobs.length === 0 &&
               searchingRequests.length === 0 && (
@@ -645,7 +697,7 @@ const ClientDashboard = () => {
                 <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
                   Available Premium Services
                 </h2>
-                <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold px-3 py-1 self-start sm:self-auto rounded-lg shadow-sm">
+                <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold px-3 py-1 self-start sm:self-auto rounded-lg shadow-sm hover:bg-white hover:text-indigo-700 hover:border-indigo-300 hover:rounded-lg">
                   Instant Hiring
                 </Badge>
               </div>
@@ -659,7 +711,12 @@ const ClientDashboard = () => {
                     <Card
                       key={service.id}
                       className="group cursor-pointer bg-white border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-3xl md:rounded-[2.5rem] flex flex-col overflow-hidden relative"
-                      onClick={() => setSelectedService(service)}
+                      onClick={() => {
+                        // FIX: Resetting State here ensures fresh modal
+                        setSelectedService(service);
+                        setDescription("");
+                        setExpectedBudget("");
+                      }}
                     >
                       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -688,10 +745,10 @@ const ClientDashboard = () => {
                       <CardContent className="p-6 md:p-8 pt-0 mt-auto">
                         <div className="flex items-center justify-between bg-slate-50 p-4 md:p-5 rounded-xl md:rounded-[1.5rem] border border-slate-100 group-hover:bg-indigo-50/50 transition-colors">
                           <span className="text-slate-400 font-bold uppercase tracking-widest text-[9px] md:text-[10px]">
-                            Investment
+                            EXPERT MATCHING
                           </span>
-                          <span className="font-black text-indigo-600 text-lg md:text-xl">
-                            ₹{service.defaultBudget.toLocaleString()}
+                          <span className="text-emerald-500 font-bold uppercase tracking-widest text-[9px] md:text-[10px]">
+                            Within 2-4 Hours
                           </span>
                         </div>
                       </CardContent>
@@ -821,89 +878,117 @@ const ClientDashboard = () => {
         </div>
       </footer>
 
-      {/* Service Request Dialog - Mobile Optimized */}
+      {/* Service Request Dialog - FIX: Modified structure to perfectly align scrollbar and reset state */}
       <Dialog
         open={!!selectedService}
-        onOpenChange={() => setSelectedService(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedService(null);
+            setDescription(""); // FIX: Clear text field on close
+            setExpectedBudget(""); // FIX: Clear budget field on close
+          }
+        }}
       >
-        <DialogContent className="w-[95vw] sm:max-w-[460px] bg-white border-none rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader className="mb-4 sm:mb-6">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 border border-indigo-100 mx-auto sm:mx-0">
-              <FileText size={24} strokeWidth={3} />
-            </div>
-            <DialogTitle className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight text-center sm:text-left">
-              Request {selectedService?.name}
-            </DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium mt-2 leading-relaxed text-sm sm:text-base text-center sm:text-left">
-              Tell us exactly what you need. Our algorithm will match you with a
-              top-rated expert instantly.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 sm:space-y-6 pt-2">
-            <div className="p-4 sm:p-5 bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-3xl flex justify-between items-center">
-              <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">
-                Base Investment
-              </span>
-              <span className="font-black text-indigo-600 text-xl sm:text-2xl">
-                ₹{selectedService?.defaultBudget?.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="space-y-2 sm:space-y-3">
-              <label className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest px-1">
-                Detailed Requirements
-              </label>
-              <Textarea
-                placeholder="E.g. I need to file GSTR-1..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl resize-none font-medium text-sm text-slate-700 min-h-[80px] sm:min-h-[100px] p-3 sm:p-4"
-              />
-              {hasSpam(description) && (
-                <p className="text-[10px] font-bold text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 animate-pulse">
-                  ⚠️ WARNING: Please do not include phone numbers or emails. Admin will review and may reject your request.
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex justify-between items-end px-1">
-                <label className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">
-                  Your Budget (₹)
-                </label>
-                <span className="text-[9px] sm:text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                  Standard: ₹{selectedService?.defaultBudget.toLocaleString()}
-                </span>
+        <DialogContent className="w-[95vw] sm:max-w-[460px] bg-white border-none rounded-3xl sm:rounded-[2.5rem] p-0 shadow-2xl overflow-hidden flex flex-col gap-0 max-h-[85vh]">
+          {/* Scrollable container wraps the content directly, padding moved inside */}
+          <div className="overflow-y-auto p-6 sm:p-10 w-full custom-scrollbar">
+            <DialogHeader className="mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 border border-indigo-100 mx-auto sm:mx-0">
+                <FileText size={24} strokeWidth={3} />
               </div>
-              <Input
-                type="number"
-                placeholder={`e.g. ${selectedService?.defaultBudget}`}
-                value={expectedBudget}
-                onChange={(e) =>
-                  setExpectedBudget(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
-                }
-                className="h-12 sm:h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl text-slate-900 px-4 sm:px-6 shadow-inner"
-              />
-            </div>
+              <DialogTitle className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight text-center sm:text-left">
+                Request {selectedService?.name}
+              </DialogTitle>
+              <DialogDescription className="text-slate-500 font-medium mt-2 leading-relaxed text-sm sm:text-base text-center sm:text-left">
+                Tell us exactly what you need. Our algorithm will match you with
+                a top-rated expert instantly.
+              </DialogDescription>
+            </DialogHeader>
 
-            <Button
-              onClick={handleRequestService}
-              className="w-full h-14 sm:h-16 text-base sm:text-lg font-black rounded-xl sm:rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/30 transition-all hover:-translate-y-1"
-              disabled={!description.trim() || isRequesting}
-            >
-              {isRequesting ? (
-                <>
-                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 animate-spin" />{" "}
-                  Matching...
-                </>
-              ) : (
-                "Submit to Marketplace"
-              )}
-            </Button>
+            <div className="space-y-4 sm:space-y-6 pt-2">
+              <div className="bg-slate-50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 mb-2">
+                <h4 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 sm:mb-4">
+                  Service Workflow
+                </h4>
+                <div className="flex items-center justify-between gap-2 text-[10px] sm:text-xs font-bold text-slate-500">
+                  <div className="flex flex-col items-center text-center gap-1.5 w-16">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                      1
+                    </div>
+                    <span className="text-indigo-700">Request</span>
+                  </div>
+                  <div className="flex-1 h-px bg-slate-300 -mt-4" />
+                  <div className="flex flex-col items-center text-center gap-1.5 w-16">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                      2
+                    </div>
+                    <span>Match</span>
+                  </div>
+                  <div className="flex-1 h-px bg-slate-300 -mt-4" />
+                  <div className="flex flex-col items-center text-center gap-1.5 w-16">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                      3
+                    </div>
+                    <span>Resolve</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 sm:space-y-3">
+                <label className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest px-1">
+                  Detailed Requirements
+                </label>
+                <Textarea
+                  placeholder="E.g. I need to file GSTR-1..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  className="bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl resize-none font-medium text-sm text-slate-700 min-h-[80px] sm:min-h-[100px] p-3 sm:p-4"
+                />
+                {hasSpam(description) && (
+                  <p className="text-[10px] font-bold text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 animate-pulse">
+                    ⚠️ WARNING: Please do not include phone numbers or emails.
+                    Admin will review and may reject your request.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex justify-between items-end px-1">
+                  <label className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">
+                    Your Budget (₹)
+                  </label>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                    Standard: ₹{selectedService?.defaultBudget.toLocaleString()}
+                  </span>
+                </div>
+                <Input
+                  type="number"
+                  placeholder={`e.g. ${selectedService?.defaultBudget}`}
+                  value={expectedBudget}
+                  onChange={(e) =>
+                    setExpectedBudget(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    )
+                  }
+                  className="h-12 sm:h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl text-slate-900 px-4 sm:px-6 shadow-inner"
+                />
+              </div>
+
+              <Button
+                onClick={handleRequestService}
+                className="w-full h-14 sm:h-16 text-base sm:text-lg font-black rounded-xl sm:rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/30 transition-all hover:-translate-y-1 mt-2"
+                disabled={!description.trim() || isRequesting}
+              >
+                {isRequesting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 animate-spin" />{" "}
+                    Matching...
+                  </>
+                ) : (
+                  "Submit to Marketplace"
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
