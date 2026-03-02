@@ -2,22 +2,50 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
 const connectDB = require("./config/db");
 const seedAdmin = require("./seeder");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
+// 1. Load Environment Variables & Validate
 dotenv.config();
+
+if (!process.env.MONGO_URI || !process.env.JWT_SECRET) {
+  console.error("FATAL ERROR: MONGO_URI or JWT_SECRET is not defined in .env");
+  process.exit(1);
+}
+
 connectDB(); // Connect to MongoDB
 
 const app = express();
 
-// Trust proxy for Render/Vercel
+// 2. Proxy and Security Configuration
+// Trust proxy for Render/Vercel (Required for rate limiting behind load balancers)
 app.set("trust proxy", 1);
 
-app.use(express.json());
+// 3. Security Middleware
+app.use(helmet()); // Set security HTTP headers
+app.use(express.json({ limit: "10kb" })); // Body parser, limited to 10kb to prevent DDoS
+app.use(mongoSanitize()); // Prevent NoSQL query injection
+app.use(xss()); // Prevent Cross-Site Scripting (XSS)
+app.use(hpp()); // Prevent HTTP parameter pollution
 
-// Proper CORS for Production
+// Rate Limiting: 100 requests per 15 minutes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests, please try again in 15 minutes" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api", limiter);
+
+// 4. CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -29,12 +57,9 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      console.log("Incoming Request Origin:", origin);
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-        var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
+        return callback(new Error("CORS policy violation"), false);
       }
       return callback(null, true);
     },
@@ -42,21 +67,31 @@ app.use(
   }),
 );
 
-// --- Root Route for Health Check (JSON) ---
+// 5. Health Check Route
 app.get("/", (req, res) => {
   res.json({ message: "TCG API Running Successfully 🚀", status: "online" });
 });
 
-// API Routes
+// 6. API Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/requests", require("./routes/requestRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/bids", require("./routes/bidRoutes"));
 
-// 404 Handler for API
+// 7. 404 & Global Error Handler
 app.use("/api", (req, res) => {
   res.status(404).json({ message: "API endpoint not found" });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    status: "error",
+    message: err.message || "Internal Server Error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
 });
 
 // --- SOCKET.IO SETUP ---
@@ -75,24 +110,16 @@ const onlineUsers = new Map();
 io.on("connection", (socket) => {
   console.log("New Connection:", socket.id);
 
-  // User identities setup
   socket.on("setup", (userId) => {
     socket.join(userId);
-    
-    // Only log if the user is connecting with a new socket ID
     const existingSocketId = onlineUsers.get(userId);
     if (existingSocketId !== socket.id) {
       onlineUsers.set(userId, socket.id);
-      console.log(`User ${userId} registered with socket ${socket.id}`);
-      
-      // Broadcast to all that this user is online
       io.emit("user_online", userId);
     }
-    
     socket.emit("connected");
   });
 
-  // Initial Sync for online users
   socket.on("get_online_users", () => {
     const onlineIds = Array.from(onlineUsers.keys());
     socket.emit("online_users_list", onlineIds);
@@ -100,31 +127,24 @@ io.on("connection", (socket) => {
 
   socket.on("join_chat", (requestId) => {
     socket.join(requestId);
-    console.log(`User joined chat room: ${requestId}`);
   });
 
   socket.on("new_request", (data) => {
-    // Broadcast to all admins and available CAs
     io.emit("request_alert", data);
   });
 
   socket.on("send_message", (data) => {
-    // data should contain requestId
     if (data.requestId) {
       socket.to(data.requestId).emit("receive_message", data);
     } else {
-      io.emit("receive_message", data); // Fallback
+      io.emit("receive_message", data);
     }
   });
 
   socket.on("disconnect", () => {
-    // Find and remove the user from onlineUsers
     for (const [userId, socketId] of onlineUsers.entries()) {
       if (socketId === socket.id) {
         onlineUsers.delete(userId);
-        console.log(`User ${userId} offline`);
-        
-        // Broadcast to all that this user is offline
         io.emit("user_offline", userId);
         break;
       }
@@ -132,10 +152,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Export io so it can be used in routes
 app.set("socketio", io);
-// seedAdmin(); // Seed the Master Admin if not exists
 seedAdmin();
 const PORT = process.env.PORT || 5000;
-
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

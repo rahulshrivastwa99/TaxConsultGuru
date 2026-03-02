@@ -1,33 +1,31 @@
-// backend/utils/sendEmail.js
-const nodemailer = require("nodemailer");
+const { BrevoClient } = require('@getbrevo/brevo');
 
 const sendEmail = async (options) => {
+  const brevo = new BrevoClient({
+    apiKey: process.env.BREVO_API_KEY,
+  });
+
+  // Safely capture the content whether your controllers send 'html', 'message', or 'text'
+  const emailContent = options.html || options.message || options.text || "<p>No content provided.</p>";
+
+  const emailData = {
+    subject: options.subject || 'Notification from TaxConsultGuru',
+    to: [{ email: options.email }],
+    sender: { 
+      name: process.env.BREVO_SENDER_NAME || 'TaxconsultGuru', 
+      email: process.env.BREVO_SENDER_EMAIL 
+    },
+    htmlContent: emailContent
+  };
+
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS, 
-      },
-      // 🔥 THE MAGIC FIX: Forces Nodemailer to use IPv4 instead of IPv6
-      family: 4, 
-    });
-
-    const mailOptions = {
-      from: `"TaxConsultGuru Support" <${process.env.EMAIL_USER}>`,
-      to: options.email,
-      subject: options.subject,
-      text: options.text,
-      html: options.html,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email successfully sent to ${options.email}`);
+    const data = await brevo.transactionalEmails.sendTransacEmail(emailData);
+    console.log('✅ Email sent successfully via Brevo. Message ID: ' + data.messageId);
+    return data;
   } catch (error) {
-    console.error("❌ Error sending email:", error);
-    throw new Error("Email could not be sent");
+    // Better error logging to see exactly what Brevo is complaining about
+    console.error('❌ Brevo API Error Details:', error.body || error.message);
+    throw new Error('Failed to send email via Brevo API');
   }
 };
 
