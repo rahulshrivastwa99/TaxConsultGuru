@@ -185,7 +185,7 @@ const AuthModal = ({
         if (!open) resetForm();
       }}
     >
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0 border-0 shadow-2xl rounded-[2rem] bg-white">
+      <DialogContent className="w-[95vw] max-w-[420px] sm:w-full sm:max-w-md p-0 overflow-y-auto max-h-[95vh] sm:overflow-hidden sm:max-h-none gap-0 border-0 shadow-2xl rounded-[1.5rem] sm:rounded-[2rem] bg-white">
         
         {/* Modern Accent Bar */}
         <div className={`h-2 w-full ${activeTab === 'ca' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-cyan-400'}`} />

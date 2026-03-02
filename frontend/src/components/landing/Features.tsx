@@ -26,7 +26,7 @@ const Features = () => {
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Column: Visuals (Masonry-style) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="order-last lg:order-first grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 lg:mt-0">
             <div className="sm:col-span-2 bg-slate-900 rounded-3xl p-6 sm:p-10 text-white flex flex-col justify-between h-auto sm:h-64 shadow-xl">
               <div>
                 <h3 className="text-3xl font-extrabold mb-4">Why TaxConsultGuru?</h3>
@@ -54,7 +54,7 @@ const Features = () => {
               <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Client Satisfaction</p>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow translate-y-8">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow sm:translate-y-8">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
                 <Award size={24} />
               </div>
@@ -62,7 +62,7 @@ const Features = () => {
               <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter mt-1">Across India</p>
             </div>
             
-            <div className="col-span-1 bg-indigo-600 rounded-3xl p-6 text-white shadow-lg -translate-y-8">
+            <div className="col-span-1 bg-indigo-600 rounded-3xl p-6 text-white shadow-lg sm:-translate-y-8">
                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-4">
                 <ShieldCheck size={20} />
               </div>
