@@ -163,9 +163,7 @@ const CADashboard = () => {
   const availableJobs = requests.filter(
     (r) =>
       (!r.caId || r.caId === null || r.caId === "") &&
-      r.status !== "completed" &&
-      r.status !== "cancelled" &&
-      r.status !== "pending_approval", // Exclude jobs already bid on and pending approval
+      r.status === "live"
   );
 
   const handleLogout = () => {
