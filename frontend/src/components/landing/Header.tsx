@@ -28,7 +28,7 @@ const Header = ({
     <header className="fixed top-0 w-full z-50 transition-all duration-300 py-4 px-2 sm:px-6 mt-2">
       <div className="container mx-auto">
         <div className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-2xl h-16 sm:h-20 px-3 sm:px-6 flex items-center justify-between">
-          {/* Logo - Added min-w-0 to allow child text to truncate if needed on tiny screens */}
+          {/* Logo */}
           <div
             className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0 mr-2"
             onClick={onLogoClick}
@@ -38,8 +38,6 @@ const Header = ({
               alt="TaxConsultGuru Logo"
               className="w-12 h-12 object-contain"
             />
-
-            {/* Added truncate so it doesn't push the menu out on very small mobiles */}
             <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
               TaxConsult
               <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-indigo-600 group-hover:text-black transition-colors truncate">
@@ -64,7 +62,7 @@ const Header = ({
             </button>
           </nav>
 
-          {/* Contacts & Actions - Changed gap-4 to gap-2 for mobile to save space */}
+          {/* Contacts & Actions */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {/* Contact Pill with Dropdown */}
             <div
@@ -72,7 +70,10 @@ const Header = ({
               onMouseEnter={() => setIsContactOpen(true)}
               onMouseLeave={() => setIsContactOpen(false)}
             >
-              <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200 rounded-full cursor-pointer hover:bg-white hover:shadow-md transition-all duration-300">
+              <div
+                className="flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200 rounded-full cursor-pointer hover:bg-white hover:shadow-md transition-all duration-300"
+                onClick={() => setIsContactOpen(!isContactOpen)} // FIX: Added click support for touch devices
+              >
                 <Phone size={16} className="text-slate-500" />
                 <Mail size={16} className="text-slate-500" />
                 <img
@@ -88,9 +89,10 @@ const Header = ({
 
               {/* Mega Dropdown */}
               {isContactOpen && (
-                <div className="absolute top-full right-0 pt-4 w-[540px] animate-in fade-in zoom-in-95 duration-200 z-[60]">
+                // FIX: Made width and grid responsive so it doesn't break on smaller screens
+                <div className="absolute top-full right-0 pt-4 w-[300px] lg:w-[540px] animate-in fade-in zoom-in-95 duration-200 z-[60]">
                   <div className="bg-white border border-slate-100 shadow-2xl rounded-2xl p-1.5">
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-1.5">
                       {/* Call Column */}
                       <div className="p-4 rounded-xl hover:bg-slate-50 transition-colors group/item">
                         <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center mb-3 group-hover/item:bg-orange-600 group-hover/item:text-white transition-colors">
@@ -103,7 +105,7 @@ const Header = ({
                           Connect with us for legal assistance
                         </p>
                         <a
-                          href="tel:+91 85957 51626"
+                          href="tel:+918595751626"
                           className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
                         >
                           +91 85957 51626 <ArrowRight size={12} />
@@ -196,10 +198,32 @@ const Header = ({
             >
               Login
             </Button>
-            <div className="flex items-center justify-around pt-6 border-t border-slate-50">
-              <Phone className="w-6 h-6 text-slate-400" />
-              <Mail className="w-6 h-6 text-slate-400" />
-              <MessageSquare className="w-6 h-6 text-slate-400" />
+
+            {/* FIX: Replaced static icons with fully clickable links structured beautifully for mobile */}
+            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-slate-50 mt-2">
+              <a
+                href="tel:+918595751626"
+                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 active:scale-95 transition-all"
+              >
+                <Phone className="w-5 h-5" />
+                <span className="text-[10px] font-bold">Call</span>
+              </a>
+              <a
+                href="mailto:help@taxconsultguru.com"
+                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 active:scale-95 transition-all"
+              >
+                <Mail className="w-5 h-5" />
+                <span className="text-[10px] font-bold">Email</span>
+              </a>
+              <a
+                href="https://wa.me/8595751626"
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 active:scale-95 transition-all"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span className="text-[10px] font-bold">WhatsApp</span>
+              </a>
             </div>
           </div>
         )}
