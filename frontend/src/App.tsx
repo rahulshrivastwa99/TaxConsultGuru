@@ -11,6 +11,7 @@ import CADashboard from "./pages/CADashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Workspace from "./pages/Workspace";
+import { Analytics } from "@vercel/analytics/react";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactSupport from "./pages/ContactSupport";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          <Analytics />
         </TooltipProvider>
       </MockBackendProvider>
     </SocketProvider>
