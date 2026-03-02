@@ -1,16 +1,16 @@
 // src/components/landing/AuthModal.tsx
 import { useState } from "react";
 import { registerUser, loginUser, verifyOtp } from "../../lib/api";
-import { 
-  Loader2, 
-  Mail, 
-  Lock, 
-  User, 
-  Briefcase, 
-  Award, 
-  Building2, 
+import {
+  Loader2,
+  Mail,
+  Lock,
+  User,
+  Briefcase,
+  Award,
+  Building2,
   UserCircle,
-  KeyRound
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,7 @@ const AuthModal = ({
   setIsRegister,
 }: AuthModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // New State to track if we are on the Form step or OTP step
   const [authStep, setAuthStep] = useState<"form" | "otp">("form");
   const [otp, setOtp] = useState("");
@@ -98,7 +98,7 @@ const AuthModal = ({
           role: activeTab,
         });
         toast.success(`Welcome back, ${data.name}!`);
-        
+
         // Direct Success: Save user info & Token to localStorage
         localStorage.setItem("userInfo", JSON.stringify(data));
 
@@ -113,10 +113,12 @@ const AuthModal = ({
       }
     } catch (error: any) {
       console.error(error);
-      
+
       // CRITICAL FIX: Handle unverified user (403 Forbidden)
       if (error.status === 403) {
-        toast.warning(error.message || "Email not verified. Redirecting to OTP...");
+        toast.warning(
+          error.message || "Email not verified. Redirecting to OTP...",
+        );
         setAuthStep("otp");
       } else {
         toast.error(error.message || "Authentication failed");
@@ -134,7 +136,7 @@ const AuthModal = ({
     try {
       // Hit the new verify-otp endpoint
       const data = await verifyOtp({ email, otp });
-      
+
       toast.success(data.message || "Authentication successful!");
 
       // Save user info & Token to localStorage
@@ -160,20 +162,24 @@ const AuthModal = ({
   const getTitle = () => {
     if (authStep === "otp") return "Verify Your Email";
     if (isRegister) {
-      return activeTab === "ca" ? "Join as a Tax Expert" : "Create Client Account";
+      return activeTab === "ca"
+        ? "Join as a Tax Expert"
+        : "Create Client Account";
     }
-    return activeTab === "ca" ? "Expert Dashboard Login" : "Client Dashboard Login";
+    return activeTab === "ca"
+      ? "Expert Dashboard Login"
+      : "Client Dashboard Login";
   };
 
   const getDescription = () => {
     if (authStep === "otp") return `Enter the 6-digit OTP sent to ${email}`;
     if (isRegister) {
-      return activeTab === "ca" 
-        ? "Join our network of elite financial professionals and CAs." 
+      return activeTab === "ca"
+        ? "Join our network of elite financial professionals and CAs."
         : "Start managing your tax and compliance needs seamlessly.";
     }
-    return activeTab === "ca" 
-      ? "Access your assigned consultations and expert tools." 
+    return activeTab === "ca"
+      ? "Access your assigned consultations and expert tools."
       : "Access your dashboard to track cases and documents.";
   };
 
@@ -186,16 +192,17 @@ const AuthModal = ({
       }}
     >
       <DialogContent className="w-[95vw] max-w-[420px] sm:w-full sm:max-w-md p-0 overflow-y-auto max-h-[95vh] sm:overflow-hidden sm:max-h-none gap-0 border-0 shadow-2xl rounded-[1.5rem] sm:rounded-[2rem] bg-white">
-        
         {/* Modern Accent Bar */}
-        <div className={`h-2 w-full ${activeTab === 'ca' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-cyan-400'}`} />
+        <div
+          className={`h-2 w-full ${activeTab === "ca" ? "bg-gradient-to-r from-emerald-400 to-teal-500" : "bg-gradient-to-r from-indigo-500 to-cyan-400"}`}
+        />
 
         <div className="px-8 pt-6 pb-2 text-center">
           <DialogHeader>
             <div className="mx-auto w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-3 shadow-sm">
               {authStep === "otp" ? (
                 <KeyRound className="w-5 h-5 text-amber-500" />
-              ) : activeTab === 'ca' ? (
+              ) : activeTab === "ca" ? (
                 <Briefcase className="w-5 h-5 text-emerald-600" />
               ) : (
                 <Building2 className="w-5 h-5 text-indigo-600" />
@@ -234,22 +241,23 @@ const AuthModal = ({
                   Expert Dashboard
                 </TabsTrigger>
               </TabsList>
-              
+
               {/* Role Indicator Badge */}
               <div className="flex justify-center -mb-2">
-                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                  activeTab === 'ca' 
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                    : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                }`}>
-                  {activeTab === 'ca' ? 'Expert Console' : 'Client Console'}
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                    activeTab === "ca"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                      : "bg-indigo-50 text-indigo-700 border border-indigo-100"
+                  }`}
+                >
+                  {activeTab === "ca" ? "Expert Console" : "Client Console"}
                 </span>
               </div>
             </Tabs>
           )}
 
           <div className="space-y-4 mt-2">
-            
             {/* VIEW 1: EMAIL & PASSWORD FORM */}
             {authStep === "form" && (
               <form onSubmit={handleInitialSubmit} className="space-y-3">
@@ -291,11 +299,6 @@ const AuthModal = ({
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                       Password
                     </label>
-                    {!isRegister && (
-                      <a href="#" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">
-                        Forgot?
-                      </a>
-                    )}
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
@@ -322,7 +325,7 @@ const AuthModal = ({
                         value={experience}
                         onChange={(e) =>
                           setExperience(
-                            e.target.value === "" ? "" : Number(e.target.value)
+                            e.target.value === "" ? "" : Number(e.target.value),
                           )
                         }
                         required
@@ -346,22 +349,28 @@ const AuthModal = ({
 
                 {isRegister && (
                   <div className="flex items-center space-x-2 py-2">
-                    <Checkbox 
-                      id="terms" 
-                      checked={agreedToTerms} 
-                      onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-                      className={activeTab === 'ca' ? 'data-[state=checked]:bg-emerald-600 border-slate-300' : 'data-[state=checked]:bg-indigo-600 border-slate-300'}
+                    <Checkbox
+                      id="terms"
+                      checked={agreedToTerms}
+                      onCheckedChange={(checked) =>
+                        setAgreedToTerms(checked as boolean)
+                      }
+                      className={
+                        activeTab === "ca"
+                          ? "data-[state=checked]:bg-emerald-600 border-slate-300"
+                          : "data-[state=checked]:bg-indigo-600 border-slate-300"
+                      }
                     />
-                    <Label 
-                      htmlFor="terms" 
+                    <Label
+                      htmlFor="terms"
                       className="text-[11px] font-medium text-slate-600 cursor-pointer leading-none"
                     >
                       I agree to the{" "}
-                      <a 
-                        href="/terms" 
-                        target="_blank" 
+                      <a
+                        href="/terms"
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className={`font-bold hover:underline ${activeTab === 'ca' ? 'text-emerald-600' : 'text-indigo-600'}`}
+                        className={`font-bold hover:underline ${activeTab === "ca" ? "text-emerald-600" : "text-indigo-600"}`}
                         onClick={(e) => e.stopPropagation()}
                       >
                         Terms and Service
@@ -373,9 +382,9 @@ const AuthModal = ({
                 <Button
                   type="submit"
                   className={`w-full h-11 text-xs font-extrabold shadow-md mt-4 rounded-lg transition-all hover:-translate-y-0.5 ${
-                    activeTab === 'ca' 
-                      ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10' 
-                      : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10'
+                    activeTab === "ca"
+                      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10"
+                      : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10"
                   } text-white`}
                   disabled={isLoading}
                 >
@@ -419,9 +428,9 @@ const AuthModal = ({
                   )}
                   Verify & Access Dashboard
                 </Button>
-                
+
                 <div className="text-center mt-4">
-                   <button
+                  <button
                     type="button"
                     onClick={() => setAuthStep("form")}
                     className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
@@ -439,7 +448,9 @@ const AuthModal = ({
                   type="button"
                   onClick={() => setIsRegister(!isRegister)}
                   className={`text-xs font-bold transition-colors ${
-                    activeTab === 'ca' ? 'text-emerald-600 hover:text-emerald-800' : 'text-indigo-600 hover:text-indigo-800'
+                    activeTab === "ca"
+                      ? "text-emerald-600 hover:text-emerald-800"
+                      : "text-indigo-600 hover:text-indigo-800"
                   }`}
                 >
                   {isRegister
@@ -448,7 +459,6 @@ const AuthModal = ({
                 </button>
               </div>
             )}
-
           </div>
         </div>
       </DialogContent>

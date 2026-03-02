@@ -439,9 +439,10 @@ const ClientDashboard = () => {
               <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-2 md:mb-3">
                 Hello, {currentUser.name.split(" ")[0]} 👋
               </h2>
+              {/* FIX: Made the text realistic and startup-friendly */}
               <p className="text-slate-500 font-medium text-sm md:text-lg max-w-lg leading-relaxed">
-                Connect with India's top 10,000+ financial experts. Your journey
-                to seamless compliance starts here.
+                Connect with our curated network of verified financial experts.
+                Your journey to seamless compliance starts here.
               </p>
             </div>
             <div className="flex gap-3 w-full md:w-auto">
@@ -643,7 +644,7 @@ const ClientDashboard = () => {
                         <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-auto">
                           <Button
                             variant="outline"
-                            className="w-full sm:flex-1 h-10 md:h-11 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-white hover:border-indigo-300 transition-all shadow-sm"
+                            className="w-full sm:flex-1 h-10 md:h-11 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-all shadow-sm"
                             onClick={() => handleViewBids(req.id)}
                           >
                             View Proposals
@@ -712,7 +713,6 @@ const ClientDashboard = () => {
                       key={service.id}
                       className="group cursor-pointer bg-white border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-3xl md:rounded-[2.5rem] flex flex-col overflow-hidden relative"
                       onClick={() => {
-                        // FIX: Resetting State here ensures fresh modal
                         setSelectedService(service);
                         setDescription("");
                         setExpectedBudget("");
@@ -878,19 +878,19 @@ const ClientDashboard = () => {
         </div>
       </footer>
 
-      {/* Service Request Dialog - FIX: Modified structure to perfectly align scrollbar and reset state */}
+      {/* Service Request Dialog */}
       <Dialog
         open={!!selectedService}
         onOpenChange={(open) => {
           if (!open) {
             setSelectedService(null);
-            setDescription(""); // FIX: Clear text field on close
-            setExpectedBudget(""); // FIX: Clear budget field on close
+            setDescription("");
+            setExpectedBudget("");
           }
         }}
       >
-        <DialogContent className="w-[95vw] sm:max-w-[460px] bg-white border-none rounded-3xl sm:rounded-[2.5rem] p-0 shadow-2xl overflow-hidden flex flex-col gap-0 max-h-[85vh]">
-          {/* Scrollable container wraps the content directly, padding moved inside */}
+        {/* FIX: Added bg-white/95 and backdrop-blur-xl for a premium glassmorphic effect */}
+        <DialogContent className="w-[95vw] sm:max-w-[460px] bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-3xl sm:rounded-[2.5rem] p-0 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col gap-0 max-h-[85vh]">
           <div className="overflow-y-auto p-6 sm:p-10 w-full custom-scrollbar">
             <DialogHeader className="mb-4 sm:mb-6">
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 border border-indigo-100 mx-auto sm:mx-0">
@@ -906,7 +906,7 @@ const ClientDashboard = () => {
             </DialogHeader>
 
             <div className="space-y-4 sm:space-y-6 pt-2">
-              <div className="bg-slate-50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 mb-2">
+              <div className="bg-slate-50/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 mb-2">
                 <h4 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 sm:mb-4">
                   Service Workflow
                 </h4>
@@ -942,7 +942,7 @@ const ClientDashboard = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl resize-none font-medium text-sm text-slate-700 min-h-[80px] sm:min-h-[100px] p-3 sm:p-4"
+                  className="bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl resize-none font-medium text-sm text-slate-700 min-h-[80px] sm:min-h-[100px] p-3 sm:p-4 shadow-sm"
                 />
                 {hasSpam(description) && (
                   <p className="text-[10px] font-bold text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 animate-pulse">
@@ -970,7 +970,7 @@ const ClientDashboard = () => {
                       e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
-                  className="h-12 sm:h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl text-slate-900 px-4 sm:px-6 shadow-inner"
+                  className="h-12 sm:h-14 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl text-slate-900 px-4 sm:px-6 shadow-sm"
                 />
               </div>
 
@@ -993,20 +993,21 @@ const ClientDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Bids Dialog - Mobile Optimized */}
+      {/* Bids Dialog - Redesigned to look extremely professional and clean */}
       <Dialog open={bidsDialogOpen} onOpenChange={setBidsDialogOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[85vh] flex flex-col bg-white border-none rounded-3xl sm:rounded-[3rem] p-0 overflow-hidden shadow-2xl">
-          <DialogHeader className="p-6 sm:p-10 pb-4 sm:pb-8 border-b border-slate-100 bg-slate-50/50 text-left">
+        {/* FIX: Added bg-white/95 and backdrop-blur-xl for a premium glassmorphic effect */}
+        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[85vh] flex flex-col bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-3xl sm:rounded-[2.5rem] p-0 overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]">
+          <DialogHeader className="p-6 sm:p-8 border-b border-slate-100/50 bg-slate-50/50 text-left shrink-0">
             <DialogTitle className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Expert Marketplace
+              Expert Proposals
             </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base font-medium text-slate-500 mt-1 sm:mt-2">
-              Verified professionals have reviewed your request. Compare
-              proposals and hire your partner.
+            <DialogDescription className="text-sm font-medium text-slate-500 mt-1.5">
+              Review and compare quotes from verified professionals ready to
+              start your project.
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 p-4 sm:p-10 bg-white">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-transparent min-h-0 custom-scrollbar">
             {isFetchingBids ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin text-indigo-600 mb-4 sm:mb-5" />
@@ -1015,52 +1016,63 @@ const ClientDashboard = () => {
                 </p>
               </div>
             ) : bids.length === 0 ? (
-              <div className="text-center py-20">
+              <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
                 <Calculator className="w-12 h-12 sm:w-16 sm:h-16 text-slate-200 mx-auto mb-4 sm:mb-6" />
                 <p className="text-slate-900 font-black text-lg sm:text-xl">
                   Waiting for expert reviews
                 </p>
               </div>
             ) : (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6 sm:space-y-8">
                 {bids.map((bid) => (
+                  // FIX: Completely redesigned Bid Card to look like a premium invoice
                   <Card
                     key={bid.id}
-                    className="bg-white border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-xl transition-all duration-300 rounded-2xl sm:rounded-[2rem] overflow-hidden group"
+                    className="bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-indigo-200 transition-all duration-300 rounded-3xl overflow-hidden relative group"
                   >
-                    <CardHeader className="p-5 sm:p-8 border-b border-slate-50 bg-slate-50/30 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    {/* Top Accent Strip */}
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-cyan-400"></div>
+
+                    <div className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-slate-100 bg-slate-50/50">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-indigo-100 border-2 border-white shadow-sm flex items-center justify-center shrink-0">
-                          <User className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-700" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-indigo-100 border-2 border-white shadow-sm flex items-center justify-center shrink-0 text-indigo-600">
+                          <User className="w-6 h-6 sm:w-8 sm:h-8" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg sm:text-xl font-black text-slate-900">
-                            {bid.caId?.name || "Expert"}
-                          </CardTitle>
-                          <CardDescription className="text-[10px] sm:text-xs font-black text-emerald-600 mt-1 bg-emerald-50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-full inline-block border border-emerald-100">
-                            <CheckCircle className="w-3 h-3 inline mr-1 -mt-0.5" />
-                            {bid.caId?.experience} Yrs Verified Exp
-                          </CardDescription>
+                          <h4 className="text-lg sm:text-xl font-black text-slate-900">
+                            {bid.caId?.name || "Verified Expert"}
+                          </h4>
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                            <span className="text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                              {bid.caId?.experience} Yrs Experience
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right w-full sm:w-auto bg-white sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
-                        <p className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-widest font-black mb-0.5 sm:mb-1">
-                          Quote
+
+                      <div className="text-left sm:text-right w-full sm:w-auto bg-white sm:bg-transparent p-4 sm:p-0 rounded-2xl border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
+                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">
+                          Proposed Fee
                         </p>
-                        <p className="text-2xl sm:text-3xl font-black text-indigo-600">
+                        <p className="text-3xl font-black text-indigo-600">
                           ₹{bid.price.toLocaleString()}
                         </p>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-5 sm:p-8 pt-4 sm:pt-6">
-                      <div className="bg-slate-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 mb-6 sm:mb-8 relative italic font-medium text-sm sm:text-base text-slate-600 leading-relaxed">
-                        <span className="absolute -top-3 left-4 sm:left-6 bg-slate-800 text-white px-2 sm:px-3 py-0.5 sm:py-1 text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-md">
+                    </div>
+
+                    <div className="p-6 sm:p-8 bg-white">
+                      <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-100 mb-6 sm:mb-8">
+                        <span className="inline-block bg-slate-800 text-white px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-md mb-3">
                           Proposal Note
                         </span>
-                        "{bid.proposalText}"
+                        <p className="italic font-medium text-sm sm:text-[15px] text-slate-600 leading-relaxed text-pretty">
+                          "{bid.proposalText}"
+                        </p>
                       </div>
+
                       <Button
-                        className="w-full h-12 sm:h-16 text-sm sm:text-lg font-black rounded-xl sm:rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/20 sm:group-hover:-translate-y-1 transition-all"
+                        className="w-full h-14 sm:h-16 text-sm sm:text-base font-black rounded-xl sm:rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/20 sm:hover:-translate-y-1 transition-all"
                         onClick={() => handleHireCA(bid.id)}
                         disabled={isHiring}
                       >
@@ -1068,23 +1080,23 @@ const ClientDashboard = () => {
                           <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
                         ) : (
                           <>
-                            <ClipboardCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                            Hire Expert & Start Workspace
+                            <ClipboardCheck className="w-5 h-5 mr-2" />
+                            Accept & Start Workspace
                           </>
                         )}
                       </Button>
-                    </CardContent>
+                    </div>
                   </Card>
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Hire Success Modal */}
       <Dialog open={hireSuccessOpen} onOpenChange={setHireSuccessOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-sm bg-white border-slate-200 rounded-[2rem] p-6 sm:p-8 shadow-2xl text-center">
+        <DialogContent className="w-[95vw] sm:max-w-sm bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-[2.5rem] p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] text-center">
           <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-100 border-[6px] border-emerald-50 flex items-center justify-center mb-5 sm:mb-6 shadow-inner">
             <ClipboardCheck className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-600" />
           </div>
@@ -1104,9 +1116,9 @@ const ClientDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Masked Chat Dialog - Mobile Optimized */}
+      {/* Masked Chat Dialog */}
       <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-md h-[85vh] sm:h-[600px] flex flex-col bg-white border-slate-200 rounded-3xl p-0 overflow-hidden gap-0 shadow-2xl">
+        <DialogContent className="w-[95vw] sm:max-w-md h-[85vh] sm:h-[600px] flex flex-col bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-3xl sm:rounded-[2.5rem] p-0 overflow-hidden gap-0 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]">
           <DialogHeader className="border-b border-slate-100 px-5 sm:px-6 py-4 sm:py-5 bg-slate-50/80 backdrop-blur-md">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
