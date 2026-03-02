@@ -135,10 +135,10 @@ const Hero = ({ onLearnMoreClick, onServiceClick }: HeroProps) => {
               </h1>
 
               <p className="text-base text-slate-600 max-w-lg mb-8 leading-relaxed">
-                At TaxConsultGuru, we are not just a platform; we are your
-                partner who guides you in the business world. As India's leading
-                legal service provider, we connect startups and enterprises with
-                more than 10,000+ professionals.
+                More than just a platform, TaxConsultGuru is your dedicated
+                growth partner. We simplify compliance by connecting India’s
+                startups and enterprises with a carefully curated network of
+                verified tax and legal experts.
               </p>
 
               {/* Auto-Typing Search Bar */}
