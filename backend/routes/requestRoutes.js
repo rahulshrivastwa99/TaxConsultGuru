@@ -119,7 +119,7 @@ router.get("/:id/bids", protect, async (req, res) => {
     const Bid = require("../models/Bid");
     // Populate CA name and experience but exclude email/password/phone
     const bids = await Bid.find({ requestId: req.params.id })
-      .populate("caId", "name experience certificationDetails")
+      .populate("caId", "name experience certificationDetails isVerified")
       .select("-email -phone") // Extra safety
       .sort({ createdAt: -1 });
 

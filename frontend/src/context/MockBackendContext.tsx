@@ -303,6 +303,7 @@ interface BackendContextType {
   forwardToCA: (requestId: string, messageId: string) => Promise<void>;
   addAdmin: (name: string, email: string, password: string) => void;
   refreshData: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   updateProfile: (
     name: string,
     currentPassword?: string,
@@ -386,8 +387,24 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [currentUser?.token]);
 
+  const refreshUser = useCallback(async () => {
+    if (!currentUser?.token) return;
+    try {
+      const updatedUser = await api.fetchMe(currentUser.token);
+      // Preserve token as /me doesn't return it
+      const userWithToken = { ...updatedUser, token: currentUser.token };
+      setCurrentUser(userWithToken);
+      localStorage.setItem("userInfo", JSON.stringify(userWithToken));
+    } catch (e) {
+      console.error("Failed to refresh user data", e);
+    }
+  }, [currentUser?.token]);
+
   const refreshData = useCallback(async () => {
     try {
+      // 0. Sync user state (verification etc)
+      await refreshUser();
+      
       // 1. Fetch Requests only (Granular message fetching handled by components)
       const reqs = await api.fetchRequests();
       const formattedReqs = reqs.map(formatRequest);
@@ -399,7 +416,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     } catch (e) {
       console.error("Failed to fetch data", e);
     }
-  }, []);
+  }, [refreshUser]);
 
   const fetchAdminData = useCallback(async () => {
     if (!currentUser?.token) return;
@@ -492,9 +509,12 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
 
     socket.on("account_verified", (data: any) => {
       toast.success(data.message);
-      setCurrentUser((prev: any) =>
-        prev ? { ...prev, isVerified: true } : prev,
-      );
+      setCurrentUser((prev: any) => {
+        if (!prev) return prev;
+        const updated = { ...prev, isVerified: true };
+        localStorage.setItem("userInfo", JSON.stringify(updated));
+        return updated;
+      });
     });
 
     socket.on("request_alert", (updatedRequest: any) => {
@@ -979,6 +999,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         toast.error(error.message || "Failed to unlock workspace");
       }
     },
+    refreshUser,
     fetchAdminData,
     pendingCAs,
     pendingJobs,

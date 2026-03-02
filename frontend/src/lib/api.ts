@@ -63,6 +63,16 @@ export const verifyOtp = async (otpData: { email: string; otp: string }) => {
   return normalize(data);
 };
 
+export const fetchMe = async (token: string) => {
+  const response = await fetch(`${API_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to fetch profile");
+  return normalize(data);
+};
+
 // --- REQUESTS ---
 export const createRequest = async (requestData: any) => {
   const response = await fetch(`${API_URL}/requests/create`, getFetchOptions("POST", requestData));

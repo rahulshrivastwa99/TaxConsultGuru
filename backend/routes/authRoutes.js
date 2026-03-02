@@ -6,6 +6,7 @@ const Otp = require("../models/Otp");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail"); 
+const { protect } = require("../middleware/authMiddleware");
 
 // Helper to generate a 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -223,6 +224,28 @@ router.post("/verify-otp", async (req, res) => {
       message: "Authentication successful!"
     });
 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Get current user profile
+// @route   GET /api/auth/me
+// @access  Private
+router.get("/me", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (user) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+      });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
