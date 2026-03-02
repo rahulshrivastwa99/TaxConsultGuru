@@ -646,7 +646,7 @@ const ClientDashboard = () => {
                             className="w-full sm:flex-1 h-10 md:h-11 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-white hover:border-indigo-300 transition-all shadow-sm"
                             onClick={() => handleViewBids(req.id)}
                           >
-                            View Bids
+                            View Proposals
                           </Button>
                           <Button
                             className="w-full sm:flex-1 h-10 md:h-11 font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-md"
