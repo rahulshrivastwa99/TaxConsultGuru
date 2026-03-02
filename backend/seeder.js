@@ -14,13 +14,13 @@ const seedAdmin = async () => {
 
       await User.create({
         name: "Master Admin",
-        email: "admin@tcg.com", // The Secret Login Email
+        email: "taxconsultguru@gmail.com", // The Secret Login Email
         password: hashedPassword,
         role: "admin",
       });
 
       console.log(
-        "✅ Master Admin Created (Email: admin@tcg.com, Pass: admin123)",
+        "✅ Master Admin Created (Email: taxconsultguru@gmail.com, Pass: admin123)",
       );
     } else {
       console.log("ℹ️ Admin already exists.");
