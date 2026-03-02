@@ -242,10 +242,9 @@ const ServicesShowcase = () => {
           </p>
         </div>
 
-        {/* Main Unified Container */}
-        <div className="bg-slate-50 rounded-[2rem] p-3 md:p-5 border border-slate-200 flex flex-col lg:flex-row gap-5 shadow-sm">
+        <div className="bg-slate-50 rounded-[1.5rem] sm:rounded-[2rem] p-3 md:p-5 border border-slate-200 flex flex-col lg:flex-row gap-5 shadow-sm">
           {/* Left Sidebar - Light Theme Navigation */}
-          <div className="lg:w-[32%] flex flex-col gap-2 md:overflow-y-auto max-h-[650px] scrollbar-hide">
+          <div className="lg:w-[32%] flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-2 lg:pb-0 scrollbar-hide">
             {categories.map((category) => {
               const isActive = activeCategory === category.id;
               const Icon = category.icon;
@@ -254,7 +253,7 @@ const ServicesShowcase = () => {
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`w-full flex items-center gap-4 p-4 text-left transition-all duration-300 rounded-2xl border ${
+                  className={`min-w-[220px] sm:min-w-[280px] lg:min-w-0 shrink-0 flex items-center gap-3 sm:gap-4 p-3 sm:p-4 text-left transition-all duration-300 rounded-2xl border ${
                     isActive
                       ? "bg-white shadow-md shadow-indigo-100/50 border-slate-200 ring-1 ring-indigo-500/10"
                       : "bg-transparent border-transparent hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"

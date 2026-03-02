@@ -504,20 +504,20 @@ const ClientDashboard = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="mb-8 md:mb-10 bg-slate-200/50 p-1.5 rounded-2xl grid grid-cols-2 sm:inline-flex h-auto sm:h-14 border border-slate-200 shadow-inner backdrop-blur-sm">
+          <TabsList className="mb-8 md:mb-10 bg-slate-200/50 p-1.5 rounded-2xl grid grid-cols-2 sm:inline-flex h-auto sm:h-auto border border-slate-200 shadow-inner backdrop-blur-sm gap-1">
             <TabsTrigger
               value="dashboard"
-              className="px-4 sm:px-8 py-2.5 sm:py-0 rounded-xl data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm font-bold text-sm sm:text-base text-slate-500 transition-all"
+              className="px-2 sm:px-8 py-2.5 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm font-bold text-xs sm:text-base text-slate-500 transition-all truncate"
             >
-              <ClipboardCheck className="w-4 h-4 mr-2 hidden sm:inline" />
-              My Workspace
+              <ClipboardCheck className="w-4 h-4 mr-1 sm:mr-2 inline" />
+              Workspace
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="px-4 sm:px-8 py-2.5 sm:py-0 rounded-xl data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm font-bold text-sm sm:text-base text-slate-500 transition-all"
+              className="px-2 sm:px-8 py-2.5 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm font-bold text-xs sm:text-base text-slate-500 transition-all truncate"
             >
-              <BookOpen className="w-4 h-4 mr-2 hidden sm:inline" />
-              Project History
+              <BookOpen className="w-4 h-4 mr-1 sm:mr-2 inline" />
+              History
             </TabsTrigger>
           </TabsList>
 
@@ -743,7 +743,7 @@ const ClientDashboard = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-6 md:p-8 pt-0 mt-auto">
-                        <div className="flex items-center justify-between bg-slate-50 p-4 md:p-5 rounded-xl md:rounded-[1.5rem] border border-slate-100 group-hover:bg-indigo-50/50 transition-colors">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-0 bg-slate-50 p-4 md:p-5 rounded-xl md:rounded-[1.5rem] border border-slate-100 group-hover:bg-indigo-50/50 transition-colors">
                           <span className="text-slate-400 font-bold uppercase tracking-widest text-[9px] md:text-[10px]">
                             EXPERT MATCHING
                           </span>
