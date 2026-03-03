@@ -911,14 +911,16 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     currentPassword?: string,
     newPassword?: string,
   ) => {
-    if (!currentUser) return;
+    if (!currentUser?.token) return;
     try {
-      // For a real backend, you would call your API here:
-      // await api.updateProfile(name, currentPassword, newPassword, currentUser.token);
-
-      const updatedUser = { ...currentUser, name };
-      setCurrentUser(updatedUser);
-      localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+      const updatedData = await api.updateUserProfile(
+        { name, currentPassword, newPassword },
+        currentUser.token
+      );
+      
+      const userWithToken = { ...updatedData, token: currentUser.token };
+      setCurrentUser(userWithToken);
+      localStorage.setItem("userInfo", JSON.stringify(userWithToken));
       toast.success("Profile updated successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");

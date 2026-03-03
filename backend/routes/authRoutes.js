@@ -261,4 +261,53 @@ router.get("/me", protect, async (req, res) => {
   }
 });
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+router.put("/profile", protect, async (req, res) => {
+  const { name, currentPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update name if provided
+    if (name) user.name = name;
+
+    // Update password if newPassword is provided
+    if (newPassword) {
+      // Must provide currentPassword to change to a new one
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Please provide current password to update password." });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: "Incorrect current password." });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phoneNumber: updatedUser.phoneNumber,
+      role: updatedUser.role,
+      isVerified: updatedUser.isVerified,
+      message: "Profile updated successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 module.exports = router;

@@ -73,6 +73,13 @@ export const fetchMe = async (token: string) => {
   return normalize(data);
 };
 
+export const updateUserProfile = async (profileData: { name: string, currentPassword?: string, newPassword?: string }, token: string) => {
+  const response = await fetch(`${API_URL}/auth/profile`, getFetchOptions("PUT", profileData, token));
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to update profile");
+  return normalize(data);
+};
+
 // --- REQUESTS ---
 export const createRequest = async (requestData: any, token: string) => {
   const response = await fetch(`${API_URL}/requests/create`, getFetchOptions("POST", requestData, token));
