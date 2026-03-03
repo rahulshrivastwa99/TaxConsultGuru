@@ -197,6 +197,25 @@ const Profile = () => {
 
                 {currentUser.role === "ca" && (
                   <div className="pt-6 border-t border-slate-100 space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-3 opacity-80">
+                        <label className="text-sm font-bold text-slate-700 ml-1">
+                          Experience (Years)
+                        </label>
+                        <div className="h-14 bg-slate-100/50 border border-slate-200 rounded-2xl flex items-center px-4 text-slate-600 font-medium select-none cursor-default">
+                          {currentUser.experience || 0}
+                        </div>
+                      </div>
+                      <div className="space-y-3 opacity-80">
+                        <label className="text-sm font-bold text-slate-700 ml-1">
+                          Certification Status
+                        </label>
+                        <div className="h-14 bg-slate-100/50 border border-slate-200 rounded-2xl flex items-center px-4 text-slate-600 font-medium select-none cursor-default">
+                          Verified Expert
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="space-y-3">
                       <label className="text-sm font-bold text-slate-700 ml-1">
                         Professional Credentials
@@ -310,8 +329,5 @@ const Profile = () => {
     </div>
   );
 };
-
-export default Profile;
-
 
 export default Profile;
