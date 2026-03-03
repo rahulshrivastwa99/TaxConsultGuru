@@ -164,6 +164,34 @@ const Header = ({
               Login
             </Button>
 
+            {/* Mobile Contact Quick Links */}
+            <div className="flex lg:hidden items-center gap-2 mr-1">
+              <a
+                href="tel:+918595751626"
+                className="w-10 h-10 flex items-center justify-center bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
+                title="Call Us"
+              >
+                <Phone size={18} />
+              </a>
+              <a
+                href="https://wa.me/8595751626"
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                title="WhatsApp Us"
+              >
+                <img
+                  src="/Picsart_26-02-26_20-21-22-387.png"
+                  alt="WhatsApp"
+                  className="w-5 h-5 object-contain"
+                  style={{
+                    filter:
+                      "invert(16%) sepia(89%) saturate(6054%) hue-rotate(152deg) brightness(96%) contrast(101%)",
+                  }}
+                />
+              </a>
+            </div>
+
             {/* Mobile Toggle */}
             <button
               className="lg:hidden w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-slate-50 rounded-lg sm:rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors shrink-0"
