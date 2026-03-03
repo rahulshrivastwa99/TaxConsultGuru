@@ -153,6 +153,17 @@ const Profile = () => {
                   className="h-12 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-xl font-medium text-slate-900"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+                  Personal Phone Number
+                </label>
+                <div className="h-12 bg-slate-100 border border-slate-200 rounded-xl flex items-center px-4 text-slate-500 font-medium cursor-not-allowed select-none">
+                  {currentUser.phoneNumber}
+                </div>
+                <p className="text-[10px] text-slate-400 font-semibold">
+                  Phone number is verified and cannot be changed.
+                </p>
+              </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-1.5">

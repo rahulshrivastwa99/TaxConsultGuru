@@ -11,6 +11,7 @@ import {
   Building2,
   UserCircle,
   KeyRound,
+  Phone, // NEW: Added Phone icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ const AuthModal = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState(""); // NEW: Phone number state
   const [experience, setExperience] = useState<number | "">("");
   const [certifications, setCertifications] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -61,6 +63,7 @@ const AuthModal = ({
     setEmail("");
     setPassword("");
     setName("");
+    setPhoneNumber(""); // NEW: Reset phone number
     setExperience("");
     setCertifications("");
     setOtp("");
@@ -80,10 +83,19 @@ const AuthModal = ({
           setIsLoading(false);
           return;
         }
+        
+        // NEW: Phone length validation before hitting API
+        if (phoneNumber.length !== 10) {
+          toast.error("Please enter a valid 10-digit mobile number.");
+          setIsLoading(false);
+          return;
+        }
+
         await registerUser({
           name,
           email,
           password,
+          phoneNumber, // NEW: Added phone number to API payload
           role: activeTab,
           experience: activeTab === "ca" ? Number(experience) : undefined,
           certificationDetails: activeTab === "ca" ? certifications : undefined,
@@ -262,22 +274,49 @@ const AuthModal = ({
             {authStep === "form" && (
               <form onSubmit={handleInitialSubmit} className="space-y-3">
                 {isRegister && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                      Full Name
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                      <Input
-                        placeholder="e.g. John Doe"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required={isRegister}
-                        className="pl-9 h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg text-xs transition-all shadow-sm"
-                      />
+                  <>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Input
+                          placeholder="e.g. John Doe"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required={isRegister}
+                          className="pl-9 h-11 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-lg text-xs transition-all shadow-sm"
+                        />
+                      </div>
                     </div>
-                  </div>
+
+                    {/* NEW: Mobile Number Field */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                        Mobile Number
+                      </label>
+                      <div className="flex relative shadow-sm h-11">
+                        <span className="inline-flex items-center justify-center px-3 text-xs font-bold text-slate-500 bg-slate-100 border border-r-0 border-slate-200 rounded-l-lg z-10">
+                          +91
+                        </span>
+                        <div className="relative flex-1">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 z-10" />
+                          <Input
+                            type="tel"
+                            maxLength={10}
+                            placeholder="10-digit mobile number"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))} // Strips letters/symbols automatically
+                            required={isRegister}
+                            className="pl-9 h-full bg-slate-50 border-slate-200 border-l-0 focus-visible:ring-indigo-500 rounded-none rounded-r-lg text-xs transition-all w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 )}
+                
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                     Email Address
@@ -347,38 +386,43 @@ const AuthModal = ({
                   </div>
                 )}
 
-                {isRegister && (
-                  <div className="flex items-center space-x-2 py-2">
-                    <Checkbox
-                      id="terms"
-                      checked={agreedToTerms}
-                      onCheckedChange={(checked) =>
-                        setAgreedToTerms(checked as boolean)
-                      }
-                      className={
-                        activeTab === "ca"
-                          ? "data-[state=checked]:bg-emerald-600 border-slate-300"
-                          : "data-[state=checked]:bg-indigo-600 border-slate-300"
-                      }
-                    />
-                    <Label
-                      htmlFor="terms"
-                      className="text-[11px] font-medium text-slate-600 cursor-pointer leading-none"
-                    >
-                      I agree to the{" "}
-                      <a
-                        href="/terms"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`font-bold hover:underline ${activeTab === "ca" ? "text-emerald-600" : "text-indigo-600"}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Terms and Service
-                      </a>
-                    </Label>
-                  </div>
-                )}
-
+{isRegister && (
+  <div className="flex items-center space-x-2 py-2">
+    <Checkbox
+      id="terms"
+      checked={agreedToTerms}
+      onCheckedChange={(checked) =>
+        setAgreedToTerms(checked as boolean)
+      }
+      className={
+        activeTab === "ca"
+          ? "data-[state=checked]:bg-emerald-600 border-slate-300"
+          : "data-[state=checked]:bg-indigo-600 border-slate-300"
+      }
+    />
+    <Label
+      htmlFor="terms"
+      className="text-[11px] font-medium text-slate-600 cursor-pointer leading-none"
+    >
+      I agree to the{" "}
+      <a
+        href="/terms"
+        className={`font-bold hover:underline ${activeTab === "ca" ? "text-emerald-600" : "text-indigo-600"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        Terms and Service
+      </a>
+      {" "}and{" "}
+      <a
+        href="/privacy"
+        className={`font-bold hover:underline ${activeTab === "ca" ? "text-emerald-600" : "text-indigo-600"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        Privacy Policy
+      </a>
+    </Label>
+  </div>
+)}
                 <Button
                   type="submit"
                   className={`w-full h-11 text-xs font-extrabold shadow-md mt-4 rounded-lg transition-all hover:-translate-y-0.5 ${

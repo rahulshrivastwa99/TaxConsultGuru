@@ -11,6 +11,11 @@ const userSchema = mongoose.Schema(
       enum: ["client", "ca", "admin"], // Strict roles
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+      default: "0000000000", // Fallback for existing users
+    },
     // Add these to your existing User schema
     isVerified: { type: Boolean, default: false },
     otp: { type: String },

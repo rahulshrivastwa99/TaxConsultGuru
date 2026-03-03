@@ -978,7 +978,9 @@ const AdminDashboard = () => {
                                 {job.serviceName}
                               </h3>
                               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                Client: <span className="text-indigo-600">{job.clientName}</span>
+                                Client: <span className="text-indigo-600 font-black">{job.clientName}</span>
+                                <span className="mx-2 text-slate-300">|</span>
+                                Contact: <span className="text-emerald-600 font-black">{job.clientPhone}</span>
                               </p>
                             </div>
                             <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
@@ -1109,9 +1111,9 @@ const AdminDashboard = () => {
                             <p className="font-bold text-slate-800 text-base">
                               {ca.name}
                             </p>
-                            <p className="text-xs text-slate-500">
-                              {ca.email} • {ca.experience} Yrs Exp.
-                            </p>
+                             <p className="text-xs text-slate-500">
+                               {ca.email} • {ca.phoneNumber} • {ca.experience} Yrs Exp.
+                             </p>
                           </div>
                           <Button
                             size="sm"

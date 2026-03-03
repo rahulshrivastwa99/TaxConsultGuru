@@ -4,29 +4,36 @@ const Request = require("../models/Request");
 const { protect, admin } = require("../middleware/authMiddleware");
 
 // 1. Create a new Request (Client)
-router.post("/create", async (req, res) => {
+router.post("/create", protect, async (req, res) => {
+  console.log("Creating job for user:", req.user._id, "Phone:", req.user.phoneNumber);
   try {
     const newRequest = await Request.create({
       ...req.body,
+      clientId: req.user._id, // Ensure clientId matches token
+      clientPhone: req.user.phoneNumber || "0000000000", // Fallback for safety
       status: "pending_approval", // Ensure newly created requests are pending approval
     });
     
-    // Emit Socket Event to Admins
+    // Emit Socket Event to Admins - Use a lean object for consistency
     const io = req.app.get("socketio");
     if (io) {
-      io.emit("new_pending_job", newRequest);
+      io.emit("new_pending_job", newRequest.toObject());
     }
 
+    console.log("Job created successfully:", newRequest._id);
     res.status(201).json(newRequest);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// 2. Get All Requests (For Admin)
+// 2. Get All Requests (For Marketplace/CA View - Public-ish)
 router.get("/all", async (req, res) => {
   try {
-    const requests = await Request.find().sort({ createdAt: -1 });
+    // Privacy: Do NOT select clientPhone or any sensitive user details
+    const requests = await Request.find()
+      .select("-clientPhone")
+      .sort({ createdAt: -1 });
     res.json(requests);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -120,7 +127,7 @@ router.get("/:id/bids", protect, async (req, res) => {
     // Populate CA name and experience but exclude email/password/phone
     const bids = await Bid.find({ requestId: req.params.id })
       .populate("caId", "name experience certificationDetails isVerified")
-      .select("-email -phone") // Extra safety
+      .select("-email -phone -phoneNumber") // Extra safety
       .sort({ createdAt: -1 });
 
     res.json(bids);

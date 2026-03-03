@@ -20,9 +20,15 @@ const generateToken = (id) => {
 // @desc    Register a new user (Client, CA, or Admin) & Send OTP
 // @route   POST /api/auth/register
 router.post("/register", async (req, res) => {
-  const { name, email, password, role, experience, certificationDetails } = req.body;
+  // phoneNumber is extracted here
+  const { name, email, password, role , phoneNumber, experience, certificationDetails } = req.body; 
 
   try {
+    // NEW: Validation to make sure phoneNumber is compulsory
+    if (!name || !email || !password || !role || !phoneNumber) {
+      return res.status(400).json({ message: "Please fill all required fields, including Phone Number." });
+    }
+
     // 1. Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -40,6 +46,7 @@ router.post("/register", async (req, res) => {
         email,
         password: hashedPassword,
         role,
+        phoneNumber, // NEW: Added phoneNumber for Admin
         isVerified: true // Admins are automatically verified
       });
 
@@ -62,6 +69,7 @@ router.post("/register", async (req, res) => {
           name,
           password: hashedPassword,
           role,
+          phoneNumber, // NEW: Added phoneNumber to temporary holding data
           experience: role === "ca" ? experience : undefined,
           certificationDetails: role === "ca" ? certificationDetails : undefined
         }
@@ -193,8 +201,8 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "Invalid OTP." });
     }
 
-    // 2. Safely extract data
-    const { name, password, role, experience, certificationDetails } = otpRecord.pendingData;
+    // 2. Safely extract data (NEW: Extracting phoneNumber as well)
+    const { name, password, role, experience, certificationDetails, phoneNumber } = otpRecord.pendingData;
 
     // 3. Create real user in User collection
     let user = await User.findOne({ email });
@@ -204,6 +212,7 @@ router.post("/verify-otp", async (req, res) => {
         email,
         password,
         role,
+        phoneNumber, // NEW: Inserting phoneNumber into the final User document
         experience,
         certificationDetails,
         isVerified: role !== "ca" ? true : false,
@@ -240,6 +249,7 @@ router.get("/me", protect, async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phoneNumber: user.phoneNumber, // NEW: Send phone number to the frontend profile
         role: user.role,
         isVerified: user.isVerified,
       });

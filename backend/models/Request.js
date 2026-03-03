@@ -8,6 +8,7 @@ const requestSchema = mongoose.Schema(
       required: true,
     },
     clientName: { type: String, required: true },
+    clientPhone: { type: String, required: true },
     caId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     caName: { type: String },
     serviceType: { type: String, required: true }, // e.g., 'gst-filing'

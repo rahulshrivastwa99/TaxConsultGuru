@@ -48,6 +48,8 @@ router.patch("/verify-ca/:id", async (req, res) => {
 // @route   GET /api/admin/pending-jobs
 router.get("/pending-jobs", async (req, res) => {
   try {
+    // No need to populate if we store clientPhone directly, 
+    // but Request model already has it now.
     const pendingJobs = await Request.find({ status: "pending_approval" });
     res.json(pendingJobs);
   } catch (error) {

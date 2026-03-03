@@ -17,6 +17,7 @@ const seedAdmin = async () => {
         email: "taxconsultguru@gmail.com", // The Secret Login Email
         password: hashedPassword,
         role: "admin",
+        phoneNumber: "9999999999", // Added mandatory phone number
       });
 
       console.log(

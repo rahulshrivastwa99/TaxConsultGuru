@@ -10,6 +10,7 @@ const otpSchema = new mongoose.Schema(
       role: { type: String, required: true },
       experience: { type: Number },
       certificationDetails: { type: String },
+      phoneNumber: { type: String, required: true },
     },
     createdAt: { type: Date, default: Date.now, expires: 600 }, // TTL of 10 minutes (600 seconds)
   }

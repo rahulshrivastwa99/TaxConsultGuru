@@ -74,8 +74,8 @@ export const fetchMe = async (token: string) => {
 };
 
 // --- REQUESTS ---
-export const createRequest = async (requestData: any) => {
-  const response = await fetch(`${API_URL}/requests/create`, getFetchOptions("POST", requestData));
+export const createRequest = async (requestData: any, token: string) => {
+  const response = await fetch(`${API_URL}/requests/create`, getFetchOptions("POST", requestData, token));
   return normalize(await response.json());
 };
 

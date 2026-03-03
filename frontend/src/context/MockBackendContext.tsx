@@ -29,6 +29,7 @@ export interface User {
   isVerified?: boolean;
   experience?: number;
   certificationDetails?: string;
+  phoneNumber?: string;
 }
 
 export interface ServiceRequest {
@@ -57,6 +58,7 @@ export interface ServiceRequest {
   hiredCA?: string;
   isWorkspaceUnlocked?: boolean;
   isArchived?: boolean;
+  clientPhone?: string;
 }
 
 export interface Bid {
@@ -335,7 +337,8 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   // Format Helpers
   const formatRequest = (r: any): ServiceRequest => ({
     ...r,
-    id: r.id || r._id,
+    id: (r.id || r._id).toString(),
+    clientId: (r.clientId?._id || r.clientId || "").toString(),
     createdAt: new Date(r.createdAt),
     updatedAt: new Date(r.updatedAt || r.createdAt),
   });
@@ -488,6 +491,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     socket.on("new_pending_job", (newJob: any) => {
       const formatted = formatRequest(newJob);
       setRequests((prev) => [formatted, ...prev]);
+      setPendingJobs((prev) => [formatted, ...prev]); // Add to pendingJobs for Admin
       if (currentUser?.role === "admin") {
         toast.info(`New Job Posted: ${formatted.serviceName}`);
       }
@@ -748,6 +752,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     budget: number,
     expectedBudget?: number,
   ) => {
+    if (!currentUser?.token) return;
     try {
       const newReq = await api.createRequest({
         clientId,
@@ -757,8 +762,11 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
         description,
         budget,
         expectedBudget,
-      });
+      }, currentUser.token);
+      
       socket.emit("new_request", newReq); // Emit for real-time
+      await refreshData(); // Sync local state
+      toast.success("Job request posted successfully!");
     } catch (e) {
       toast.error("Failed to create request");
     }
