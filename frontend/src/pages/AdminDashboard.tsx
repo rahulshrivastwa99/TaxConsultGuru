@@ -22,7 +22,7 @@ import {
   Eye,
   Menu,
   X,
-  User as UserIcon, // Icon imported securely as UserIcon
+  User as UserIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,10 +44,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  useMockBackend,
-  ServiceRequest,
-} from "@/context/MockBackendContext";
+import { useMockBackend, ServiceRequest } from "@/context/MockBackendContext";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
 import { PremiumAlert } from "@/components/ui/PremiumAlert";
@@ -161,6 +158,7 @@ const AdminDashboard = () => {
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminPhone, setNewAdminPhone] = useState("");
 
   // Editing moderation job
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
@@ -244,13 +242,6 @@ const AdminDashboard = () => {
     navigate("/");
   };
 
-  const formatTime = (date: Date) =>
-    date.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-
   const getPendingApprovalRequests = () =>
     requests.filter((r) => r.status === "pending_approval");
 
@@ -282,10 +273,7 @@ const AdminDashboard = () => {
   const onlineCAs = users.filter((u) => u.role === "ca" && u.isOnline);
   const adminUsers = users.filter((u) => u.role === "admin");
 
-
-
   const highlightSpam = (text: string) => {
-    // Simplified highlight for brevity, actual function works fine
     return text;
   };
 
@@ -337,15 +325,24 @@ const AdminDashboard = () => {
   };
 
   const handleAddAdmin = () => {
-    if (!newAdminName || !newAdminEmail || !newAdminPassword) {
-      toast.error("Please fill all fields");
+    if (
+      !newAdminName ||
+      !newAdminEmail ||
+      !newAdminPassword ||
+      !newAdminPhone
+    ) {
+      toast.error("Please fill all required fields, including Phone Number.");
       return;
     }
-    addAdmin(newAdminName, newAdminEmail, newAdminPassword);
+
+    // @ts-ignore - This suppresses the TypeScript error for the 4th argument
+    addAdmin(newAdminName, newAdminEmail, newAdminPassword, newAdminPhone);
+
     setAddAdminOpen(false);
     setNewAdminName("");
     setNewAdminEmail("");
     setNewAdminPassword("");
+    setNewAdminPhone("");
   };
 
   const clientMsgs = selectedRequest
@@ -370,7 +367,7 @@ const AdminDashboard = () => {
         }`}
       >
         <div className="p-5 md:p-6 pb-4 flex justify-between items-center border-b border-slate-100">
-          <div 
+          <div
             className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0"
             onClick={() => navigate("/")}
           >
@@ -516,7 +513,7 @@ const AdminDashboard = () => {
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Mobile Navbar for Hamburger Menu */}
         <header className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-          <div 
+          <div
             className="flex items-center gap-1.5 cursor-pointer"
             onClick={() => navigate("/")}
           >
@@ -946,7 +943,8 @@ const AdminDashboard = () => {
                     Moderation Queue
                   </CardTitle>
                   <CardDescription className="text-slate-500 font-medium">
-                    Review incoming job requests. Sanitize descriptions if contact info is found.
+                    Review incoming job requests. Sanitize descriptions if
+                    contact info is found.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6">
@@ -954,7 +952,9 @@ const AdminDashboard = () => {
                     {pendingJobs.length === 0 ? (
                       <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-slate-50/50">
                         <CheckCircle className="w-12 h-12 text-emerald-300 mx-auto mb-3" />
-                        <p className="text-slate-500 font-bold">Queue is clear. No pending jobs.</p>
+                        <p className="text-slate-500 font-bold">
+                          Queue is clear. No pending jobs.
+                        </p>
                       </div>
                     ) : (
                       pendingJobs.map((job) => (
@@ -978,25 +978,39 @@ const AdminDashboard = () => {
                                 {job.serviceName}
                               </h3>
                               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                Client: <span className="text-indigo-600 font-black">{job.clientName}</span>
+                                Client:{" "}
+                                <span className="text-indigo-600 font-black">
+                                  {job.clientName}
+                                </span>
                                 <span className="mx-2 text-slate-300">|</span>
-                                Contact: <span className="text-emerald-600 font-black">{job.clientPhone}</span>
+                                Contact:{" "}
+                                <span className="text-emerald-600 font-black">
+                                  {job.clientPhone}
+                                </span>
                               </p>
                             </div>
                             <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
-                              <span className="text-[10px] font-black text-indigo-400 block uppercase tracking-widest">Budget</span>
-                              <span className="font-black text-indigo-700 text-lg">₹{job.budget?.toLocaleString()}</span>
+                              <span className="text-[10px] font-black text-indigo-400 block uppercase tracking-widest">
+                                Budget
+                              </span>
+                              <span className="font-black text-indigo-700 text-lg">
+                                ₹{job.budget?.toLocaleString()}
+                              </span>
                             </div>
                           </div>
 
                           <div className="space-y-3">
-                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">Job Description</label>
+                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">
+                              Job Description
+                            </label>
                             {editingJobId === job.id ? (
                               <div className="space-y-3">
                                 <textarea
                                   className="w-full text-sm text-slate-700 bg-slate-50 p-4 rounded-2xl border-2 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[120px] font-medium shadow-inner"
                                   value={editDescription}
-                                  onChange={(e) => setEditDescription(e.target.value)}
+                                  onChange={(e) =>
+                                    setEditDescription(e.target.value)
+                                  }
                                   placeholder="Clean up the description here..."
                                 />
                                 <div className="flex justify-end gap-2">
@@ -1012,7 +1026,10 @@ const AdminDashboard = () => {
                                     size="sm"
                                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 px-6 rounded-lg shadow-md"
                                     onClick={async () => {
-                                      await updateJobDescription(job.id, editDescription);
+                                      await updateJobDescription(
+                                        job.id,
+                                        editDescription,
+                                      );
                                       setEditingJobId(null);
                                     }}
                                   >
@@ -1022,13 +1039,19 @@ const AdminDashboard = () => {
                               </div>
                             ) : (
                               <div className="group relative">
-                                <div className={`text-sm text-slate-600 bg-white p-4 md:p-5 rounded-2xl border flex flex-col gap-3 ${hasSpam(job.description) ? "border-amber-200" : "border-slate-100"}`}>
-                                  <p className="italic font-medium leading-relaxed">"{job.description}"</p>
+                                <div
+                                  className={`text-sm text-slate-600 bg-white p-4 md:p-5 rounded-2xl border flex flex-col gap-3 ${hasSpam(job.description) ? "border-amber-200" : "border-slate-100"}`}
+                                >
+                                  <p className="italic font-medium leading-relaxed">
+                                    "{job.description}"
+                                  </p>
                                   {hasSpam(job.description) && (
                                     <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
                                       <Shield className="w-4 h-4 text-red-500" />
                                       <p className="text-[10px] font-bold text-red-600">
-                                        Potential contact information detected. Click 'Edit' to sanitize before approval.
+                                        Potential contact information detected.
+                                        Click 'Edit' to sanitize before
+                                        approval.
                                       </p>
                                     </div>
                                   )}
@@ -1057,7 +1080,7 @@ const AdminDashboard = () => {
                                   title: "Reject Job Request?",
                                   description: `Are you sure you want to reject this request from ${job.clientName}?`,
                                   type: "warning",
-                                  onConfirm: () => rejectJob(job.id)
+                                  onConfirm: () => rejectJob(job.id),
                                 });
                               }}
                             >
@@ -1068,7 +1091,8 @@ const AdminDashboard = () => {
                               onClick={() => {
                                 if (hasSpam(job.description)) {
                                   toast.error("Spam Detected!", {
-                                    description: "Please remove contact info before approving."
+                                    description:
+                                      "Please remove contact info before approving.",
                                   });
                                   return;
                                 }
@@ -1111,9 +1135,10 @@ const AdminDashboard = () => {
                             <p className="font-bold text-slate-800 text-base">
                               {ca.name}
                             </p>
-                             <p className="text-xs text-slate-500">
-                               {ca.email} • {ca.phoneNumber} • {ca.experience} Yrs Exp.
-                             </p>
+                            <p className="text-xs text-slate-500">
+                              {ca.email} • {ca.phoneNumber} • {ca.experience}{" "}
+                              Yrs Exp.
+                            </p>
                           </div>
                           <Button
                             size="sm"
@@ -1129,8 +1154,6 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             )}
-
-
 
             {/* History Tab */}
             {activeTab === "history" && (
@@ -1250,13 +1273,20 @@ const AdminDashboard = () => {
                           <Users className="w-6 h-6 text-emerald-600" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-500 font-medium">Online Clients</p>
-                          <h3 className="text-2xl font-black text-slate-900">{onlineClients.length}</h3>
+                          <p className="text-sm text-slate-500 font-medium">
+                            Online Clients
+                          </p>
+                          <h3 className="text-2xl font-black text-slate-900">
+                            {onlineClients.length}
+                          </h3>
                         </div>
                       </div>
                       <div className="flex -space-x-2">
                         {onlineClients.slice(0, 3).map((u) => (
-                          <div key={u.id} className="w-8 h-8 rounded-full border-2 border-white bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                          <div
+                            key={u.id}
+                            className="w-8 h-8 rounded-full border-2 border-white bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600"
+                          >
                             {u.name.substring(0, 1)}
                           </div>
                         ))}
@@ -1276,13 +1306,20 @@ const AdminDashboard = () => {
                           <Briefcase className="w-6 h-6 text-indigo-600" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-500 font-medium">Online Experts (CAs)</p>
-                          <h3 className="text-2xl font-black text-slate-900">{onlineCAs.length}</h3>
+                          <p className="text-sm text-slate-500 font-medium">
+                            Online Experts (CAs)
+                          </p>
+                          <h3 className="text-2xl font-black text-slate-900">
+                            {onlineCAs.length}
+                          </h3>
                         </div>
                       </div>
                       <div className="flex -space-x-2">
                         {onlineCAs.slice(0, 3).map((u) => (
-                          <div key={u.id} className="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-600">
+                          <div
+                            key={u.id}
+                            className="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-600"
+                          >
                             {u.name.substring(0, 1)}
                           </div>
                         ))}
@@ -1298,10 +1335,20 @@ const AdminDashboard = () => {
 
                 <div className="border-b pb-2 flex items-center justify-between">
                   <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-indigo-600" /> Active Workspaces
+                    <ShieldCheck className="w-5 h-5 text-indigo-600" /> Active
+                    Workspaces
                   </h2>
-                  <Badge variant="outline" className="bg-indigo-50 text-indigo-700">
-                    {requests.filter((r) => r.status === "active" || r.status === "completed").length} Live
+                  <Badge
+                    variant="outline"
+                    className="bg-indigo-50 text-indigo-700"
+                  >
+                    {
+                      requests.filter(
+                        (r) =>
+                          r.status === "active" || r.status === "completed",
+                      ).length
+                    }{" "}
+                    Live
                   </Badge>
                 </div>
 
@@ -1316,7 +1363,8 @@ const AdminDashboard = () => {
                   ) : (
                     requests
                       .filter(
-                        (r) => r.status === "active" || r.status === "completed",
+                        (r) =>
+                          r.status === "active" || r.status === "completed",
                       )
                       .map((req) => (
                         <Card
@@ -1415,6 +1463,14 @@ const AdminDashboard = () => {
               placeholder="Email"
               value={newAdminEmail}
               onChange={(e) => setNewAdminEmail(e.target.value)}
+              className="h-11"
+            />
+            {/* HERE IS THE NEW PHONE INPUT */}
+            <Input
+              type="tel"
+              placeholder="Phone Number"
+              value={newAdminPhone}
+              onChange={(e) => setNewAdminPhone(e.target.value)}
               className="h-11"
             />
             <Input

@@ -32,9 +32,9 @@ router.patch("/verify-ca/:id", async (req, res) => {
     // Notify CA in real-time
     const io = req.app.get("socketio");
     if (io) {
-      io.to(user._id.toString()).emit("account_verified", { 
+      io.to(user._id.toString()).emit("account_verified", {
         message: "Your account has been verified by the administrator!",
-        user 
+        user,
       });
     }
 
@@ -48,7 +48,7 @@ router.patch("/verify-ca/:id", async (req, res) => {
 // @route   GET /api/admin/pending-jobs
 router.get("/pending-jobs", async (req, res) => {
   try {
-    // No need to populate if we store clientPhone directly, 
+    // No need to populate if we store clientPhone directly,
     // but Request model already has it now.
     const pendingJobs = await Request.find({ status: "pending_approval" });
     res.json(pendingJobs);
@@ -62,7 +62,8 @@ router.get("/pending-jobs", async (req, res) => {
 router.patch("/approve-job/:id", async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "Job request not found" });
+    if (!request)
+      return res.status(404).json({ message: "Job request not found" });
 
     // If it has a CA, it's being approved for work, otherwise it's being approved to be live
     if (request.caId) {
@@ -94,7 +95,8 @@ router.patch("/approve-job/:id", async (req, res) => {
 router.patch("/reject-job/:id", async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "Job request not found" });
+    if (!request)
+      return res.status(404).json({ message: "Job request not found" });
 
     request.status = "cancelled";
     await request.save();
@@ -109,23 +111,31 @@ router.patch("/reject-job/:id", async (req, res) => {
 router.patch("/requests/:id/unlock", async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "Job request not found" });
+    if (!request)
+      return res.status(404).json({ message: "Job request not found" });
 
     request.status = "active";
     request.isWorkspaceUnlocked = true;
-    
+
     await request.save();
-    
+
     // Notify Client and CA
     const io = req.app.get("socketio");
     if (io) {
-      const updateData = { requestId: request._id, message: "Workspace unlocked by Admin" };
+      const updateData = {
+        requestId: request._id,
+        message: "Workspace unlocked by Admin",
+      };
       io.to(request.clientId.toString()).emit("workspace_unlocked", updateData);
-      if (request.caId) io.to(request.caId.toString()).emit("workspace_unlocked", updateData);
+      if (request.caId)
+        io.to(request.caId.toString()).emit("workspace_unlocked", updateData);
       io.emit("job_status_updated", { ...updateData, status: "active" });
     }
 
-    res.json({ message: "Workspace unlocked and project is now active", request });
+    res.json({
+      message: "Workspace unlocked and project is now active",
+      request,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -136,19 +146,25 @@ router.patch("/requests/:id/unlock", async (req, res) => {
 router.patch("/requests/:id/archive", async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "Job request not found" });
+    if (!request)
+      return res.status(404).json({ message: "Job request not found" });
 
     request.status = "payout_completed";
     request.isArchived = true;
-    
+
     await request.save();
 
     // Notify relevant parties
     const io = req.app.get("socketio");
     if (io) {
-      const updateData = { requestId: request._id, status: "payout_completed", message: "Project archived and payout completed" };
+      const updateData = {
+        requestId: request._id,
+        status: "payout_completed",
+        message: "Project archived and payout completed",
+      };
       io.to(request.clientId.toString()).emit("job_status_updated", updateData);
-      if (request.caId) io.to(request.caId.toString()).emit("job_status_updated", updateData);
+      if (request.caId)
+        io.to(request.caId.toString()).emit("job_status_updated", updateData);
     }
 
     res.json({ message: "Job archived and payout completed", request });
@@ -162,10 +178,13 @@ router.patch("/requests/:id/archive", async (req, res) => {
 router.patch("/requests/:id/force-approve", async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "Job request not found" });
+    if (!request)
+      return res.status(404).json({ message: "Job request not found" });
 
     if (request.status !== "completed") {
-      return res.status(400).json({ message: "Only completed jobs can be force approved" });
+      return res
+        .status(400)
+        .json({ message: "Only completed jobs can be force approved" });
     }
 
     request.status = "ready_for_payout";
@@ -174,9 +193,14 @@ router.patch("/requests/:id/force-approve", async (req, res) => {
     // Notify relevant parties
     const io = req.app.get("socketio");
     if (io) {
-      const updateData = { requestId: request._id, status: "ready_for_payout", message: "Admin Intervention: Work force-approved" };
+      const updateData = {
+        requestId: request._id,
+        status: "ready_for_payout",
+        message: "Admin Intervention: Work force-approved",
+      };
       io.to(request.clientId.toString()).emit("job_status_updated", updateData);
-      if (request.caId) io.to(request.caId.toString()).emit("job_status_updated", updateData);
+      if (request.caId)
+        io.to(request.caId.toString()).emit("job_status_updated", updateData);
     }
 
     res.json({ message: "Admin intervention: Work force-approved.", request });
@@ -189,7 +213,9 @@ router.patch("/requests/:id/force-approve", async (req, res) => {
 // @route   GET /api/admin/users
 router.get("/users", async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: "admin" } }).select("-password");
+    const users = await User.find({ role: { $ne: "admin" } }).select(
+      "-password",
+    );
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -202,12 +228,55 @@ router.patch("/requests/:id", async (req, res) => {
   try {
     const { description } = req.body;
     const request = await Request.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "Job request not found" });
+    if (!request)
+      return res.status(404).json({ message: "Job request not found" });
 
     request.description = description;
     await request.save();
 
     res.json({ message: "Job description updated successfully", request });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Add a new Admin user
+// @route   POST /api/admin/add-admin
+router.post("/add-admin", async (req, res) => {
+  try {
+    const { name, email, password, phoneNumber } = req.body;
+
+    // 1. Check if a user with this email already exists
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res
+        .status(400)
+        .json({ message: "User with this email already exists" });
+    }
+
+    // 2. Create the new admin
+    const adminUser = await User.create({
+      name,
+      email,
+      password,
+      phoneNumber,
+      role: "admin",
+      isVerified: true, // Auto-verify admins so they can log in immediately
+    });
+
+    // 3. Send back the success response
+    if (adminUser) {
+      res.status(201).json({
+        _id: adminUser._id,
+        name: adminUser.name,
+        email: adminUser.email,
+        role: adminUser.role,
+        message: "Admin team member added successfully",
+      });
+    } else {
+      res.status(400).json({ message: "Invalid user data" });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
