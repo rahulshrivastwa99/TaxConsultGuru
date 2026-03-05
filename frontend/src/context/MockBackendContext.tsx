@@ -303,7 +303,13 @@ interface BackendContextType {
   ) => Promise<void>;
   forwardToClient: (requestId: string, messageId: string) => Promise<void>;
   forwardToCA: (requestId: string, messageId: string) => Promise<void>;
-  addAdmin: (name: string, email: string, password: string) => void;
+  // UPDATED INTERFACE TO INCLUDE PHONE
+  addAdmin: (
+    name: string,
+    email: string,
+    password: string,
+    phone: string,
+  ) => void;
   refreshData: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateProfile: (
@@ -361,34 +367,37 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     };
   };
 
-  const fetchMessagesForRequest = useCallback(async (requestId: string) => {
-    if (!currentUser?.token || !requestId) return;
-    try {
-      const msgs = await api.fetchMessagesAPI(requestId, currentUser.token);
-      const formatted = msgs.map(formatMessage);
-      
-      setAllMessages((prev) => {
-        // Create a map of existing messages for efficiency
-        const messageMap = new Map(prev.map(m => [m.id, m]));
-        let hasNew = false;
-        
-        formatted.forEach(m => {
-          if (!messageMap.has(m.id)) {
-            messageMap.set(m.id, m);
-            hasNew = true;
-          }
+  const fetchMessagesForRequest = useCallback(
+    async (requestId: string) => {
+      if (!currentUser?.token || !requestId) return;
+      try {
+        const msgs = await api.fetchMessagesAPI(requestId, currentUser.token);
+        const formatted = msgs.map(formatMessage);
+
+        setAllMessages((prev) => {
+          // Create a map of existing messages for efficiency
+          const messageMap = new Map(prev.map((m) => [m.id, m]));
+          let hasNew = false;
+
+          formatted.forEach((m) => {
+            if (!messageMap.has(m.id)) {
+              messageMap.set(m.id, m);
+              hasNew = true;
+            }
+          });
+
+          if (!hasNew) return prev;
+
+          return Array.from(messageMap.values()).sort(
+            (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+          );
         });
-        
-        if (!hasNew) return prev;
-        
-        return Array.from(messageMap.values()).sort(
-          (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-        );
-      });
-    } catch (e) {
-      console.error(`Failed to fetch messages for request ${requestId}`, e);
-    }
-  }, [currentUser?.token]);
+      } catch (e) {
+        console.error(`Failed to fetch messages for request ${requestId}`, e);
+      }
+    },
+    [currentUser?.token],
+  );
 
   const refreshUser = useCallback(async () => {
     if (!currentUser?.token) return;
@@ -407,13 +416,13 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     try {
       // 0. Sync user state (verification etc)
       await refreshUser();
-      
+
       // 1. Fetch Requests only (Granular message fetching handled by components)
       const reqs = await api.fetchRequests();
       const formattedReqs = reqs.map(formatRequest);
       setRequests(formattedReqs);
-      
-      // OPTIONAL: If you still need initial messages for some reason, 
+
+      // OPTIONAL: If you still need initial messages for some reason,
       // do it only for the most recent or active ones, or not at all here.
       // For now, let's keep it disabled to stop the 429 loop.
     } catch (e) {
@@ -432,7 +441,7 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
       setPendingCAs(pCAs);
       setPendingJobs(pJobs);
       setUsers(allUsers);
-      
+
       // Request initial online users list
       socket.emit("get_online_users");
     } catch (e) {
@@ -754,16 +763,19 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
   ) => {
     if (!currentUser?.token) return;
     try {
-      const newReq = await api.createRequest({
-        clientId,
-        clientName,
-        serviceType,
-        serviceName,
-        description,
-        budget,
-        expectedBudget,
-      }, currentUser.token);
-      
+      const newReq = await api.createRequest(
+        {
+          clientId,
+          clientName,
+          serviceType,
+          serviceName,
+          description,
+          budget,
+          expectedBudget,
+        },
+        currentUser.token,
+      );
+
       socket.emit("new_request", newReq); // Emit for real-time
       await refreshData(); // Sync local state
       toast.success("Job request posted successfully!");
@@ -894,11 +906,24 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     toast.success("Forwarded to CA");
   };
 
-  // --- FIX: ADD ADMIN FUNCTIONALITY ---
-  const addAdmin = async (name: string, email: string, password: string) => {
+  // --- FIX: ADD ADMIN FUNCTIONALITY (NOW ACCEPTS PHONE) ---
+  const addAdmin = async (
+    name: string,
+    email: string,
+    password: string,
+    phone: string,
+  ) => {
     try {
-      // Directly call API to register a new admin without logging out the current user
-      await api.registerUser({ name, email, password, role: "admin" });
+      // NOTE: Make sure your api.registerUser handles the phoneNumber properly
+      // Or if you want to explicitly use the /admin/add-admin route you might need a new API helper
+      // assuming api.registerUser can pass arbitrary fields like phoneNumber:
+      await api.registerUser({
+        name,
+        email,
+        password,
+        role: "admin",
+        phoneNumber: phone,
+      });
       toast.success("New Admin added successfully");
     } catch (error: any) {
       toast.error(error.message || "Failed to add admin");
@@ -915,9 +940,9 @@ export const MockBackendProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const updatedData = await api.updateUserProfile(
         { name, currentPassword, newPassword },
-        currentUser.token
+        currentUser.token,
       );
-      
+
       const userWithToken = { ...updatedData, token: currentUser.token };
       setCurrentUser(userWithToken);
       localStorage.setItem("userInfo", JSON.stringify(userWithToken));
