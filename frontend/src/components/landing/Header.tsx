@@ -27,20 +27,20 @@ const Header = ({
   return (
     <header className="fixed top-0 w-full z-50 transition-all duration-300 py-4 px-2 sm:px-6 mt-2">
       <div className="container mx-auto">
-        <div className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-2xl h-16 sm:h-20 px-3 sm:px-6 flex items-center justify-between">
+        <div className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-2xl h-16 sm:h-20 px-2 sm:px-6 flex items-center justify-between">
           {/* Logo */}
           <div
-            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group min-w-0 mr-2"
+            className="flex items-center gap-1 sm:gap-3 cursor-pointer group shrink-0 mr-1 sm:mr-2"
             onClick={onLogoClick}
           >
             <img
               src="/Picsart_26-03-01_10-01-28-347.png"
               alt="TaxConsultGuru Logo"
-              className="w-12 h-12 object-contain"
+              className="w-9 h-9 sm:w-12 sm:h-12 object-contain shrink-0"
             />
-            <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+            <span className="text-[13px] sm:text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors whitespace-nowrap">
               TaxConsult
-              <span className="text-base sm:text-xl lg:text-2xl font-black tracking-tight text-indigo-600 group-hover:text-black transition-colors truncate">
+              <span className="text-[13px] sm:text-xl lg:text-2xl font-black tracking-tight text-indigo-600 group-hover:text-black transition-colors">
                 Guru
               </span>
             </span>
@@ -63,7 +63,7 @@ const Header = ({
           </nav>
 
           {/* Contacts & Actions */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
             {/* Contact Pill with Dropdown */}
             <div
               className="hidden lg:block relative"
@@ -165,25 +165,25 @@ const Header = ({
             </Button>
 
             {/* Mobile Contact Quick Links */}
-            <div className="flex lg:hidden items-center gap-2 mr-1">
+            <div className="flex lg:hidden items-center gap-1.5 mr-0.5">
               <a
                 href="tel:+918595751626"
-                className="w-10 h-10 flex items-center justify-center bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
                 title="Call Us"
               >
-                <Phone size={18} />
+                <Phone size={16} className="sm:w-[18px] sm:h-[18px]" />
               </a>
               <a
                 href="https://wa.me/8595751626"
                 target="_blank"
                 rel="noreferrer"
-                className="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
                 title="WhatsApp Us"
               >
                 <img
                   src="/Picsart_26-02-26_20-21-22-387.png"
                   alt="WhatsApp"
-                  className="w-5 h-5 object-contain"
+                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
                   style={{
                     filter:
                       "invert(16%) sepia(89%) saturate(6054%) hue-rotate(152deg) brightness(96%) contrast(101%)",
@@ -194,10 +194,10 @@ const Header = ({
 
             {/* Mobile Toggle */}
             <button
-              className="lg:hidden w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-slate-50 rounded-lg sm:rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors shrink-0"
+              className="lg:hidden w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center bg-slate-50 rounded-lg sm:rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileMenuOpen ? <X size={18} className="sm:w-5 sm:h-5" /> : <Menu size={18} className="sm:w-5 sm:h-5" />}
             </button>
           </div>
         </div>
