@@ -49,6 +49,13 @@ const Landing = () => {
     setLoginOpen(true);
   };
 
+  const onServiceClick = (service: string) => {
+    console.log(`Service selected for signup: ${service}`);
+    setActiveTab("client");
+    setIsRegister(true);
+    setLoginOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-500/20 overflow-x-hidden flex flex-col">
       {/* --- INJECTED CUSTOM CSS FOR SMOOTH FLOATING ANIMATIONS --- */}
@@ -74,10 +81,7 @@ const Landing = () => {
 
       <Hero
         onLearnMoreClick={handleGetStartedClick}
-        onServiceClick={(service) => {
-          console.log(`Selected service: ${service}`);
-          handleServicesClick();
-        }}
+        onServiceClick={onServiceClick}
       />
 
       {/* SHIFTED LAYOUT FOR A PROFESSIONAL FLOW:
@@ -90,7 +94,7 @@ const Landing = () => {
 
       <HowItWorks />
 
-      <ServicesShowcase />
+      <ServicesShowcase onServiceClick={onServiceClick} />
 
       <Footer onLogoClick={handleLogoClick} />
 

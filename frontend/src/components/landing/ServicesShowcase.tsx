@@ -214,7 +214,11 @@ const servicesData: Record<string, any[]> = {
   ],
 };
 
-const ServicesShowcase = () => {
+interface ServicesShowcaseProps {
+  onServiceClick?: (service: string) => void;
+}
+
+const ServicesShowcase = ({ onServiceClick }: ServicesShowcaseProps = {}) => {
   const [activeCategory, setActiveCategory] = useState("business");
 
   return (
@@ -299,6 +303,7 @@ const ServicesShowcase = () => {
               {servicesData[activeCategory].map((service, index) => (
                 <div
                   key={index}
+                  onClick={() => onServiceClick?.(service.title)}
                   className="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-indigo-100 hover:border-indigo-300 transition-all duration-300 flex flex-col h-full cursor-pointer"
                 >
                   <div className="flex items-start gap-4 mb-4">
