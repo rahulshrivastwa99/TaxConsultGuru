@@ -143,7 +143,7 @@ const Header = ({
                           Need a quick help? Leave us a message
                         </p>
                         <a
-                          href="https://wa.me/8595751626"
+                          href="https://wa.me/+918595751626"
                           target="_blank"
                           rel="noreferrer"
                           className="text-[11px] font-black text-indigo-600 flex items-center gap-1"
@@ -174,7 +174,7 @@ const Header = ({
                 <Phone size={16} className="sm:w-[18px] sm:h-[18px]" />
               </a>
               <a
-                href="https://wa.me/8595751626"
+                href="https://wa.me/+918595751626"
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
@@ -197,7 +197,11 @@ const Header = ({
               className="lg:hidden w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center bg-slate-50 rounded-lg sm:rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X size={18} className="sm:w-5 sm:h-5" /> : <Menu size={18} className="sm:w-5 sm:h-5" />}
+              {mobileMenuOpen ? (
+                <X size={18} className="sm:w-5 sm:h-5" />
+              ) : (
+                <Menu size={18} className="sm:w-5 sm:h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -244,7 +248,7 @@ const Header = ({
                 <span className="text-[10px] font-bold">Email</span>
               </a>
               <a
-                href="https://wa.me/8595751626"
+                href="https://wa.me/+918595751626"
                 target="_blank"
                 rel="noreferrer"
                 className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 active:scale-95 transition-all"
