@@ -9,6 +9,8 @@ import {
   ArrowLeft,
   Loader2,
   Save,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +35,10 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !currentUser) {
@@ -247,13 +253,26 @@ const Profile = () => {
                   <label className="text-sm font-bold text-slate-700 ml-1">
                     Current Password
                   </label>
-                  <Input
-                    type="password"
-                    placeholder="Enter current password to verify"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="h-14 bg-slate-50 border-slate-200 focus-visible:ring-amber-600 focus-visible:ring-offset-0 rounded-2xl font-medium text-base"
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showCurrentPassword ? "text" : "password"}
+                      placeholder="Enter current password to verify"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="h-14 bg-slate-50 border-slate-200 focus-visible:ring-amber-600 focus-visible:ring-offset-0 rounded-2xl font-medium text-base pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-600 transition-colors"
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -261,25 +280,51 @@ const Profile = () => {
                     <label className="text-sm font-bold text-slate-700 ml-1">
                       New Password
                     </label>
-                    <Input
-                      type="password"
-                      placeholder="Min. 6 characters"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 focus-visible:ring-offset-0 rounded-2xl font-medium text-base"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showNewPassword ? "text" : "password"}
+                        placeholder="Min. 6 characters"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 focus-visible:ring-offset-0 rounded-2xl font-medium text-base pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <label className="text-sm font-bold text-slate-700 ml-1">
                       Confirm New Password
                     </label>
-                    <Input
-                      type="password"
-                      placeholder="Repeat new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 focus-visible:ring-offset-0 rounded-2xl font-medium text-base"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Repeat new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="h-14 bg-slate-50 border-slate-200 focus-visible:ring-indigo-600 focus-visible:ring-offset-0 rounded-2xl font-medium text-base pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
